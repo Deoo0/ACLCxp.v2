@@ -197,6 +197,49 @@ const ConnectivityTest = () => {
         </ul>
         <p><strong>Pro tip:</strong> Open browser DevTools (F12) → Network tab to see detailed request info</p>
       </div>
+      
+      {/* Additional Information */}
+      <div style={{
+        marginTop: '40px',
+        padding: '20px',
+        background: '#1a1a1a',
+        color: '#ffffff',
+        borderRadius: '10px',
+        fontSize: '14px'
+      }}>
+        <h2>📘 Additional Information</h2>
+
+        <p>
+          This connectivity test component is used to verify the communication
+          between the React frontend and Django backend API.
+        </p>
+
+        <h3>⚙️ What this component tests:</h3>
+        <ul>
+          <li><strong>Health Check (GET):</strong> Ensures backend server is running</li>
+          <li><strong>Echo Test (POST):</strong> Confirms data can be sent and received</li>
+          <li><strong>API Integration:</strong> Validates Axios configuration</li>
+        </ul>
+
+        <h3>🔌 Expected Backend Endpoints:</h3>
+        <ul>
+          <li><code>/api/health/</code> → Returns system status</li>
+          <li><code>/api/echo/</code> → Returns received message</li>
+        </ul>
+
+        <h3>🧠 Notes:</h3>
+        <ul>
+          <li>If tests fail, check if Django server is running (python manage.py runserver)</li>
+          <li>Ensure CORS is enabled in backend settings</li>
+          <li>Make sure API base URL in .env is correct</li>
+          <li>Network tab in DevTools helps debug requests</li>
+        </ul>
+
+        <p style={{ marginTop: '10px', opacity: 0.7 }}>
+          Built for debugging and development purposes only.
+        </p>
+      </div>
+
     </div>
   );
 };
