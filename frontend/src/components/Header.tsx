@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import logo from "../assets/aclcxp-logo.png";
@@ -59,12 +60,12 @@ export default function Header() {
                 </div>
 
                 {/* Login Button */}
-                <a
-                    href="#login"
+                <Link
+                    to="/login"
                     className="px-2 py-1 bg-white text-[#2E308E] hover:bg-gray-100 rounded-lg font-semibold text-sm transition-colors duration-200"
                 >
                     Log-in
-                </a>
+                </Link>
             </div>
         </header>
     );

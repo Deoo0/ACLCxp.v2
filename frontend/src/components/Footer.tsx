@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { FaFacebook } from "react-icons/fa";
 import { FaPhone } from "react-icons/fa";
 import { FaEnvelope } from "react-icons/fa";
@@ -28,9 +29,9 @@ export default function Footer() {
                         >
                             Privacy Policy
                         </a>
-                        <a href="#connectivity" className="text-white hover:text-indigo-400">
+                        <Link to="/connectivity" className="text-white hover:text-indigo-400">
                             Connectivity Test
-                        </a>
+                        </Link>
                     </nav>
                 </div>
 
