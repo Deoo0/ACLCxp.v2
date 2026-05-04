@@ -3,7 +3,7 @@ from django.db import models
 from apps.core.models import BaseModel
 
 class House(BaseModel):
-    """Houses: Phoenix, Griffin, Dragon, Titan, Pegasus"""
+    """Houses: Giallio, Vierrdy, Azul, Cahel, Roxxo"""
     
     name = models.CharField(max_length=50, unique=True, db_index=True)
     description = models.TextField(blank=True)
