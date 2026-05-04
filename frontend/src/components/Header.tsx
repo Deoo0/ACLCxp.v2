@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import logo from "../assets/aclcxp-logo.png";
 
 export default function Header() {
     const navigate = useNavigate();
@@ -50,7 +49,7 @@ export default function Header() {
                     className="flex items-center gap-2 cursor-pointer"
                 >
                     <img
-                        src={logo}
+                        src="aclcxp-logo.png"
                         alt="ACLCxp Logo"
                         className="w-12 h-12 object-contain"
                     />
