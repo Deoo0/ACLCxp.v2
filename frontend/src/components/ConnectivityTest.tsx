@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import axios from 'axios';
 
 interface HealthCheckResponse {
   status: string;
@@ -10,7 +11,7 @@ interface HealthCheckResponse {
 interface EchoResponse {
   method: string;
   message: string;
-  received_data?: any;
+  received_data?: { message: string; timestamp: string; test: boolean };
 }
 
 const ConnectivityTest = () => {
@@ -26,8 +27,9 @@ const ConnectivityTest = () => {
       const response = await api.get<HealthCheckResponse>('/health/');
       setHealthStatus(`✅ SUCCESS: ${response.data.message}`);
       console.log('Health check response:', response.data);
-    } catch (error: any) {
-      setHealthStatus(`❌ FAILED: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof axios.AxiosError ? error.message : (error as Error).message;
+      setHealthStatus(`❌ FAILED: ${message}`);
       console.error('Health check error:', error);
     } finally {
       setLoading(false);
@@ -45,8 +47,9 @@ const ConnectivityTest = () => {
       });
       setEchoResult(`✅ SUCCESS: ${response.data.message}`);
       console.log('Echo response:', response.data);
-    } catch (error: any) {
-      setEchoResult(`❌ FAILED: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof axios.AxiosError ? error.message : (error as Error).message;
+      setEchoResult(`❌ FAILED: ${message}`);
       console.error('Echo error:', error);
     } finally {
       setLoading(false);
@@ -239,7 +242,6 @@ const ConnectivityTest = () => {
           Built for debugging and development purposes only.
         </p>
       </div>
-
     </div>
   );
 };

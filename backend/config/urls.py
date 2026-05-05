@@ -19,12 +19,20 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+<<<<<<< HEAD
     path('api/users/', include('apps.users.urls')),
     
     #Auth
     path('api/auth/', include('apps.authentication.urls')),
     #App URLs
     path('api/houses/', include('apps.houses.urls')),
+=======
+
+    #App URLs
+    path('api/users/', include('apps.users.urls')),
+    path('api/houses/', include('apps.houses.urls')),
+    path('api/auth/' , include('apps.authentication.urls'))
+>>>>>>> ad126fa52af1a1d8fc65b8ea4225c241dcf0649c
     
 ]
 
