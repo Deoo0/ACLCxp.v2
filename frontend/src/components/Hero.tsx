@@ -1,7 +1,6 @@
 export default function Hero() {
     return (
-        <section className="relative w-full h-125 rounded-b-4xl overflow-hidden py-4 px-3">
-
+        <section className="relative w-full h-125 rounded-b- overflow-hidden py-4 px-3">
         {/* Background Image */}
         <img
             src="/aclcxp-bg.png"
