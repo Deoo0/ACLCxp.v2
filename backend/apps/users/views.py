@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 from rest_framework import status
 from .models import User
+from apps.houses.models import House
 from django.core.exceptions import ValidationError
 
 @api_view(['GET'])
@@ -44,6 +45,7 @@ def register_user(request):
         "password": "string",
         "program": "string",
         "year_level": "integer",
+        "house": "string" ,
         "phone_number": "string (optional)",
         "contact_person": "string (optional)",
         "contact_number": "string (optional)"
@@ -53,7 +55,7 @@ def register_user(request):
         data = request.data
         
         # Validate required fields
-        required_fields = ['email', 'student_id', 'first_name', 'last_name', 'password', 'program', 'year_level']
+        required_fields = ['email', 'student_id', 'first_name', 'last_name', 'password', 'program', 'year_level','house']
         for field in required_fields:
             if not data.get(field):
                 return Response({
@@ -74,6 +76,15 @@ def register_user(request):
                 'message': 'Student ID already registered'
             }, status=status.HTTP_400_BAD_REQUEST)
         
+        # Get house instance
+        try:
+            house = House.objects.get(name=data['house'])
+        except House.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': f"House '{data['house']}' not found"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         # Create user
         user = User.objects.create_user(
             email=data['email'],
@@ -83,6 +94,7 @@ def register_user(request):
             last_name=data['last_name'],
             middle_name=data.get('middle_name', ''),
             program=data['program'],
+            house=house,
             year_level=int(data['year_level']),
             phone_number=data.get('phone_number', ''),
             contact_person=data.get('contact_person', ''),
@@ -95,6 +107,11 @@ def register_user(request):
             'data': {
                 'id': user.id,
                 'email': user.email,
+                'house': {
+                    'id': user.house.id,
+                    'name': user.house.name,
+                    'color_code': user.house.color_code,
+                } if user.house else None,
                 'student_id': user.student_id,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
