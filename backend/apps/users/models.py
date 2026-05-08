@@ -6,23 +6,24 @@ from apps.houses.models import House
 class UserManager(BaseUserManager):
     """Custom user manager"""
     
-    def create_user(self, email, student_id, password=None, **extra_fields):
-        if not email:
-            raise ValueError('Email is required')
+    def create_user(self, student_id, password=None, **extra_fields):
         if not student_id:
             raise ValueError('Student ID is required')
         
-        email = self.normalize_email(email)
-        user = self.model(email=email, student_id=student_id, **extra_fields)
+        email = extra_fields.get('email')
+        if email:
+            extra_fields['email'] = self.normalize_email(email)
+        
+        user = self.model(student_id=student_id, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
     
-    def create_superuser(self, email, student_id, password=None, **extra_fields):
+    def create_superuser(self, student_id, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('role', 'ADMIN')
-        return self.create_user(email, student_id, password, **extra_fields)
+        return self.create_user(student_id, password, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
@@ -78,8 +79,8 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     
     objects = UserManager()
     
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['student_id', 'first_name', 'last_name']
+    USERNAME_FIELD = 'student_id'
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
     
     class Meta:
         db_table = 'users'
