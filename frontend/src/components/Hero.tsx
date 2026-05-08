@@ -1,6 +1,7 @@
 export default function Hero() {
     return (
-        <section className="relative w-full h-125 rounded-b- overflow-hidden py-4 px-3">
+        <section className="relative mx-0 h-125 rounded-b-4xl overflow-hidden">        
+        
         {/* Background Image */}
         <img
             src="/aclcxp-bg.png"
@@ -12,7 +13,7 @@ export default function Hero() {
         <div className="absolute inset-0 bg-black/50"></div>
 
         {/* Content */}
-        <div className="relative z-10 flex justify-between items-start p-4 h-full">
+        <div className="relative z-10 flex justify-between items-start p-8 h-full">
 
             {/* Left: Logo */}
             <div className="text-white">
@@ -30,7 +31,7 @@ export default function Hero() {
         </div>
 
         {/* underlaping logo */}
-        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/4 max-h-3/4"> 
+        <div className="absolute top-35 left-1/2 -translate-x-1/2 w-3/4 max-h-3/4"> 
             <img
                 src="/aclc-logo.png"
                 alt="ACLC Logo"   
