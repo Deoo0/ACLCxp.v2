@@ -14,7 +14,7 @@ export default function CTA() {
 
         {/* Construction Note */}
         <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-blue-300 text-sm">
-          📝 <strong>To be constructed:</strong> Add email subscription form, newsletter signup, or app download links.
+          <strong>To be constructed:</strong> to add register button and design
         </div>
       </div>
     </section>

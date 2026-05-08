@@ -52,10 +52,15 @@ export default function Header() {
                         src="aclcxp-logo.png"
                         alt="ACLCxp Logo"
                         className="w-12 h-12 object-contain"
-                    />
-                    <span className="font-bold text-xl tracking-wide hidden sm:inline text-white">
-                        ACLCxp
-                    </span>
+                        />
+                    <div>
+                        <h1 className="font-bold text-2xl tracking-wide hidden sm:inline text-white">
+                            ACLC
+                        </h1>
+                        <h1 className="font-bold text-2xl tracking-wide hidden sm:inline text-[#D91B22]">
+                            xp
+                        </h1>
+                    </div>
                 </div>
 
                 {/* Login Button */}
