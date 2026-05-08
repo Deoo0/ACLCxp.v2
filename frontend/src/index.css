@@ -1,7 +1,10 @@
 ﻿@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100;300;400;500;600;700;800;900&family=Inter:wght@100;300;400;500;600;700;800;900&display=swap');
 
+<<<<<<< HEAD
+=======
 /* ⇓ custom styles ⇓ */
+>>>>>>> ad126fa52af1a1d8fc65b8ea4225c241dcf0649c
 
 :root {
   font-family: Inter, sans-serif;
