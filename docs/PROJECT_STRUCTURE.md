@@ -269,8 +269,12 @@ ai/
 ### Root Frontend Files
 ```
 frontend/
+├── .env                        # Frontend environment variables
+├── .gitignore                  # Files ignored by Git
 ├── package.json                # Node.js dependencies and scripts
 ├── package-lock.json           # Locked dependency versions
+├── postcss.config.cjs          # PostCSS configuration
+├── tailwind.config.js          # Tailwind CSS configuration
 ├── tsconfig.json               # TypeScript configuration
 ├── tsconfig.app.json           # App-specific TypeScript config
 ├── tsconfig.node.json          # Node.js TypeScript config
@@ -278,42 +282,46 @@ frontend/
 ├── eslint.config.js            # ESLint linting rules
 ├── index.html                  # Main HTML template
 ├── README.md                   # Frontend documentation
-└── node_modules/               # Installed dependencies (gitignored)
+├── public/                     # Public static assets
+└── src/                        # React source code
 ```
 
 ### Source Code (`frontend/src/`)
 ```
 src/
 ├── main.tsx                    # React application entry point
-├── App.tsx                     # Main application component
+├── App.tsx                     # Main route and application configuration
 ├── App.css                     # Global application styles
-├── index.css                   # Base CSS styles
-├── assets/                     # Static assets
-│   └── react.svg              # React logo
-├── api/                        # API integration layer
-├── components/                  # Reusable UI components
-│   └── ConnectivityTest.tsx   # Connection testing component
-├── context/                    # React context providers
-├── hooks/                      # Custom React hooks
+├── index.css                   # Base CSS styles and font settings
+├── assets/                     # Static image assets
+│   └── aclcxp-logo.png         # App logo asset
+├── components/                 # Reusable UI components
+│   ├── Header.tsx
+│   ├── Hero.tsx
+│   ├── OngoingEvents.tsx
+│   ├── CTA.tsx
+│   ├── Footer.tsx
+│   └── ConnectivityTest.tsx   # Connectivity testing component
 ├── pages/                      # Page-level components
-├── routes/                     # Route configuration
-├── services/                   # Business logic services
-│   └── api.ts                 # API service configuration
-├── types/                      # TypeScript type definitions
-└── utils/                      # Utility functions
+│   ├── LandingPage.tsx
+│   ├── ConnectivityTestPage.tsx
+│   └── registrationPage.tsx   # Placeholder registration page
+└── services/                   # API service configuration
+    └── api.ts                 # Axios API client configuration
 ```
 
 **Purpose**: Modern React application with:
 - TypeScript for type safety
 - Vite for fast development and building
-- Component-based architecture
-- API integration with Django backend
-- Responsive design support
-- Modern ES6+ features
+- React Router for client-side navigation
+- Tailwind CSS for utility-first responsive styling
+- Structured page/component separation
+- API integration with Django backend via Axios
 
 ### Public Assets (`frontend/public/`)
 ```
 public/
+├── aclcxp-logo.png             # Custom app branding asset
 └── vite.svg                    # Vite logo
 ```
 

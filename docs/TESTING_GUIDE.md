@@ -1,11 +1,23 @@
-To test run in mobile:
-    !Make sure that your laptop and mobile is connected to the same wifi
+To test on mobile:
+- Make sure that your laptop and mobile device are connected to the same Wi-Fi network.
 
-    in backend/apps/config/settings/development.py:
-    CORS_ALLOWED_ORIGINS = [
+In `backend/apps/config/settings/development.py`:
+```python
+CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',  # adjust if your Vite dev server is on another port
     'http://127.0.0.1:5173',
     'http://<IP of your laptop>:5173',
 ]
-    in frontend run: npx vite --host
-    in backend run: python manage.py 0.0.0.0:8000
+```
+
+Frontend:
+```bash
+cd frontend
+npm install
+npm run dev -- --host
+```
+
+Backend:
+```bash
+python manage.py runserver
+```
