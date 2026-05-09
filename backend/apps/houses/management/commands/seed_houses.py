@@ -1,0 +1,56 @@
+from django.core.management.base import BaseCommand
+from apps.houses.models import House
+
+
+class Command(BaseCommand):
+    help = 'Seed the five ACLC houses'
+
+    def handle(self, *args, **kwargs):
+        houses = [
+            {
+                'name': 'Giallio',
+                'color_code': '#FFD700',
+                'description': 'House Giallio — Yellow House',
+                'motto': 'To be updated',
+            },
+            {
+                'name': 'Vierrdy',
+                'color_code': '#228B22',
+                'description': 'House Vierrdy — Green House',
+                'motto': 'To be updated',
+            },
+            {
+                'name': 'Azul',
+                'color_code': '#1E90FF',
+                'description': 'House Azul — Blue House',
+                'motto': 'To be updated',
+            },
+            {
+                'name': 'Cahel',
+                'color_code': '#FF8C00',
+                'description': 'House Cahel — Orange House',
+                'motto': 'To be updated',
+            },
+            {
+                'name': 'Roxxo',
+                'color_code': '#DC143C',
+                'description': 'House Roxxo — Red House',
+                'motto': 'To be updated',
+            },
+        ]
+
+        for house_data in houses:
+            house, created = House.objects.get_or_create(
+                name=house_data['name'],
+                defaults=house_data
+            )
+            if created:
+                self.stdout.write(
+                    self.style.SUCCESS(f"✅ Created house: {house.name}")
+                )
+            else:
+                self.stdout.write(
+                    self.style.WARNING(f"⚠️  Already exists: {house.name}")
+                )
+
+        self.stdout.write(self.style.SUCCESS('\nDone. All houses seeded.'))
