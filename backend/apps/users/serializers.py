@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from apps.houses.models import House
+from django.db import models
 
 User = get_user_model()
 
