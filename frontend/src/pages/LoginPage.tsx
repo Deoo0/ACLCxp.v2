@@ -1,4 +1,4 @@
-
+import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
@@ -27,9 +27,32 @@ export default function LoginPage() {
 
             navigate("/dashboard");
 
-        } catch (err) {
-            setError("Invalid student ID or password");
+        } catch (err: unknown) {
             console.error(err);
+
+            if (axios.isAxiosError(err)) {
+                const status = err.response?.status;
+                const message = err.response?.data?.message;
+
+                switch (status) {
+                    case 400:
+                        setError("Student ID and password are required");
+                        break;
+
+                    case 401:
+                        setError("Invalid student ID or password");
+                        break;
+
+                    case 403:
+                        setError("Your account has been disabled");
+                        break;
+
+                    default:
+                        setError(message || "Unable to login. Please try again.");
+                }
+            } else {
+                setError("Unexpected error occurred");
+            }
         } finally {
             setLoading(false);
         }
@@ -50,7 +73,7 @@ export default function LoginPage() {
                 <div className="absolute inset-0 bg-black/60" />
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col min-h-screen px-5 py-8 text-white">
+                <div className="relative z-10 flex flex-col min-h-screen px-5 lg:px-10 py-8 text-white">
 
                     {/* Back Button */}
                     <button
@@ -62,7 +85,7 @@ export default function LoginPage() {
 
                     {/* Center Content */}
                     <div className="flex flex-col flex-1 items-center justify-center">
-
+                        
                         {/* Logo */}
                         <img
                             src="/aclcxp-logo.png"
@@ -71,8 +94,8 @@ export default function LoginPage() {
                         />
 
                         {/* Form */}
-                        <div className="w-full max-w-sm">
-                            
+                        <div className="w-full">
+
                             {/* Error Message */}
                             {error && (
                                 <div className="mt-3 rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-2">
