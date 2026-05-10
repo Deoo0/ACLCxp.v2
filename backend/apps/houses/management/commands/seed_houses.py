@@ -9,31 +9,31 @@ class Command(BaseCommand):
         houses = [
             {
                 'name': 'Giallio',
-                'color_code': '#FFD700',
+                'color_code': '#FEF74E',
                 'description': 'House Giallio — Yellow House',
                 'motto': 'To be updated',
             },
             {
                 'name': 'Vierrdy',
-                'color_code': '#228B22',
+                'color_code': '#7E8230',
                 'description': 'House Vierrdy — Green House',
                 'motto': 'To be updated',
             },
             {
                 'name': 'Azul',
-                'color_code': '#1E90FF',
+                'color_code': '#0884FE',
                 'description': 'House Azul — Blue House',
                 'motto': 'To be updated',
             },
             {
                 'name': 'Cahel',
-                'color_code': '#FF8C00',
+                'color_code': '#DB5609',
                 'description': 'House Cahel — Orange House',
                 'motto': 'To be updated',
             },
             {
                 'name': 'Roxxo',
-                'color_code': '#DC143C',
+                'color_code': '#E20F16',
                 'description': 'House Roxxo — Red House',
                 'motto': 'To be updated',
             },
