@@ -1,6 +1,8 @@
+import { Link } from "react-router-dom";
+
 export default function CTA() {
   return (
-    <section className="relative h-115 rounded-t-4xl overflow-hidden px-6 py-10">
+    <section className="relative h-100 rounded-t-4xl overflow-hidden px-6 py-10">
 
       {/* Background */}
       <img
@@ -8,9 +10,6 @@ export default function CTA() {
         alt="CTA Background"
         className="absolute inset-0 w-full h-full object-cover"
       />
-
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/60" />
 
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col items-center text-center text-white">
@@ -27,9 +26,12 @@ export default function CTA() {
         </p>
 
         {/* CTA Button */}
-        <button className="mt-2 px-3 py-1 bg-white text-black rounded-full font-lato font-extrabold text-lg hover:bg-gray-200 transition-colors duration-200">
+        <Link
+          to="/register"
+          className="mt-2 px-3 py-1 bg-white text-black rounded-full font-lato font-extrabold text-lg hover:bg-gray-200 transition-colors duration-200"
+        >
           Register Now
-        </button>
+        </Link>
 
         {/* Phone Image */}
         <div className="flex items-end justify-center w-full">
