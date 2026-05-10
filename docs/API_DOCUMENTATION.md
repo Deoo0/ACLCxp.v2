@@ -106,7 +106,16 @@ Frontend URLs allowed:
 - `http://127.0.0.1:5173`
 - `http://<your-laptop-ip>:5173` (for mobile testing)
 
-> Note: the React frontend uses `VITE_API_URL` from `frontend/.env` and configures Axios with a base URL of `${API_URL}/api/users`. The connectivity test component sends requests to `/api/users/health/` and `/api/users/echo/`.
+> Note: the React frontend uses `VITE_API_URL` from `frontend/.env` and configures Axios with a base URL of `${API_URL}/api`.
+> The connectivity test component uses `GET /api/health/` and `POST /api/echo/`.
+
+## Frontend Auth Endpoints
+The React frontend currently integrates with the following auth-related endpoints:
+- `POST /auth/login/` — login with `student_id` and `password`
+- `POST /auth/logout/` — logout and blacklist refresh token
+- `POST /auth/token/refresh/` — request a new access token
+- `POST /users/register/` — create a new user account
+
 
 ## Testing
 Use the health check endpoint to verify connectivity before testing other endpoints.
