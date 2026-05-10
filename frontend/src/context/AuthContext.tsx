@@ -4,6 +4,8 @@ import {
   login as loginService,
   logout as logoutService,
   getAccessToken,
+  clearTokens,
+  getMe,
 } from '../services/auth';
 import type { AuthUser, LoginCredentials } from '../services/auth';
 
@@ -22,17 +24,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // On app load, check if a token already exists
-    // This keeps the user logged in after a page refresh
-    const token = getAccessToken();
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-    // Token exists but we don't have user data in memory yet
-    // For now we mark as loading done — /api/auth/me/ can be added later
-    setIsLoading(false);
+    const initAuth = async () => {
+      const token = getAccessToken();
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const userData = await getMe();
+        setUser(userData);
+      } catch {
+        clearTokens();
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
+
 
   const login = async (credentials: LoginCredentials): Promise<void> => {
     const userData = await loginService(credentials);
