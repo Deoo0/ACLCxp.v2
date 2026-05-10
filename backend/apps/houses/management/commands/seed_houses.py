@@ -15,7 +15,7 @@ class Command(BaseCommand):
             },
             {
                 'name': 'Vierrdy',
-                'color_code': '#7E8230',
+                'color_code': '#008330',
                 'description': 'House Vierrdy — Green House',
                 'motto': 'To be updated',
             },
