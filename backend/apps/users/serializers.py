@@ -1,12 +1,13 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from apps.houses.models import House
+from django.db import models
 
 User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
-    house_id = serializers.UUIDField(write_only=True)
+    house_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = User
@@ -36,7 +37,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Invalid house selected. Please choose a valid house."
             )
-        return house  # Return the House object, not just the UUID
+        return house # return house value instead of id
 
     def create(self, validated_data):
         house = validated_data.pop('house_id')  # Already a House object from validate_house_id
