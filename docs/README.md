@@ -11,4 +11,5 @@ Use the files below to understand the repository, backend API, development setup
 
 ## Frontend Notes
 The frontend is built with React, TypeScript, Vite, Tailwind CSS, and React Router.
-It includes a landing page, a connectivity test page, reusable UI components, and Axios-based API integration.
+It includes a landing page, login/register flows, a connectivity test page, reusable UI components, and Axios-based API integration.
+Authentication is handled through an `AuthContext` provider with JWT access and refresh tokens stored in localStorage.

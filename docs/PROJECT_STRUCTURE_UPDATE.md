@@ -103,8 +103,8 @@ users/
 
 **Working endpoints**:
 - `POST /api/users/register/` — creates a student account (AllowAny)
-- `GET /api/users/health/` — connectivity check (AllowAny)
-- `GET|POST /api/users/echo/` — echo test (AllowAny)
+- `GET /api/health/` — connectivity check (AllowAny)
+- `POST /api/echo/` — echo test (AllowAny)
 
 **Registration required fields**:
 ```json
@@ -333,13 +333,13 @@ frontend/
 ├── .gitignore                  # Files ignored by Git
 ├── package.json                # Node.js dependencies and scripts
 ├── package-lock.json           # Locked dependency versions
-├── postcss.config.cjs          # PostCSS configuration (may be removed)
-├── postcss.config.js           # PostCSS configuration (duplicate — to clean up)
+├── postcss.config.cjs          # PostCSS configuration used by Tailwind
+├── postcss.config.js           # Duplicate PostCSS configuration file
 ├── tailwind.config.js          # Tailwind CSS configuration
 ├── tsconfig.json               # TypeScript configuration
 ├── tsconfig.app.json           # App-specific TypeScript config
 ├── tsconfig.node.json          # Node.js TypeScript config
-├── vite.config.ts              # Vite build configuration with Tailwind plugin
+├── vite.config.ts              # Vite build configuration
 ├── eslint.config.js            # ESLint linting rules
 ├── index.html                  # Main HTML template
 ├── README.md                   # Frontend documentation
@@ -348,8 +348,7 @@ frontend/
 ```
 
 > **Known issue**: Two PostCSS config files exist (`postcss.config.cjs` and
-> `postcss.config.js`). These should be cleaned up — Tailwind v4 via Vite
-> plugin does not require PostCSS config.
+> `postcss.config.js`). `postcss.config.js` is a duplicate and should be cleaned up.
 
 ---
 
@@ -368,12 +367,14 @@ src/
 │   ├── OngoingEvents.tsx
 │   ├── CTA.tsx
 │   ├── Footer.tsx
+│   ├── ForgotPasswordModal.tsx
 │   ├── ConnectivityTest.tsx    # Connectivity testing component
 │   └── ProtectedRoute.tsx      # Redirects unauthenticated users to /login
 ├── pages/                      # Page-level components
 │   ├── LandingPage.tsx
-│   ├── ConnectivityTestPage.tsx
-│   └── RegistrationPage.tsx    # Registration page (UI in progress)
+│   ├── LoginPage.tsx
+│   ├── RegisterPage.tsx        # Placeholder registration page
+│   └── ConnectivityTestPage.tsx
 └── services/                   # API service layer
     ├── api.ts                  # Axios instance — baseURL: /api, auto-attaches JWT
     └── auth.ts                 # Auth functions: login, register, logout, refresh
@@ -395,9 +396,10 @@ StrictMode
 | Path | Component | Access |
 |------|-----------|--------|
 | `/` | LandingPage | Public |
-| `/login` | LoginPage | Public (UI in progress) |
+| `/login` | LoginPage | Public |
+| `/register` | RegisterPage | Public (placeholder) |
 | `/connectivity` | ConnectivityTestPage | Public |
-| `/dashboard` | Dashboard | Protected — requires login |
+| `/dashboard` | Dashboard | Protected — requires login (placeholder UI) |
 
 ---
 

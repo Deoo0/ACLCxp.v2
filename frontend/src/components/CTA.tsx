@@ -1,22 +1,48 @@
+import { Link } from "react-router-dom";
+
 export default function CTA() {
   return (
-    <section className="px-6 py-12 sm:py-16 bg-linear-to-b from-slate-950 to-slate-900">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-linear-to-r from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 rounded-2xl p-8 sm:p-12 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Don't Miss Any Event</h2>
-          <p className="text-slate-300 mb-8 text-lg">
-            Stay connected with your school community and maximize your achievements.
-          </p>
-          <button className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition-colors duration-200">
-            Sign Up Today
-          </button>
+    <section className="relative h-100 rounded-t-4xl overflow-hidden px-6 py-10">
+
+      {/* Background */}
+      <img
+        src="/cta-bg.png"
+        alt="CTA Background"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+
+      {/* Content */}
+      <div className="relative z-10 h-full flex flex-col items-center text-center text-white">
+
+        {/* Heading */}
+        <h2 className="font-spartan text-3xl font-extrabold leading-tight mt-2">
+          BE PART OF EVERY EVENT
+        </h2>
+
+        {/* Description */}
+        <p className="font-lato font-light text-lg leading-tight max-w-90">
+          Track your attendance, participate,
+          and stay updated.
+        </p>
+
+        {/* CTA Button */}
+        <Link
+          to="/register"
+          className="mt-2 px-3 py-1 bg-white text-black rounded-full font-lato font-extrabold text-lg hover:bg-gray-200 transition-colors duration-200"
+        >
+          Register Now
+        </Link>
+
+        {/* Phone Image */}
+        <div className="flex items-end justify-center w-full">
+          <img
+            src="/phone.png"
+            alt="Phone Preview"
+            className="object-contain"
+          />
         </div>
 
-        {/* Construction Note */}
-        <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-blue-300 text-sm">
-          <strong>To be constructed:</strong> to add register button and design
-        </div>
       </div>
     </section>
-  )
+  );
 }

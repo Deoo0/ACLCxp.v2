@@ -301,13 +301,17 @@ src/
 │   ├── OngoingEvents.tsx
 │   ├── CTA.tsx
 │   ├── Footer.tsx
+│   ├── ForgotPasswordModal.tsx
+│   ├── ProtectedRoute.tsx
 │   └── ConnectivityTest.tsx   # Connectivity testing component
 ├── pages/                      # Page-level components
 │   ├── LandingPage.tsx
-│   ├── ConnectivityTestPage.tsx
-│   └── registrationPage.tsx   # Placeholder registration page
+│   ├── LoginPage.tsx
+│   ├── RegisterPage.tsx       # Placeholder registration page
+│   └── ConnectivityTestPage.tsx
 └── services/                   # API service configuration
-    └── api.ts                 # Axios API client configuration
+    ├── api.ts                 # Axios API client configuration
+    └── auth.ts                # Auth functions and token helpers
 ```
 
 **Purpose**: Modern React application with:
@@ -316,6 +320,7 @@ src/
 - React Router for client-side navigation
 - Tailwind CSS for utility-first responsive styling
 - Structured page/component separation
+- JWT auth using AuthContext and Axios Authorization interceptor
 - API integration with Django backend via Axios
 
 ### Public Assets (`frontend/public/`)
