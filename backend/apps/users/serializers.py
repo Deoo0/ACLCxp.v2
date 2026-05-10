@@ -37,7 +37,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Invalid house selected. Please choose a valid house."
             )
-        return house  # Return the House object, not just the UUID
+        return house # return house value instead of id
 
     def create(self, validated_data):
         house = validated_data.pop('house_id')  # Already a House object from validate_house_id
