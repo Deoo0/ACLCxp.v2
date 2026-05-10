@@ -10,4 +10,5 @@ urlpatterns = [
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
     path('token/refresh/', views.refresh_token, name='token_refresh'),
+    path('me/', views.me, name='auth-me'),
 ]
