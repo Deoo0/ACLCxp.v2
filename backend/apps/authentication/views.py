@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth import authenticate
+from apps.users.serializers import UserProfileSerializer
 
 
 @api_view(['POST'])
@@ -124,3 +125,14 @@ def refresh_token(request):
             'status': 'error',
             'message': 'Invalid or expired token'
         }, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def me(request):
+    serializer = UserProfileSerializer(request.user)
+    return Response({
+        "status": "success",
+        "data": {
+            "user": serializer.data
+        }
+    })

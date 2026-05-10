@@ -161,11 +161,11 @@ houses/
 **The five ACLC houses**:
 | Name | Color | Hex |
 |------|-------|-----|
-| Giallio | Yellow | #FFD700 |
-| Vierrdy | Green | #228B22 |
-| Azul | Blue | #1E90FF |
-| Cahel | Orange | #FF8C00 |
-| Roxxo | Red | #DC143C |
+| Giallio | Yellow | #FEF74E |
+| Vierrdy | Green | #7E8230 |
+| Azul | Blue | #0884FE |
+| Cahel | Orange | #DB5609 |
+| Roxxo | Red | #E20F16 |
 
 **First-time setup** — after migrating, run:
 ```bash

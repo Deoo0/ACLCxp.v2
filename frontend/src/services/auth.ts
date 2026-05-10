@@ -24,7 +24,15 @@ export interface AuthUser {
   email: string;
   first_name: string;
   last_name: string;
+  full_name: string;
+  program: string;
+  year_level: number;
   role: 'STUDENT' | 'FACILITATOR' | 'ORGANIZER' | 'HOUSE_LEADER' | 'ADMIN';
+  house: number;
+  house_name: string;
+  house_color: string;
+  profile_photo: string | null;
+  email_verified: boolean;
 }
 
 export interface AuthTokens {
@@ -78,4 +86,9 @@ export const refreshAccessToken = async (): Promise<string> => {
   const newAccess = response.data.data.access;
   localStorage.setItem('access_token', newAccess);
   return newAccess;
+};
+
+export const getMe = async (): Promise<AuthUser> => {
+  const response = await api.get('/auth/me/');
+  return response.data.data.user;
 };
