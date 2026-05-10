@@ -1,12 +1,39 @@
+
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
 
 export default function LoginPage() {
     const navigate = useNavigate();
-
+    const [studentId, setStudentId] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
     const [showForgotModal, setShowForgotModal] = useState(false);
+    
+    const { login } = useAuth();
+
+    const handleLogin = async () => {
+        try {
+            setLoading(true);
+            setError("");
+
+            await login({
+                student_id: studentId,
+                password,
+            });
+
+            navigate("/dashboard");
+
+        } catch (err) {
+            setError("Invalid student ID or password");
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <>
@@ -45,36 +72,52 @@ export default function LoginPage() {
 
                         {/* Form */}
                         <div className="w-full max-w-sm">
+                            
+                            {/* Error Message */}
+                            {error && (
+                                <div className="mt-3 rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-2">
+                                    <p className="text-red-300 text-sm text-center">
+                                        {error}
+                                    </p>
+                                </div>
+                            )}
 
                             {/* Username */}
                             <input
                                 type="text"
-                                placeholder="Username"
-                                className="w-full mb-4 px-4 py-3 rounded-md bg-white text-black outline-none"
-                            />
+                                placeholder="Student ID"
+                                value={studentId}
+                                onChange={(e) => setStudentId(e.target.value)}
+                                className="w-full mb-4 px-4 py-3 mt-8 rounded-md bg-white text-black outline-none"
+                                />
 
                             {/* Password */}
                             <input
                                 type="password"
                                 placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="w-full px-4 py-3 rounded-md bg-white text-black outline-none"
-                            />
+                                />
 
                             {/* Forgot Password */}
                             <div className="flex justify-end mt-2">
                                 <button
                                     onClick={() => setShowForgotModal(true)}
                                     className="text-red-500 text-sm"
-                                >
+                                    >
                                     Forgot Password
                                 </button>
                             </div>
 
+
                             {/* Login Button */}
                             <button
-                                className="w-full mt-5 py-3 rounded-full bg-white text-[#2E308E] font-bold border-2 border-[#2E308E]"
-                            >
-                                LOG IN
+                                onClick={handleLogin}
+                                disabled={loading}
+                                className="w-full mt-5 py-3 rounded-full bg-white text-[#2E308E] font-bold border-2 border-[#2E308E] disabled:opacity-50"
+                                >
+                                {loading ? "Logging in..." : "LOG IN"}
                             </button>
 
                             {/* Sign Up */}
