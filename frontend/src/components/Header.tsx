@@ -1,13 +1,10 @@
 import { Link } from "react-router-dom";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
 
 export default function Header() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const [showHeader, setShowHeader] = useState(true);
-    const [lastScrollY, setLastScrollY] = useState(0);
 
     const handleLogoClick = () => {
         if (location.pathname === "/") {
@@ -17,29 +14,10 @@ export default function Header() {
         }
     };
 
-  //Detect scroll direction
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY > lastScrollY) {
-                // scrolling down
-                setShowHeader(false);
-            } else {
-                // scrolling up
-                setShowHeader(true);
-            }
-            setLastScrollY(window.scrollY);
-        };
-
-        window.addEventListener("scroll", handleScroll);
-
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, [lastScrollY]);
 
     return (
         <header
-            className={`fixed top-0 w-full z-50 bg-[#2E308E] backdrop-blur-sm border-b border-white/10 px-4 py-2 transition-transform duration-300 ${
-            showHeader ? "translate-y-0" : "-translate-y-full"
-        }`}
+            className={`fixed top-0 w-full z-50 bg-[#2E308E] backdrop-blur-sm border-b border-white/10 px-4 py-2 transition-transform duration-300`}
         >
             <div className="flex items-center justify-between max-w-6xl mx-auto">
 
