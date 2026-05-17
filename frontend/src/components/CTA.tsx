@@ -156,7 +156,7 @@ export default function CTA() {
 
           {/* Right column — phone preview (hidden on small screens) */}
           <div
-            className="hidden sm:flex flex-col items-center justify-end flex-shrink-0 self-end"
+            className="hidden sm:flex flex-col items-center justify-end shrink-0 self-end"
             style={{
               width: "clamp(120px, 22vw, 240px)",
             }}

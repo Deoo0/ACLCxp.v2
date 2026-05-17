@@ -146,7 +146,7 @@ export default function Hero() {
                 border: "1px solid rgba(255,255,255,0.18)",
               }}
             >
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" aria-hidden="true" />
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" aria-hidden="true" />
               <span className="text-white text-[12px] font-medium" style={{ fontFamily: "'DM Sans', sans-serif" }}>
                 Events live now
               </span>

@@ -80,7 +80,7 @@ function StatusBadge({ status }: { status: Event["status"] }) {
       style={cfg.style}
     >
       <span
-        className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dotClass} ${status === "live" ? "animate-pulse" : ""}`}
+        className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dotClass} ${status === "live" ? "animate-pulse" : ""}`}
         aria-hidden="true"
       />
       {cfg.label}
@@ -101,7 +101,7 @@ function EventCard({ event }: { event: Event }) {
       }}
     >
       {/* ── Image area — fixed 180px height, never collapses ── */}
-      <div className="relative flex-shrink-0" style={{ height: "180px" }}>
+      <div className="relative shrink-0" style={{ height: "180px" }}>
         {event.imageUrl && !imgError ? (
           <img
             src={event.imageUrl}
@@ -165,7 +165,7 @@ function EventCard({ event }: { event: Event }) {
 
         {/* ── View Details button — 48px tall, full width, thumb-safe ── */}
         <button
-          className="w-full rounded-xl font-semibold cursor-pointer transition-colors duration-200 mt-2 flex-shrink-0"
+          className="w-full rounded-xl font-semibold cursor-pointer transition-colors duration-200 mt-2 shrink-0"
           style={{
             height: "48px",
             background: "transparent",
@@ -288,7 +288,7 @@ export default function OngoingEvents({
                   }}
                   aria-live="polite"
                 >
-                  <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" aria-hidden="true" />
+                  <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" aria-hidden="true" />
                   {events.length} active
                 </span>
               )}
