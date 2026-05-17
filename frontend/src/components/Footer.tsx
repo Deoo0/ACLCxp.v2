@@ -126,7 +126,7 @@ export default function Footer() {
                   xp
                 </span>
               </Link>
-              <p className="text-white/35 text-[12.5px] leading-relaxed max-w-[200px]">
+              <p className="text-white/35 text-[12.5px] leading-relaxed max-w-50">
                 Where participation becomes performance.
               </p>
             </div>
@@ -155,7 +155,7 @@ export default function Footer() {
 
               {/* Social icons */}
               <div className="flex flex-col gap-3">
-                <p className="text-white/30 text-[11px] font-semibold tracking-[0.1em] uppercase">
+                <p className="text-white/30 text-[11px] font-semibold tracking-widest uppercase">
                   Connect
                 </p>
                 <div className="flex gap-2.5" role="list" aria-label="Social media links">
