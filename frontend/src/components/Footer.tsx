@@ -10,26 +10,16 @@ export default function Footer() {
                 {/* Top Section - Links (Vertical) */}
                 <div className="mb-4">
                     <nav className="flex flex-col gap-2 text-sm">
-                        <a 
-                            href="#about" 
-                            className="text-white hover:text-indigo-400"
-                        >
-                        About
-                        </a>
-                        
-                        <a 
-                            href="#terms" 
-                            className="text-white hover:text-indigo-400"
-                        >
-                            Terms of Use
-                        </a>
-                        <a 
-                            href="#privacy" 
-                            className="text-white  hover:text-indigo-400"
-                        >
-                            Privacy Policy
-                        </a>
-                        <Link to="/connectivity" className="text-white hover:text-indigo-400">
+                        <Link to="/about" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
+                            About Page
+                        </Link>
+                        <Link to="/privacy" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
+                            Privacy Policy Page
+                        </Link>
+                        <Link to="/terms" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
+                            Terms of Use Page
+                        </Link>
+                        <Link to="/connectivity" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
                             Connectivity Test
                         </Link>
                     </nav>
@@ -39,29 +29,65 @@ export default function Footer() {
                 <div className="h-px bg-white/20 mb-4"></div>
 
                 {/* Middle Section - Social Icons */}
-                <div className="flex gap-4 mb-4">
+                <div className="flex items-center gap-4 mb-4 ">
+    
                     {/* Facebook */}
                     <a
                         href="https://facebook.com/ACLCTacCity"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center transition-colors"
-                        title="Follow us on Facebook"
+                        title="Facebook"
+                        className="
+                            w-11 h-11
+                            flex items-center justify-center
+                            rounded-full
+                            bg-white/10
+                            text-white
+                            hover:bg-blue-600
+                            hover:scale-110
+                            transition-all duration-300
+                            shadow-md
+                        "
                     >
-                        <FaFacebook size={26}/>
+                        <FaFacebook size={20} />
                     </a>
 
-                    {/* Contact Number */}
-                    <a 
-                        href="tel:+639123456789" 
-                        className="flex items-center gap-2 hover:text-white"
+                    {/* Phone */}
+                    <a
+                        href="tel:+639123456789"
+                        title="Call Us"
+                        className="
+                            w-11 h-11
+                            flex items-center justify-center
+                            rounded-full
+                            bg-white/10
+                            text-white
+                            hover:bg-green-500
+                            hover:scale-110
+                            transition-all duration-300
+                            shadow-md
+                        "
                     >
-                        <FaPhone size={23}/>
+                        <FaPhone size={18} />
                     </a>
 
                     {/* Email */}
-                    <a href="mailto:admissionoffice_aclctacloban@yahoo.com" className="flex items-center gap-2 hover:text-white">
-                        <FaEnvelope size={26}/>
+                    <a
+                        href="mailto:admissionoffice_aclctacloban@yahoo.com"
+                        title="Email Us"
+                        className="
+                            w-11 h-11
+                            flex items-center justify-center
+                            rounded-full
+                            bg-white/10
+                            text-white
+                            hover:bg-red-500
+                            hover:scale-110
+                            transition-all duration-300
+                            shadow-md
+                        "
+                    >
+                        <FaEnvelope size={19} />
                     </a>
                 </div>
 
