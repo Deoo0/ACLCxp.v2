@@ -23,7 +23,7 @@ const ConnectivityTest = () => {
   const testHealthCheck = async () => {
     setLoading(true)
     try {
-      const response = await api.get<HealthCheckResponse>('/health/')
+      const response = await api.get<HealthCheckResponse>('users/health/')
       setHealthStatus(`✅ SUCCESS: ${response.data.message}`)
       console.log('Health check response:', response.data)
     } catch (error: unknown) {
@@ -38,7 +38,7 @@ const ConnectivityTest = () => {
   const testEcho = async () => {
     setLoading(true)
     try {
-      const response = await api.post<EchoResponse>('/echo/', {
+      const response = await api.post<EchoResponse>('users/echo/', {
         message: testInput,
         timestamp: new Date().toISOString(),
         test: true,
