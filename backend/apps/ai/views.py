@@ -37,7 +37,7 @@ HOUSE POINTS AND LEADERBOARD:
 
 EVENTS:
 - Published events appear on the landing page under Ongoing Events.
-- After logging in, your dashboard shows upcoming events you can register for.
+- After logging in, your dashboard shows upcoming events you can bookmark/favorite where it will be displayed as the priority.
 
 CONTACT:
 - Address: 352 Real St. Tacloban City, Philippines 6500
