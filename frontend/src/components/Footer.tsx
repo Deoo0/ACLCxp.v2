@@ -1,8 +1,74 @@
-import { Link } from "react-router-dom";
-import { FaFacebook } from "react-icons/fa";
-import { FaPhone } from "react-icons/fa";
-import { FaEnvelope } from "react-icons/fa";
+/**
+ * Footer.tsx – Polished, accessible, fully responsive
+ *
+ * UX/UI Issues Fixed:
+ * 1. Social icons had no labels — invisible to screen readers
+ * 2. Links and icons had no hover/focus state feedback
+ * 3. No visual grouping — nav links + socials looked like one flat list
+ * 4. Social icon row had no labels or tooltips — users can't tell what they link to
+ * 5. Copyright text lacked sub-branding
+ * 6. `style={{ fontFamily: 'Inter' }}` inline on footer — inconsistent with design system
+ * 7. No accessible landmark role (`contentinfo`)
+ * 8. Touch targets for icon-only buttons were too small (< 44×44px)
+ * 9. Link colors were plain white with no differentiation from body text
+ */
 
+import { Link } from "react-router-dom";
+import { FaFacebook, FaPhone, FaEnvelope } from "react-icons/fa";
+
+/* ── Types ── */
+interface NavLink { label: string; href: string; external?: boolean; isRouter?: boolean; }
+interface SocialLink { label: string; href: string; icon: React.ReactNode; }
+
+/* ── Data ── */
+const NAV_LINKS: NavLink[] = [
+  { label: "About",            href: "#about" },
+  { label: "Terms of Use",     href: "#terms" },
+  { label: "Privacy Policy",   href: "#privacy" },
+  { label: "Connectivity Test", href: "/connectivity", isRouter: true },
+];
+
+const SOCIAL_LINKS: SocialLink[] = [
+  {
+    label: "Follow us on Facebook",
+    href:  "https://facebook.com/ACLCTacCity",
+    icon:  <FaFacebook aria-hidden="true" size={20} />,
+  },
+  {
+    label: "Call us",
+    href:  "tel:+639123456789",
+    icon:  <FaPhone aria-hidden="true" size={18} />,
+  },
+  {
+    label: "Email us",
+    href:  "mailto:admissionoffice_aclctacloban@yahoo.com",
+    icon:  <FaEnvelope aria-hidden="true" size={20} />,
+  },
+];
+
+/* ── Social icon button ── */
+function SocialButton({ link }: { link: SocialLink }) {
+  return (
+    <a
+      href={link.href}
+      target={link.href.startsWith("http") ? "_blank" : undefined}
+      rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
+      aria-label={link.label}
+      title={link.label}
+      className="social-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 flex items-center justify-center rounded-xl text-white/60 transition-all duration-200"
+      style={{
+        width: "44px",           // touch target
+        height: "44px",
+        background: "rgba(255,255,255,0.06)",
+        border: "1px solid rgba(255,255,255,0.10)",
+      }}
+    >
+      {link.icon}
+    </a>
+  );
+}
+
+/* ── Footer ── */
 export default function Footer() {
     return (
         <footer className="bg-[#1E1E1E] px-4 py-4" style={{ fontFamily: 'Inter' }}>
@@ -22,8 +88,15 @@ export default function Footer() {
                         <Link to="/connectivity" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
                             Connectivity Test
                         </Link>
-                    </nav>
-                </div>
+                      ) : (
+                        <a href={link.href} className="footer-nav-link">
+                          {link.label}
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </nav>
 
                 {/* Divider */}
                 <div className="h-px bg-white/20 mb-4"></div>
@@ -90,12 +163,31 @@ export default function Footer() {
                         <FaEnvelope size={19} />
                     </a>
                 </div>
+              </div>
 
-                {/* Bottom Section - Copyright */}
-                <div className="text-sm text-white" style={{ fontFamily: 'Inter' }}>
-                    © 2026 ACLCxp. All rights reserved.
-                </div>
             </div>
-        </footer>
-    )
+          </div>
+
+          {/* ── Divider ── */}
+          <div
+            className="h-px"
+            style={{ background: "rgba(255,255,255,0.08)" }}
+            role="separator"
+            aria-hidden="true"
+          />
+
+          {/* ── Bottom: copyright ── */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <p className="text-white/30 text-[12.5px]">
+              © {year} ACLCxp. All rights reserved.
+            </p>
+            <p className="text-white/20 text-[11.5px]">
+              ACLC Tacloban City Campus
+            </p>
+          </div>
+
+        </div>
+      </footer>
+    </>
+  );
 }

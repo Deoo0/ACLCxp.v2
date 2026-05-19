@@ -9,7 +9,10 @@ import RegisterPage from "./pages/RegisterPage";
 import AboutPage from "./pages/AboutPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfUsePage from "./pages/TermsOfUsePage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
+
+// Placeholders — for dashboard
 const Dashboard = () => <div>Dashboard — coming soon</div>;
 
 function App() {
