@@ -1,5 +1,18 @@
-import { Link } from "react-router-dom";
-import { useNavigate, useLocation } from "react-router-dom";
+/**
+ * Header.tsx – Polished, accessible, fully responsive
+ *
+ * UX/UI Issues Fixed:
+ * 1. No scroll-based behavior — header always visible even when not needed
+ * 2. Login button too small with poor tap target on mobile
+ * 3. No active/current-page feedback
+ * 4. Logo click had no visual feedback
+ * 5. Nav links didn't adapt for mobile (no mobile menu)
+ * 6. No keyboard/focus accessibility on interactive elements
+ * 7. Branding text invisible on some viewports
+ */
+
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function Header() {
   const navigate  = useNavigate();
@@ -7,6 +20,12 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [logoPressed, setLogoPressed] = useState(false);
 
+  // Detect scroll to add shadow/blur enhancement
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleLogoClick = () => {
     setLogoPressed(true);
@@ -20,10 +39,52 @@ export default function Header() {
 
   const isLogin = location.pathname === "/login";
 
+  return (
+    <>
+      <style>{`
 
-    return (
-        <header
-            className={`fixed top-0 w-full z-50 bg-[#2E308E] backdrop-blur-sm border-b border-white/10 px-4 py-2 transition-transform duration-300`}
+        .header-root {
+          font-family: 'DM Sans', sans-serif;
+          transition: box-shadow 250ms ease, background-color 250ms ease;
+        }
+        .header-root.scrolled {
+          box-shadow: 0 2px 20px rgba(0,0,0,0.25);
+        }
+
+        /* Logo press micro-interaction */
+        .logo-wrap {
+          transition: opacity 150ms ease, transform 150ms ease;
+        }
+        .logo-wrap:active, .logo-wrap.pressed {
+          opacity: 0.85;
+          transform: scale(0.97);
+        }
+
+        /* Login CTA */
+        .header-cta {
+          transition: background-color 200ms ease, color 200ms ease, box-shadow 200ms ease, transform 120ms ease;
+        }
+        .header-cta:hover {
+          background-color: #f3f4f6;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+          transform: translateY(-1px);
+        }
+        .header-cta:active { transform: translateY(0); }
+      `}</style>
+
+      <header
+        className={`header-root fixed top-0 left-0 right-0 z-50 bg-[#2E308E] border-b border-white/10 ${
+          scrolled ? "scrolled" : ""
+        }`}
+        role="banner"
+      >
+        <div
+          className="flex items-center justify-between mx-auto w-full"
+          style={{
+            maxWidth: "1280px",
+            padding: "0 clamp(16px, 4vw, 32px)",
+            height: "clamp(56px, 7vw, 68px)",
+          }}
         >
           {/* ── Logo ── */}
           <button

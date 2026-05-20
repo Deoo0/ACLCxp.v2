@@ -70,23 +70,78 @@ function SocialButton({ link }: { link: SocialLink }) {
 
 /* ── Footer ── */
 export default function Footer() {
-    return (
-        <footer className="bg-[#1E1E1E] px-4 py-4" style={{ fontFamily: 'Inter' }}>
-            <div className="max-w-6xl mx-auto">
-                {/* Top Section - Links (Vertical) */}
-                <div className="mb-4">
-                    <nav className="flex flex-col gap-2 text-sm">
-                        <Link to="/about" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
-                            About Page
-                        </Link>
-                        <Link to="/privacy" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
-                            Privacy Policy Page
-                        </Link>
-                        <Link to="/terms" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
-                            Terms of Use Page
-                        </Link>
-                        <Link to="/connectivity" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
-                            Connectivity Test
+  const year = new Date().getFullYear();
+
+  return (
+    <>
+      <style>{`
+
+        .footer-root { font-family: 'DM Sans', sans-serif; }
+
+        .footer-nav-link {
+          color: rgba(255,255,255,0.55);
+          text-decoration: none;
+          font-size: 13.5px;
+          transition: color 150ms ease;
+          width: fit-content;
+        }
+        .footer-nav-link:hover { color: rgba(255,255,255,0.92); }
+        .footer-nav-link:focus-visible { outline: 2px solid rgba(255,255,255,0.5); outline-offset: 2px; border-radius: 3px; }
+
+        .social-btn:hover {
+          background: rgba(255,255,255,0.13) !important;
+          border-color: rgba(255,255,255,0.22) !important;
+          color: white;
+        }
+      `}</style>
+
+      <footer
+        className="footer-root bg-[#1E1E1E]"
+        role="contentinfo"
+        aria-label="Site footer"
+        style={{ padding: "clamp(28px, 5vw, 48px) clamp(16px, 5vw, 48px) clamp(20px, 4vw, 36px)" }}
+      >
+        <div className="max-w-6xl mx-auto flex flex-col gap-6">
+
+          {/* ── Top: Logo + nav + social ── */}
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-8">
+
+            {/* Brand */}
+            <div className="flex flex-col gap-3">
+              <Link
+                to="/"
+                className="flex items-baseline gap-0 no-underline w-fit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded"
+                aria-label="ACLCxp home"
+              >
+                <span
+                  className="font-black text-white"
+                  style={{ fontFamily: "'Outfit', sans-serif", fontSize: "22px" }}
+                >
+                  ACLC
+                </span>
+                <span
+                  className="font-black"
+                  style={{ fontFamily: "'Outfit', sans-serif", fontSize: "22px", color: "#D91B22" }}
+                >
+                  xp
+                </span>
+              </Link>
+              <p className="text-white/35 text-[12.5px] leading-relaxed max-w-[200px]">
+                Where participation becomes performance.
+              </p>
+            </div>
+
+            {/* Nav + Social — right side */}
+            <div className="flex flex-col sm:flex-row gap-8">
+
+              {/* Nav links */}
+              <nav aria-label="Footer navigation">
+                <ul className="flex flex-col gap-2.5 list-none p-0 m-0">
+                  {NAV_LINKS.map((link) => (
+                    <li key={link.label}>
+                      {link.isRouter ? (
+                        <Link to={link.href} className="footer-nav-link">
+                          {link.label}
                         </Link>
                       ) : (
                         <a href={link.href} className="footer-nav-link">
@@ -98,70 +153,17 @@ export default function Footer() {
                 </ul>
               </nav>
 
-                {/* Divider */}
-                <div className="h-px bg-white/20 mb-4"></div>
-
-                {/* Middle Section - Social Icons */}
-                <div className="flex items-center gap-4 mb-4 ">
-    
-                    {/* Facebook */}
-                    <a
-                        href="https://facebook.com/ACLCTacCity"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Facebook"
-                        className="
-                            w-11 h-11
-                            flex items-center justify-center
-                            rounded-full
-                            bg-white/10
-                            text-white
-                            hover:bg-blue-600
-                            hover:scale-110
-                            transition-all duration-300
-                            shadow-md
-                        "
-                    >
-                        <FaFacebook size={20} />
-                    </a>
-
-                    {/* Phone */}
-                    <a
-                        href="tel:+639123456789"
-                        title="Call Us"
-                        className="
-                            w-11 h-11
-                            flex items-center justify-center
-                            rounded-full
-                            bg-white/10
-                            text-white
-                            hover:bg-green-500
-                            hover:scale-110
-                            transition-all duration-300
-                            shadow-md
-                        "
-                    >
-                        <FaPhone size={18} />
-                    </a>
-
-                    {/* Email */}
-                    <a
-                        href="mailto:admissionoffice_aclctacloban@yahoo.com"
-                        title="Email Us"
-                        className="
-                            w-11 h-11
-                            flex items-center justify-center
-                            rounded-full
-                            bg-white/10
-                            text-white
-                            hover:bg-red-500
-                            hover:scale-110
-                            transition-all duration-300
-                            shadow-md
-                        "
-                    >
-                        <FaEnvelope size={19} />
-                    </a>
+              {/* Social icons */}
+              <div className="flex flex-col gap-3">
+                <p className="text-white/30 text-[11px] font-semibold tracking-[0.1em] uppercase">
+                  Connect
+                </p>
+                <div className="flex gap-2.5" role="list" aria-label="Social media links">
+                  {SOCIAL_LINKS.map((link) => (
+                    <div key={link.label} role="listitem">
+                      <SocialButton link={link} />
+                    </div>
+                  ))}
                 </div>
               </div>
 

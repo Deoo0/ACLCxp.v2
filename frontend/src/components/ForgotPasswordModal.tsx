@@ -14,7 +14,7 @@ export default function ForgotPasswordModal({
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-4">
 
             {/* Modal */}
-            <div className="relative w-full max-w-md rounded-4xl bg-black p-8 text-white">
+            <div className="relative w-full max-w-md rounded-3xl bg-black p-8 text-white">
 
                 {/* Close Button */}
                 <button
@@ -32,11 +32,11 @@ export default function ForgotPasswordModal({
                 </div>
 
                 {/* Message */}
-                <p className="text-center text-md leading-snug">
+                <p className="text-center text-base leading-snug">
                     For security reasons, password resets must be handled at the SSC Office.
                 </p>
 
-                <p className="text-center text-md leading-snug mt-4">
+                <p className="text-center text-base leading-snug mt-4">
                 Please visit the office to request a password reset.
                 </p>
             </div>
