@@ -61,9 +61,76 @@
 html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  width: 100%;
-  min-height: 100vh;
+  font-family: var(--font-body);
+  background: var(--gray-50);
+  color: var(--gray-900);
+  line-height: 1.6;
+}
+
+/* ── Shared Utility Classes ── */
+
+/* Fade-up mount animation */
+.aclc-fade-up {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.aclc-fade-up.in { opacity: 1; transform: translateY(0); }
+.aclc-delay-1 { transition-delay: 0.06s; }
+.aclc-delay-2 { transition-delay: 0.16s; }
+.aclc-delay-3 { transition-delay: 0.28s; }
+.aclc-delay-4 { transition-delay: 0.38s; }
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-md);
+}
+
+/* Focus ring (accessibility) */
+.focus-ring:focus-visible {
+  outline: 2px solid var(--brand-navy);
+  outline-offset: 2px;
+}
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.aclc-spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(46,48,142,0.2);
+  border-top-color: var(--brand-navy);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Shake (error feedback) */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+.aclc-shake { animation: shake 0.35s ease; }
+
+/* Glass surface */
+.glass {
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.13);
+}
+
+/* Section headings */
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
