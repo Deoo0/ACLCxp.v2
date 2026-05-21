@@ -23,7 +23,8 @@ urlpatterns = [
     #App URLs
     path('api/users/', include('apps.users.urls')),
     path('api/houses/', include('apps.houses.urls')),
-    path('api/auth/' , include('apps.authentication.urls'))
+    path('api/auth/' , include('apps.authentication.urls')),
+    path('api/ai/', include('apps.ai.urls'))
     
 ]
 
