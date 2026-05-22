@@ -44,8 +44,10 @@ export default function RegisterPage() {
                 let houseList: House[] = [];
                 if (Array.isArray(response.data)) {
                     houseList = response.data;
-                } else if (response.data?.results && Array.isArray(response.data.results)) {
+                } else if (Array.isArray(response.data?.results)) {
                     houseList = response.data.results;
+                } else if (Array.isArray(response.data?.data)) {
+                    houseList = response.data.data;
                 }
                 
                 setHouses(houseList);
