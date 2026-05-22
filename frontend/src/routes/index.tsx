@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import PublicRoute from "./PublicRoute";
 import ProtectedRoute from "./ProtectedRoute";
 
+import MeritSheetPage from "../pages/MeritSheetPage";
 import LandingPage from "../pages/LandingPage";
 import ConnectivityTestPage from "../pages/ConnectivityTestPage";
 import LoginPage from "../pages/LoginPage";
@@ -19,6 +20,11 @@ export default function AppRoutes() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/terms" element={<TermsOfUsePage />} />
+      <Route path="/merit" element={
+        <ProtectedRoute>
+            <MeritSheetPage />
+        </ProtectedRoute>
+        } />
 
       <Route path="/login" element={
         <PublicRoute>

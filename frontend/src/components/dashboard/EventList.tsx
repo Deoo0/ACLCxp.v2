@@ -47,7 +47,7 @@ export default function EventList() {
             </div>
 
             <button className="flex-shrink-0 mt-0.5 text-xs font-semibold text-[#2E308E] bg-white border border-indigo-100 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors">
-              Join
+              View
             </button>
           </div>
         );
