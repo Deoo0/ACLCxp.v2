@@ -31,9 +31,8 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     
     ROLE_CHOICES = [
         ('STUDENT', 'Student'),
-        ('FACILITATOR', 'Facilitator'),
+        ('STAFF', 'Staff'),
         ('ORGANIZER', 'Event Organizer'),
-        ('HOUSE_LEADER', 'House Leader'),
         ('ADMIN', 'Administrator'),
     ]
     
