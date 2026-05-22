@@ -333,8 +333,7 @@ frontend/
 ├── .gitignore                  # Files ignored by Git
 ├── package.json                # Node.js dependencies and scripts
 ├── package-lock.json           # Locked dependency versions
-├── postcss.config.cjs          # PostCSS configuration used by Tailwind
-├── postcss.config.js           # Duplicate PostCSS configuration file
+├── postcss.config.js           # PostCSS configuration file
 ├── tailwind.config.js          # Tailwind CSS configuration
 ├── tsconfig.json               # TypeScript configuration
 ├── tsconfig.app.json           # App-specific TypeScript config
@@ -347,8 +346,6 @@ frontend/
 └── src/                        # React source code
 ```
 
-> **Known issue**: Two PostCSS config files exist (`postcss.config.cjs` and
-> `postcss.config.js`). `postcss.config.js` is a duplicate and should be cleaned up.
 
 ---
 
