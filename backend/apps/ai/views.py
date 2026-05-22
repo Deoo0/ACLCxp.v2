@@ -1,3 +1,1 @@
-from django.shortcuts import render
-
-# Create your views here.
+# AI views — reserved for future analytics, recommendations, and face scanning
