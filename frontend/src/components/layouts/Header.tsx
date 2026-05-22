@@ -42,12 +42,12 @@ export default function Header() {
                 </div>
 
                 {/* Login Button */}
-                <Link
-                    to="/login"
-                    className="px-2 py-1 bg-white text-[#2E308E] hover:bg-gray-100 rounded-lg font-semibold text-sm transition-colors duration-200"
+            <Link
+                to="/login"
+                className="px-4 py-1.5 bg-white text-[#2E308E] hover:bg-gray-100 rounded-lg font-bold text-sm transition-colors duration-200"
                 >
-                    Log-in
-                </Link>
+                Log-in
+            </Link>
             </div>
         </header>
     );
