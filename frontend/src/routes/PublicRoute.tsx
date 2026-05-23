@@ -12,7 +12,13 @@ export default function PublicRoute({ children }: { children: React.ReactNode })
     if (!isLoading && isAuthenticated) setShowModal(true);
   }, [isLoading, isAuthenticated]);
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   if (isAuthenticated) return (
     <>

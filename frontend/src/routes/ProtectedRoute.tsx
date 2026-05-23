@@ -24,7 +24,13 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
     }
   }, [isLoading, isAuthenticated, roles, user]);
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   if (!isAuthenticated) return (
     <>
