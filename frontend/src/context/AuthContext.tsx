@@ -33,7 +33,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const userData = await getMe();
         setUser(userData);
-      } catch {
+      } catch (error) {
+        console.error("Failed to restore session:", error);
         clearTokens();
         setUser(null);
       } finally {
@@ -52,8 +53,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async (): Promise<void> => {
-    await logoutService();
-    setUser(null);
+    try {
+      await logoutService();
+    } finally {
+      clearTokens();
+      setUser(null);
+    }
   };
 
   return (

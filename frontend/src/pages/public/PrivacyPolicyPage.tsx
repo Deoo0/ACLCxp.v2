@@ -1,6 +1,6 @@
 import Header from "../../components/layouts/Header";
 import Footer from "../../components/layouts/Footer";
-import SupportChat from "../../components/SupportChat";
+import SupportChat from "../../components/ui/SupportChat";
 
 const sections = [
     {

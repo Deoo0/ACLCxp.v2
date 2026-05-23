@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
-import SupportChat from "../../components/SupportChat";
+import SupportChat from "../../components/ui/SupportChat";
 
 interface House {
     id: number;

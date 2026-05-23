@@ -2,8 +2,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
-import ForgotPasswordModal from "../../components/ForgotPasswordModal";
-import SupportChat from "../../components/SupportChat";
+import ForgotPasswordModal from "../../components/ui/ForgotPasswordModal";
+import SupportChat from "../../components/ui/SupportChat";
 
 export default function LoginPage() {
   const navigate = useNavigate();

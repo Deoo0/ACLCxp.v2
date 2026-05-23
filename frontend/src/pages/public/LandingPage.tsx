@@ -3,7 +3,7 @@ import Hero from '../../components/sections/Hero.tsx'
 import OngoingEvents from '../../components/sections/OngoingEvents.tsx'
 import CTA from '../../components/sections/CTA.tsx'
 import Footer from '../../components/layouts/Footer.tsx'
-import SupportChat from "../../components/SupportChat.tsx";
+import SupportChat from "../../components/ui/SupportChat.tsx";
 
 export default function LandingPage() {
     return (
