@@ -12,15 +12,15 @@ import PrivacyPolicyPage from "../pages/public/PrivacyPolicyPage";
 import TermsOfUsePage from "../pages/public/TermsOfUsePage";
 import Dashboard from "../pages/student/DashboardPage";
 import ProfilePage from "../pages/student/ProfilePage";
-import AdminDashboard from "../pages/admin/AdminDashboard";
-import AdminLayout from "../pages/admin/AdminLayout";
-import UsersManagement from "../pages/admin/UsersManagement";
-import EventsManagement from "../pages/admin/EventsManagement";
-import HousesManagement from "../pages/admin/HousesManagement";
-import AttendanceReports from "../pages/admin/AttendanceReports";
-import PointsManagement from "../pages/admin/PointsManagement";
-import SystemSettings from "../pages/admin/SystemSettings";
-import AuditLogs from "../pages/admin/AuditLogs";
+import AdminDashboard from "../pages/admin/DashboardPage";
+import AdminLayout from "../components/layouts/AdminLayout";
+import UsersManagement from "../pages/admin/UsersPage";
+import EventsManagement from "../pages/admin/EventsPage";
+import HousesManagement from "../pages/admin/HousesPage";
+import AttendanceReports from "../pages/admin/AttendanceReportsPage";
+import PointsManagement from "../pages/admin/PointsPage";
+import SystemSettings from "../pages/admin/SettingsPage";
+import AuditLogs from "../pages/admin/AuditLogsPage";
 
 export default function AppRoutes() {
   return (
