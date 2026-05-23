@@ -11,6 +11,7 @@ import AboutPage from "../pages/AboutPage";
 import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
 import TermsOfUsePage from "../pages/TermsOfUsePage";
 import Dashboard from "../pages/DashboardPage";
+import ProfilePage from "../pages/ProfilePage";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminLayout from "../pages/admin/AdminLayout";
 import UsersManagement from "../pages/admin/UsersManagement";
@@ -29,6 +30,16 @@ export default function AppRoutes() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/terms" element={<TermsOfUsePage />} />
+
+      <Route 
+        path="/profile" 
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        } 
+      />
+      
       <Route
         path="/merit"
         element={
