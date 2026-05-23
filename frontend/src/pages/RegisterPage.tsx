@@ -44,8 +44,8 @@ export default function RegisterPage() {
                 let houseList: House[] = [];
                 if (Array.isArray(response.data)) {
                     houseList = response.data;
-                } else if (response.data?.results && Array.isArray(response.data.results)) {
-                    houseList = response.data.results;
+                } else if (Array.isArray(response.data?.data)) {
+                    houseList = response.data.data;
                 }
                 
                 setHouses(houseList);
@@ -339,7 +339,7 @@ export default function RegisterPage() {
                                     className="w-full px-4 py-3 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
                                     disabled={loadingHouses || houses.length === 0}
                                 >
-                                    <option value="">Select a house</option>
+                                    <option value="">Select your house</option>
                                     {houses.map((house) => (
                                         <option key={house.id} value={String(house.id)}>
                                             {house.name}
