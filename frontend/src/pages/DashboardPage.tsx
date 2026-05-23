@@ -5,15 +5,16 @@ import AuthenticatedLayout from "../components/layouts/AuthenticatedLayout";
 import { useAuth } from "../context/AuthContext";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
+  if (isLoading || !user) return null;
   return (
     <AuthenticatedLayout title="Dashboard">
       {/* Greeting */}
       <div className="mb-5">
         <p className="text-sm text-gray-400">Good morning,</p>
         <h1 className="text-xl font-bold text-gray-900">
-          {user?.full_name ?? "Student"}
+          {user?.first_name} {user?.last_name}
         </h1>
       </div>
 
