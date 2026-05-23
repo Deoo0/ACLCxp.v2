@@ -1,6 +1,7 @@
 // import { useNavigate } from "react-router-dom";
 import Header from "../components/layouts/Header";
 import Footer from "../components/layouts/Footer";
+import SupportChat from "../components/SupportChat";
 
 export default function AboutPage() {
     // const navigate = useNavigate();
@@ -10,6 +11,8 @@ export default function AboutPage() {
     // ];
 
     return (
+        <>
+        <SupportChat />
         <div className="min-h-screen bg-white flex flex-col">
             <Header />
 
@@ -155,5 +158,6 @@ export default function AboutPage() {
 
             <Footer />
         </div>
+        </>
     );
 }

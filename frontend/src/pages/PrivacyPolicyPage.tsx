@@ -1,5 +1,6 @@
 import Header from "../components/layouts/Header";
 import Footer from "../components/layouts/Footer";
+import SupportChat from "../components/SupportChat";
 
 const sections = [
     {
@@ -89,6 +90,8 @@ const sections = [
 
 export default function PrivacyPolicyPage() {
     return (
+        <>
+        <SupportChat />
         <div className="min-h-screen bg-white flex flex-col">
             <Header />
 
@@ -151,5 +154,6 @@ export default function PrivacyPolicyPage() {
 
             <Footer />
         </div>
+    </>
     );
 }

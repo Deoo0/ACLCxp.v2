@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
+import SupportChat from "../components/SupportChat";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -64,16 +65,18 @@ export default function LoginPage() {
     if (e.key === "Enter") handleLogin();
   };
 
-  return (
-    <>
-      <section className="relative min-h-screen overflow-hidden">
+    return (
+        <>
+            <SupportChat />
+            <section className="relative min-h-screen overflow-hidden">
+
         {/* Background */}
         <img
           src="/aclcxp-bg.png"
           alt="Background"
           className="absolute inset-0 w-full h-full object-cover"
         />
-
+        
         {/* Dark Overlay */}
         <div className="absolute inset-0 bg-black/60" />
 
