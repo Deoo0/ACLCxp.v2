@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
+import SupportChat from "../components/SupportChat";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -64,6 +65,7 @@ export default function LoginPage() {
 
     return (
         <>
+            <SupportChat />
             <section className="relative min-h-screen overflow-hidden">
 
                 {/* Background */}
