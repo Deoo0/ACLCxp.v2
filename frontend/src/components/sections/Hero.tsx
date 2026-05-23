@@ -1,6 +1,6 @@
 export default function Hero() {
     return (
-        <section className="relative mx-0 h-125 rounded-b-4xl overflow-hidden">        
+        <section className="px-4 relative h-125 rounded-b-4xl overflow-hidden">        
         
         {/* Background Image */}
         <img
@@ -13,7 +13,7 @@ export default function Hero() {
         <div className="absolute inset-0 bg-black/50"></div>
 
         {/* Content */}
-        <div className="relative z-10 flex justify-between items-start p-8 h-full">
+        <div className="relative z-10 flex justify-between items-start py-8 max-w-6xl mx-auto h-full">
 
             {/* Left: Logo */}
             <div className="text-white">

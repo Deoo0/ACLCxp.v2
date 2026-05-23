@@ -8,7 +8,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
 
   return (
-    <AuthenticatedLayout>
+    <AuthenticatedLayout title="Dashboard">
       {/* Greeting */}
       <div className="mb-5">
         <p className="text-sm text-gray-400">Good morning,</p>

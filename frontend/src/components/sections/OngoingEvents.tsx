@@ -30,7 +30,7 @@ export default function OngoingEvents() {
             return (
               <div key={event.id} className="flex bg-gray-50 border border-gray-100 rounded-xl overflow-hidden">
                 {/* Left accent bar */}
-                <div className={`w-1 flex-shrink-0 ${cfg.accent}`} />
+                <div className={`w-1 shrink-0 ${cfg.accent}`} />
 
                 {/* Body */}
                 <div className="flex-1 px-4 py-3">
@@ -45,7 +45,7 @@ export default function OngoingEvents() {
                 </div>
 
                 {/* Icon placeholder — swap for <img> when API is ready */}
-                <div className="w-16 h-16 self-center mr-3 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-300 text-2xl">
+                <div className="w-16 h-16 self-center mr-3 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0 text-indigo-300 text-2xl">
                   🏆
                 </div>
               </div>
