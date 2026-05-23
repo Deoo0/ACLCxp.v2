@@ -36,9 +36,11 @@ const AdminLayout = () => {
         <div className="h-full px-3 py-4 overflow-y-auto bg-slate-900/95 backdrop-blur-xl border-r border-white/10">
           {/* Logo */}
           <div className="flex items-center gap-3 px-3 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
-              <span className="text-xl font-bold text-white">A</span>
-            </div>
+            <img
+              src="/aclcxp-logo.png"
+              alt="ACLCxp Logo" 
+              className="w-10 h-10 object-contain"  
+            />
             <div>
               <h1 className="text-lg font-bold text-white">ACLCxp</h1>
               <p className="text-xs text-slate-400">Admin Panel</p>
