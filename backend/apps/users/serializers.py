@@ -5,6 +5,7 @@ from django.db import models
 
 User = get_user_model()
 
+
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     house_id = serializers.IntegerField(write_only=True)
@@ -12,14 +13,19 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'email', 'student_id',
-            'first_name', 'last_name', 'middle_name',
-            'program', 'year_level',
-            'password', 'house_id',
+            "email",
+            "student_id",
+            "first_name",
+            "last_name",
+            "middle_name",
+            "program",
+            "year_level",
+            "password",
+            "house_id",
         ]
 
     def validate_email(self, value):
-        if not value.lower().endswith('@gmail.com'):
+        if not value.lower().endswith("@gmail.com"):
             raise serializers.ValidationError(
                 "Only @gmail.com email addresses are allowed."
             )
@@ -37,22 +43,22 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Invalid house selected. Please choose a valid house."
             )
-        return house # return house value instead of id
+        return house  # return house value instead of id
 
     def create(self, validated_data):
-        house = validated_data.pop('house_id')  # Already a House object from validate_house_id
-        password = validated_data.pop('password')
+        house = validated_data.pop(
+            "house_id"
+        )  # Already a House object from validate_house_id
+        password = validated_data.pop("password")
 
         # create_user from your UserManager handles password hashing
         user = User.objects.create_user(
-            password=password,
-            house=house,
-            **validated_data
+            password=password, house=house, **validated_data
         )
 
         # Keep member_count in sync on the House
         House.objects.filter(id=house.id).update(
-            member_count=models.F('member_count') + 1
+            member_count=models.F("member_count") + 1
         )
 
         return user
@@ -60,19 +66,28 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """Read-only profile — returned after login or /api/auth/me/"""
-    
-    house_name = serializers.CharField(source='house.name', read_only=True)
-    house_color = serializers.CharField(source='house.color_code', read_only=True)
+
+    house_name = serializers.CharField(source="house.name", read_only=True)
+    house_color = serializers.CharField(source="house.color_code", read_only=True)
     full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
-            'id', 'email', 'student_id',
-            'first_name', 'last_name', 'full_name',
-            'program', 'year_level', 'role',
-            'house', 'house_name', 'house_color',
-            'profile_photo', 'email_verified',
+            "id",
+            "email",
+            "student_id",
+            "first_name",
+            "last_name",
+            "full_name",
+            "program",
+            "year_level",
+            "role",
+            "house",
+            "house_name",
+            "house_color",
+            "profile_photo",
+            "email_verified",
         ]
         read_only_fields = fields  # This serializer is for reading only
 

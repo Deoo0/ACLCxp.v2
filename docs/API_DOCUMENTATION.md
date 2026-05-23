@@ -39,6 +39,29 @@
   "message": "I received your data successfully!"
 }
 ```
+### View User List
+- **URL:** `/users/list/`
+- **Method:** `GET`
+- **Auth Required:** No
+- **Description:** View all registered Users
+- **Request Body:**
+```json
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 8,
+            "student_id": "int",
+            "first_name": "string",
+            "last_name": "string",
+            "program": "string",
+            "year_level": "int",
+            "house_id": "int",
+            "role": "string"
+        }
+    ]
+}
+```
 
 ### Register User
 - **URL:** `/users/register/`
