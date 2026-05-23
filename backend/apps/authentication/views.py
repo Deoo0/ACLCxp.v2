@@ -10,7 +10,7 @@ from django.contrib.auth import authenticate
 from apps.users.serializers import UserProfileSerializer
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def login(request):
     """
@@ -19,51 +19,54 @@ def login(request):
         "student_id": "string",
         "password": "string"
     }
-    """ 
-    student_id = request.data.get('student_id')
-    password = request.data.get('password')
+    """
+    student_id = request.data.get("student_id")
+    password = request.data.get("password")
 
     if not student_id or not password:
-        return Response({
-            'status': 'error',
-            'message': 'Student ID and password are required'
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": "error", "message": "Student ID and password are required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     user = authenticate(request, username=student_id, password=password)
 
     if user is None:
-        return Response({
-            'status': 'error',
-            'message': 'Invalid credentials'
-        }, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(
+            {"status": "error", "message": "Invalid credentials"},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
 
     if not user.is_active:
-        return Response({
-            'status': 'error',
-            'message': 'Account is disabled'
-        }, status=status.HTTP_403_FORBIDDEN)
+        return Response(
+            {"status": "error", "message": "Account is disabled"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     refresh = RefreshToken.for_user(user)
 
-    return Response({
-        'status': 'success',
-        'message': 'Login successful',
-        'data': {
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'student_id': user.student_id,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'role': user.role,
-            }
-        }
-    }, status=status.HTTP_200_OK)
+    return Response(
+        {
+            "status": "success",
+            "message": "Login successful",
+            "data": {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "student_id": user.student_id,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "role": user.role,
+                },
+            },
+        },
+        status=status.HTTP_200_OK,
+    )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout(request):
     """
@@ -72,29 +75,29 @@ def logout(request):
         "refresh": "string"
     }
     """
-    refresh_token = request.data.get('refresh')
+    refresh_token = request.data.get("refresh")
 
     if not refresh_token:
-        return Response({
-            'status': 'error',
-            'message': 'Refresh token is required'
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": "error", "message": "Refresh token is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         token = RefreshToken(refresh_token)
         token.blacklist()
-        return Response({
-            'status': 'success',
-            'message': 'Logged out successfully'
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"status": "success", "message": "Logged out successfully"},
+            status=status.HTTP_200_OK,
+        )
     except TokenError:
-        return Response({
-            'status': 'error',
-            'message': 'Invalid or expired token'
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": "error", "message": "Invalid or expired token"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def refresh_token(request):
     """
@@ -103,36 +106,35 @@ def refresh_token(request):
         "refresh": "string"
     }
     """
-    refresh = request.data.get('refresh')
+    refresh = request.data.get("refresh")
 
     if not refresh:
-        return Response({
-            'status': 'error',
-            'message': 'Refresh token is required'
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": "error", "message": "Refresh token is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         token = RefreshToken(refresh)
-        return Response({
-            'status': 'success',
-            'message': 'Token refreshed successfully',
-            'data': {
-                'access': str(token.access_token),
-            }
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "status": "success",
+                "message": "Token refreshed successfully",
+                "data": {
+                    "access": str(token.access_token),
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
     except TokenError:
-        return Response({
-            'status': 'error',
-            'message': 'Invalid or expired token'
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": "error", "message": "Invalid or expired token"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-@api_view(['GET'])
+
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def me(request):
     serializer = UserProfileSerializer(request.user)
-    return Response({
-        "status": "success",
-        "data": {
-            "user": serializer.data
-        }
-    })
+    return Response({"status": "success", "data": {"user": serializer.data}})
