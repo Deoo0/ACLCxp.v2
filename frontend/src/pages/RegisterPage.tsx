@@ -83,6 +83,9 @@ export default function RegisterPage() {
         }));
     };
 
+    const [acceptTerms, setAcceptTerms] = useState(false);
+    const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+
     const validate = (): string | null => {
         const { studentId, email, password, confirmPassword, firstName, lastName, program, yearLevel, houseId } = formData;
 
@@ -117,6 +120,14 @@ export default function RegisterPage() {
         const yearLevelNum = parseInt(yearLevel);
         if (yearLevelNum < 1 || yearLevelNum > 4) {
             return "Year level must be between 1 and 4.";
+        }
+
+        if (!acceptTerms) {
+            return "You must accept the Terms and Conditions.";
+        }
+
+        if (!acceptPrivacy) {
+            return "You must accept the Privacy Policy.";
         }
 
         return null;
@@ -190,16 +201,16 @@ export default function RegisterPage() {
                 {/* Center Content */}
                 <div className="flex flex-1 items-center justify-center py-4">
                     <div className="
-                        w-full 
+                        w-full
                         max-w-2xl
-                        bg-white/10 
-                        backdrop-blur-md 
-                        border border-white/10
-                        rounded-3xl 
-                        p-8 
-                        shadow-2xl
-                        max-h-[90vh]
-                        overflow-y-auto
+                        mx-auto
+                        bg-transparent
+                        md:bg-white/10
+                        md:backdrop-blur-md
+                        md:border md:border-white/10
+                        md:rounded-3xl
+                        p-8
+                        md:shadow-2xl
                     ">
 
                         {/* Logo */}
@@ -226,8 +237,8 @@ export default function RegisterPage() {
                             </div>
                         )}
 
-                        {/* Two Column Layout */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        {/* Stacked Layout */}
+                        <div className="space-y-4 mb-4">
                             {/* Student ID */}
                             <div>
                                 <label className="text-xs text-white/70 mb-1 block">Student ID *</label>
@@ -240,13 +251,13 @@ export default function RegisterPage() {
                                     onChange={handleStudentIdChange}
                                     onKeyDown={handleKeyDown}
                                     maxLength={20}
-                                    className="w-full px-4 py-3 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
+                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
                                 />
                             </div>
 
                             {/* Email */}
                             <div>
-                                <label className="text-xs text-white/70 mb-1 block">Email (@gmail.com) *</label>
+                                <label className="text-xs text-white/70 mb-1 block">Email *</label>
                                 <input
                                     type="email"
                                     name="email"
@@ -254,13 +265,14 @@ export default function RegisterPage() {
                                     value={formData.email}
                                     onChange={handleChange}
                                     onKeyDown={handleKeyDown}
-                                    className="w-full px-4 py-3 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
+                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
                                 />
                             </div>
 
-                            {/* First Name */}
+                            {/* Full Name */}
                             <div>
-                                <label className="text-xs text-white/70 mb-1 block">First Name *</label>
+                                <label className="text-xs text-white/70 mb-1 block">Full Name *</label>
+                                {/* First Name */}
                                 <input
                                     type="text"
                                     name="firstName"
@@ -268,27 +280,10 @@ export default function RegisterPage() {
                                     value={formData.firstName}
                                     onChange={handleChange}
                                     onKeyDown={handleKeyDown}
-                                    className="w-full px-4 py-3 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
+                                    className="w-full px-4 py-2 mb-1 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
                                 />
-                            </div>
-
-                            {/* Last Name */}
-                            <div>
-                                <label className="text-xs text-white/70 mb-1 block">Last Name *</label>
-                                <input
-                                    type="text"
-                                    name="lastName"
-                                    placeholder="Last name"
-                                    value={formData.lastName}
-                                    onChange={handleChange}
-                                    onKeyDown={handleKeyDown}
-                                    className="w-full px-4 py-3 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
-                                />
-                            </div>
-
-                            {/* Middle Name */}
-                            <div>
-                                <label className="text-xs text-white/70 mb-1 block">Middle Name</label>
+                            
+                                {/* Middle Name */}
                                 <input
                                     type="text"
                                     name="middleName"
@@ -296,7 +291,18 @@ export default function RegisterPage() {
                                     value={formData.middleName}
                                     onChange={handleChange}
                                     onKeyDown={handleKeyDown}
-                                    className="w-full px-4 py-3 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
+                                    className="w-full px-4 py-2 mb-1 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
+                                />
+
+                                {/* Last Name */}
+                                <input
+                                    type="text"
+                                    name="lastName"
+                                    placeholder="Last name"
+                                    value={formData.lastName}
+                                    onChange={handleChange}
+                                    onKeyDown={handleKeyDown}
+                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
                                 />
                             </div>
 
@@ -307,7 +313,7 @@ export default function RegisterPage() {
                                     name="program"
                                     value={formData.program}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
+                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
                                 >
                                     <option value="BSIT">BSIT</option>
                                     <option value="BSCS">BSCS</option>
@@ -322,7 +328,7 @@ export default function RegisterPage() {
                                     name="yearLevel"
                                     value={formData.yearLevel}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
+                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
                                 >
                                     <option value="1">1st Year</option>
                                     <option value="2">2nd Year</option>
@@ -338,7 +344,7 @@ export default function RegisterPage() {
                                     name="houseId"
                                     value={formData.houseId}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
+                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
                                     disabled={loadingHouses || houses.length === 0}
                                 >
                                     <option value="">Select your house</option>
@@ -363,7 +369,7 @@ export default function RegisterPage() {
                                     onChange={handleChange}
                                     onKeyDown={handleKeyDown}
                                     maxLength={50}
-                                    className="w-full px-4 py-3 pr-12 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
+                                    className="w-full px-4 py-2 pr-12 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
                                 />
                                 <button
                                     type="button"
@@ -387,7 +393,7 @@ export default function RegisterPage() {
                                     onChange={handleChange}
                                     onKeyDown={handleKeyDown}
                                     maxLength={50}
-                                    className="w-full px-4 py-3 pr-12 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
+                                    className="w-full px-4 py-2 pr-12 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
                                 />
                                 <button
                                     type="button"
@@ -399,11 +405,55 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
+                        <div className="space-y-2 mb-6 text-sm">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={acceptTerms}
+                                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                                    className="accent-[#2E308E]"
+                                />
+
+                                <span>
+                                    I Accept the{" "}
+                                    <a
+                                        href="/terms"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-[#D91B22] underline"
+                                    >
+                                        Terms and Conditions
+                                    </a>
+                                </span>
+                            </label>
+
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={acceptPrivacy}
+                                    onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                                    className="accent-[#2E308E]"
+                                />
+
+                                <span>
+                                    I Accept the{" "}
+                                    <a
+                                        href="/privacy"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-[#D91B22] underline"
+                                    >
+                                        Privacy Policy
+                                    </a>
+                                </span>
+                            </label>
+                        </div>
+
                         {/* Register Button */}
                         <button
                             onClick={handleRegister}
                             disabled={loading || loadingHouses}
-                            className="w-full py-3 rounded-full bg-white text-[#2E308E] font-bold hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full py-3 rounded-full bg-[#2E308E] text-white font-bold hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? "Creating Account..." : "SIGN UP"}
                         </button>
