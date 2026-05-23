@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import AppHeader from "./AppHeader";
-import StudentBottomNav from "./StudentBottomNav";
+import StudentBottomNav from "../navigation/StudentBottomNav";
 
 type Props = {
   children: ReactNode;

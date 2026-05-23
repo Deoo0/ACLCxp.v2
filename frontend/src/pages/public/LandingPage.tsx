@@ -1,7 +1,7 @@
-import Header from '../../components/layouts/Header.tsx'
-import Hero from '../../components/sections/Hero.tsx'
-import OngoingEvents from '../../components/sections/OngoingEvents.tsx'
-import CTA from '../../components/sections/CTA.tsx'
+import Header from '../../components/navigation/PublicHeader.tsx'
+import Hero from '../../components/landing/Hero.tsx'
+import OngoingEvents from '../../components/landing/OngoingEvents.tsx'
+import CTA from '../../components/landing/CTA.tsx'
 import Footer from '../../components/layouts/Footer.tsx'
 import SupportChat from "../../components/ui/SupportChat.tsx";
 
