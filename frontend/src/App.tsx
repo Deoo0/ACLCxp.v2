@@ -1,13 +1,7 @@
-﻿import SupportChat from "./components/SupportChat";
-import AppRoutes from "./routes";
+﻿import AppRoutes from "./routes";
 
 function App() {
-  return (
-    <>
-      <SupportChat />
-      <AppRoutes />
-    </>
-  );
+  return <AppRoutes />;
 }
 
 export default App;
