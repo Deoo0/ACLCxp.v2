@@ -1,7 +1,7 @@
 // import { useNavigate } from "react-router-dom";
-import Header from "../components/layouts/Header";
-import Footer from "../components/layouts/Footer";
-import SupportChat from "../components/SupportChat";
+import Header from "../../components/layouts/Header";
+import Footer from "../../components/layouts/Footer";
+import SupportChat from "../../components/SupportChat";
 
 export default function AboutPage() {
     // const navigate = useNavigate();

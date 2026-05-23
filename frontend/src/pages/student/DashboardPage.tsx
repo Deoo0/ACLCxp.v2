@@ -1,8 +1,8 @@
-import StatCards from "../components/dashboard/StatCards";
-import EventList from "../components/dashboard/EventList";
-import Leaderboard from "../components/dashboard/Leaderboard";
-import AuthenticatedLayout from "../components/layouts/AuthenticatedLayout";
-import { useAuth } from "../context/AuthContext";
+import StatCards from "../../components/dashboard/StatCards";
+import EventList from "../../components/dashboard/EventList";
+import Leaderboard from "../../components/dashboard/Leaderboard";
+import AuthenticatedLayout from "../../components/layouts/AuthenticatedLayout";
+import { useAuth } from "../../context/AuthContext";
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();

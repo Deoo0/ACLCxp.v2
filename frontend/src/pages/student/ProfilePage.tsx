@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import AuthenticatedLayout from "../components/layouts/AuthenticatedLayout";
-import { useAuth } from "../context/AuthContext";
+import AuthenticatedLayout from "../../components/layouts/AuthenticatedLayout";
+import { useAuth } from "../../context/AuthContext";
 
 const YEAR_LABELS: Record<number, string> = {
   1: "1st Year", 2: "2nd Year", 3: "3rd Year", 4: "4th Year",
@@ -145,7 +145,7 @@ export default function ProfilePage() {
           style={{ backgroundColor: `${houseColor}18` }}
         >
           <div
-            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+            className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ backgroundColor: houseColor }}
           />
           <div>
@@ -229,7 +229,7 @@ interface QRModalProps {
 function QRModal({ name, studentId, photo, initials, houseColor, houseName, onClose }: QRModalProps) {
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col"
+      className="fixed inset-0 z-100 flex flex-col"
       style={{
         background: `linear-gradient(to top, #ffffff 0%, #ffffff 20%, ${houseColor} 85%, color-mix(in srgb, ${houseColor} 85%, #000000) 100%)`,
       }}
@@ -252,7 +252,7 @@ function QRModal({ name, studentId, photo, initials, houseColor, houseName, onCl
       <div className="flex-1 flex flex-col items-center justify-center px-8 gap-7">
 
         {/* Avatar */}
-        <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-md flex-shrink-0">
+        <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-md shrink-0">
           {photo ? (
             <img src={photo} alt={name} className="w-full h-full object-cover" />
           ) : (

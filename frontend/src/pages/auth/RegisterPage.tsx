@@ -1,9 +1,9 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext";
-import api from "../services/api";
-import SupportChat from "../components/SupportChat";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../services/api";
+import SupportChat from "../../components/SupportChat";
 
 interface House {
     id: number;
