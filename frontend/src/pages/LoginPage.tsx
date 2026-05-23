@@ -89,17 +89,18 @@ export default function LoginPage() {
                     </button>
 
                     {/* Center Content */}
-                    <div className="flex flex-1 items-center justify-center">
+                    <div className="flex flex-1 items-center justify-center py-4">
 
                         <div className="
-                            w-full 
+                            w-full
                             max-w-xl
-                            bg-white/10 
-                            backdrop-blur-md 
-                            border border-white/10
-                            rounded-3xl 
-                            p-8 
-                            shadow-2xl
+                            rounded-3xl
+                            p-8
+                            bg-transparent
+                            md:bg-white/10
+                            md:backdrop-blur-md
+                            md:border md:border-white/10
+                            md:shadow-2xl
                         ">
 
                             {/* Logo */}
