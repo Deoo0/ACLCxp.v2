@@ -3,6 +3,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import RegisterSerializer
+from .models import User
 
 
 @api_view(['GET'])
@@ -29,6 +30,15 @@ def echo_test(request):
         "received_data": request.data,
         "message": "I received your data successfully!"
     })
+
+@api_view(['GET'])
+def list_user(request):
+    users = User.objects.values('id','student_id','first_name','last_name','program','year_level','house_id','role')
+    
+    return Response({
+        'status': 'success',
+        'data': list(users)
+    },status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
