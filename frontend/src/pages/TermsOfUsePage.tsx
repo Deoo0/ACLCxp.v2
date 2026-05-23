@@ -1,5 +1,6 @@
 import Header from "../components/layouts/Header";
 import Footer from "../components/layouts/Footer";
+import SupportChat from "../components/SupportChat";
 
 const sections = [
     {
@@ -66,6 +67,8 @@ const sections = [
 
 export default function TermsOfUsePage() {
     return (
+        <>
+        <SupportChat />
         <div className="min-h-screen bg-white flex flex-col">
             <Header />
 
@@ -128,5 +131,6 @@ export default function TermsOfUsePage() {
 
             <Footer />
         </div>
+    </>
     );
 }

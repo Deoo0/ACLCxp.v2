@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import SupportChat from "../components/SupportChat";
 
 interface House {
     id: number;
@@ -176,6 +177,8 @@ export default function RegisterPage() {
     };
 
     return (
+        <>
+        <SupportChat />
         <section className="relative min-h-screen overflow-hidden">
             {/* Background */}
             <img
@@ -472,5 +475,6 @@ export default function RegisterPage() {
                 </div>
             </div>
         </section>
+        </>
     );
 }
