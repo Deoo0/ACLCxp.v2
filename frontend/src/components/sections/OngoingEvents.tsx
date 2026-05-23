@@ -1,5 +1,9 @@
 type EventStatus = "live" | "closing" | "open";
 
+
+// TODO: Move data fetching to LandingPage once API exists
+
+
 const events = [
   { id: 1, title: "Inter-College Quiz Bowl", date: "May 22 · Rm 301", status: "live" as EventStatus },
   { id: 2, title: "Photography Contest", date: "May 24 · Online", status: "closing" as EventStatus },
@@ -53,10 +57,10 @@ export default function OngoingEvents() {
           })}
         </div>
 
-        {/* Dev note — remove before launch */}
-        <p className="mt-6 text-[11px] text-gray-300 border border-dashed border-gray-200 rounded-lg p-3">
-          <strong>TODO:</strong> Replace static array with API fetch. Map real event data to this layout.
-        </p>
+
+        {/* TODO: Replace static events with API data */}
+
+
       </div>
     </section>
   );

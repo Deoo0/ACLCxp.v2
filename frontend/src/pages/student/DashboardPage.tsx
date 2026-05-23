@@ -1,6 +1,6 @@
-import StatCards from "../../components/dashboard/StatCards";
-import EventList from "../../components/dashboard/EventList";
-import Leaderboard from "../../components/dashboard/Leaderboard";
+import StatCards from "../../components/dashboard/DashboardStatCards";
+import EventList from "../../components/dashboard/DashboardEventList";
+import Leaderboard from "../../components/dashboard/DashboardLeaderboard";
 import AuthenticatedLayout from "../../components/layouts/AuthenticatedLayout";
 import { useAuth } from "../../context/AuthContext";
 
