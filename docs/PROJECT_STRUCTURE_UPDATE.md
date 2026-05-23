@@ -326,56 +326,205 @@ ai/
 
 ## Frontend Directory Structure
 
-### Root Frontend Files
-```
-frontend/
-├── .env                        # Frontend environment variables (VITE_API_URL)
-├── .gitignore                  # Files ignored by Git
-├── package.json                # Node.js dependencies and scripts
-├── package-lock.json           # Locked dependency versions
-├── postcss.config.js           # PostCSS configuration file
-├── tailwind.config.js          # Tailwind CSS configuration
-├── tsconfig.json               # TypeScript configuration
-├── tsconfig.app.json           # App-specific TypeScript config
-├── tsconfig.node.json          # Node.js TypeScript config
-├── vite.config.ts              # Vite build configuration
-├── eslint.config.js            # ESLint linting rules
-├── index.html                  # Main HTML template
-├── README.md                   # Frontend documentation
-├── public/                     # Public static assets
-└── src/                        # React source code
-```
-
-
----
-
 ### Source Code (`frontend/src/`)
 ```
 src/
-├── main.tsx                    # App entry point — mounts React with providers
-├── App.tsx                     # Route definitions (public + protected)
-├── App.css                     # Global application styles
-├── index.css                   # Base CSS with Tailwind import
-├── context/                    # React context providers
-│   └── AuthContext.tsx         # Auth state: user, isAuthenticated, login, logout
-├── components/                 # Reusable UI components
-│   ├── Header.tsx
-│   ├── Hero.tsx
-│   ├── OngoingEvents.tsx
-│   ├── CTA.tsx
-│   ├── Footer.tsx
-│   ├── ForgotPasswordModal.tsx
-│   ├── ConnectivityTest.tsx    # Connectivity testing component
-│   └── ProtectedRoute.tsx      # Redirects unauthenticated users to /login
-├── pages/                      # Page-level components
-│   ├── LandingPage.tsx
-│   ├── LoginPage.tsx
-│   ├── RegisterPage.tsx        # Placeholder registration page
-│   └── ConnectivityTestPage.tsx
-└── services/                   # API service layer
-    ├── api.ts                  # Axios instance — baseURL: /api, auto-attaches JWT
-    └── auth.ts                 # Auth functions: login, register, logout, refresh
+├── components/          # Reusable UI building blocks shared across pages
+│   ├── admin/           # Admin-specific reusable components
+│   ├── dashboard/       # Student/Staff dashboard widgets and cards
+│   ├── landing/         # Components used by the public landing page
+│   ├── layouts/         # Page layout wrappers (Admin, Authenticated, etc.)
+│   ├── navigation/      # Headers, sidebars, bottom navigation, menus
+│   └── ui/              # Generic UI elements (modals, dialogs, loaders, etc.)
+│
+├── context/             # React Context providers and global state
+│
+├── pages/               # Route-level pages
+│   ├── admin/           # Admin-only pages and management screens
+│   ├── auth/            # Authentication pages (Login, Register)
+│   ├── dev/             # Development/testing utilities and diagnostics
+│   ├── public/          # Publicly accessible pages
+│   └── student/         # Student-facing authenticated pages
+│
+├── routes/              # Route guards and route configuration
+│
+├── services/            # API communication and business logic layer
+│
+├── App.tsx              # Root application component
+├── App.css              # Application-level styles
+├── index.css            # Global styles and Tailwind imports
+└── main.tsx             # React application entry point
 ```
+
+---
+
+### Folder Usage Guidelines
+
+#### `pages/`
+Pages represent **full routes/screens**.
+
+Examples:
+
+```
+pages/public/LandingPage.tsx
+pages/auth/LoginPage.tsx
+pages/student/DashboardPage.tsx
+pages/admin/UsersPage.tsx
+```
+
+Create a new file here when:
+- A new URL/route is needed
+- A complete screen is being built
+
+Do **not** place reusable UI components here.
+
+---
+
+#### `components/`
+Components are reusable pieces used inside pages.
+
+Examples:
+
+```
+components/dashboard/DashboardStatCards.tsx
+components/navigation/StudentBottomNav.tsx
+components/ui/Modal.tsx
+```
+
+Create a component when:
+- The UI is reused in multiple places
+- A page becomes too large and should be split into smaller parts
+
+---
+
+#### `components/layouts/`
+Contains page wrappers that define overall page structure.
+
+Examples:
+
+```
+AuthenticatedLayout.tsx
+AdminLayout.tsx
+```
+
+Layouts usually contain:
+- Headers
+- Navigation
+- Sidebars
+- Main content containers
+
+---
+
+#### `components/navigation/`
+Contains navigation-related UI.
+
+Examples:
+
+```
+PublicHeader.tsx
+StudentBottomNav.tsx
+AdminSidebar.tsx
+```
+
+Only navigation elements belong here.
+
+---
+
+#### `components/ui/`
+Contains generic UI elements that can be used anywhere.
+
+Examples:
+
+```
+Modal.tsx
+ForgotPasswordModal.tsx
+Loader.tsx
+Button.tsx
+```
+
+These components should not contain page-specific logic.
+
+---
+
+#### `services/`
+Contains all backend communication.
+
+Examples:
+
+```
+api.ts
+auth.ts
+eventService.ts
+userService.ts
+```
+
+Avoid making Axios calls directly inside pages whenever possible.
+
+---
+
+#### `routes/`
+Contains route definitions and access control.
+
+Examples:
+
+```
+AppRoutes.tsx
+ProtectedRoute.tsx
+PublicRoute.tsx
+```
+
+Used for:
+- Route registration
+- Authentication guards
+- Role-based access control
+
+---
+
+### Naming Conventions
+
+#### Pages
+
+```
+DashboardPage.tsx
+ProfilePage.tsx
+UsersPage.tsx
+```
+
+Always use the `Page` suffix.
+
+---
+
+#### Layouts
+
+```
+AdminLayout.tsx
+AuthenticatedLayout.tsx
+```
+
+Always use the `Layout` suffix.
+
+---
+
+#### Modals
+
+```
+DeleteConfirmModal.tsx
+ForgotPasswordModal.tsx
+```
+
+Always use the `Modal` suffix.
+
+---
+
+#### Navigation Components
+
+```
+PublicHeader.tsx
+StudentBottomNav.tsx 
+AdminSidebar.tsx
+```
+
+Use descriptive names based on purpose and audience.
 
 ---
 
