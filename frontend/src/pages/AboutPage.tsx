@@ -1,13 +1,13 @@
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import Header from "../components/layouts/Header";
 import Footer from "../components/layouts/Footer";
 
 export default function AboutPage() {
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
-    const team = [
-        { name: "Team Praxys", role: "Development Team" },
-    ];
+    // const team = [
+    //     { name: "Team Praxys", role: "Development Team" },
+    // ];
 
     return (
         <div className="min-h-screen bg-white flex flex-col">
