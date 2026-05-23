@@ -4,7 +4,7 @@ import BottomNav from "./BottomNav";
 
 type Props = {
   children: ReactNode;
-  title: string;
+
   subtitle?: string;
   activeNav?: string;
 };
