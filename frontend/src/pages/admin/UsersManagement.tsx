@@ -1,6 +1,8 @@
 // frontend/src/pages/admin/UsersManagement.tsx
 import { useState, useEffect } from 'react'
-import api from '../../services/api'
+
+// comment out api import for now since we don't have the endpoint yet
+// import api from '../../services/api'
 
 interface User {
   id: number
@@ -21,6 +23,8 @@ const UsersManagement = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterRole, setFilterRole] = useState('ALL')
+  
+  
   const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
@@ -98,7 +102,7 @@ const UsersManagement = () => {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl font-semibold text-white hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-indigo-500 to-purple-500 rounded-xl font-semibold text-white hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
         >
           <span className="text-xl">➕</span>
           Add User
@@ -199,7 +203,7 @@ const UsersManagement = () => {
                   <tr key={user.id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
                           <span className="text-sm font-bold text-white">
                             {user.first_name[0]}{user.last_name[0]}
                           </span>
