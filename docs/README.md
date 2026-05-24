@@ -53,7 +53,7 @@ Built as a capstone project — but built like a real product.
 
 Every student belongs to one. Every event earns points. One house reigns supreme.
 
-| 🔥 Phoenix | 🦅 Griffin | 🐉 Dragon | ⚡ Titan | 🦄 Pegasus |
+| 🔥 CAHEL | 🦅 GIALLIO | 🐉 VIERRDY | ⚡ ROXXO | 🐺 AZUL |
 |:---:|:---:|:---:|:---:|:---:|
 | `#FF6B35` | `#FFD700` | `#DC143C` | `#4169E1` | `#9370DB` |
 | *From ashes we rise* | *Courage above all* | *Strength through fire* | *Wisdom and strength* | *Beyond the horizon* |
