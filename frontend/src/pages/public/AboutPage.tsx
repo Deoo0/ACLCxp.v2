@@ -1,14 +1,14 @@
-import { useNavigate } from "react-router-dom";
-import Header from "../components/layouts/Header";
-import Footer from "../components/layouts/Footer";
-import SupportChat from "../components/SupportChat";
+// import { useNavigate } from "react-router-dom";
+import Header from "../../components/navigation/PublicHeader";
+import Footer from "../../components/layouts/Footer";
+import SupportChat from "../../components/ui/SupportChat";
 
 export default function AboutPage() {
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
-    const team = [
-        { name: "Team Praxys", role: "Development Team" },
-    ];
+    // const team = [
+    //     { name: "Team Praxys", role: "Development Team" },
+    // ];
 
     return (
         <>
@@ -109,7 +109,7 @@ export default function AboutPage() {
                             ["Administrators", "Full system oversight — users, events, reports, and configurations."],
                         ].map(([role, desc]) => (
                             <li key={role} className="flex gap-3 text-sm text-gray-600">
-                                <span className="mt-0.5 w-2 h-2 rounded-full bg-[#D91B22] flex-shrink-0 mt-1.5" />
+                                <span className="w-2 h-2 rounded-full bg-[#D91B22] shrink-0 mt-2" />
                                 <span><strong className="text-[#1E1E1E]">{role}:</strong> {desc}</span>
                             </li>
                         ))}

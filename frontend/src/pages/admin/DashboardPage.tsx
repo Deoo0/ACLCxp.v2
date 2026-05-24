@@ -1,6 +1,8 @@
 // frontend/src/pages/admin/AdminDashboard.tsx
 import { useState, useEffect } from 'react'
-import api from '../../services/api'
+
+// comment out api import for now since we don't have the endpoint yet
+// import api from '../../services/api'
 
 interface DashboardStats {
   total_users: number
@@ -71,12 +73,12 @@ const AdminDashboard = () => {
             className="group relative overflow-hidden rounded-2xl bg-slate-900/50 backdrop-blur-sm border border-white/10 p-6 hover:border-white/20 transition-all"
           >
             <div className="absolute top-0 right-0 w-20 h-20 opacity-20">
-              <div className={`w-full h-full rounded-full bg-gradient-to-br ${card.color} blur-2xl`}></div>
+              <div className={`w-full h-full rounded-full bg-linear-to-br ${card.color} blur-2xl`}></div>
             </div>
             
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center`}>
+                <div className={`w-12 h-12 rounded-xl bg-linear-to-br ${card.color} flex items-center justify-center`}>
                   <span className="text-2xl">{card.icon}</span>
                 </div>
                 <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
@@ -105,7 +107,7 @@ const AdminDashboard = () => {
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-colors">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
                   <span className="text-sm font-bold text-white">JD</span>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -128,7 +130,7 @@ const AdminDashboard = () => {
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
                   <span className="text-lg">🎯</span>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -147,7 +149,7 @@ const AdminDashboard = () => {
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <button className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 hover:border-indigo-500/40 transition-all group">
+        <button className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 hover:border-indigo-500/40 transition-all group">
           <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
             <span className="text-xl">➕</span>
           </div>
@@ -157,7 +159,7 @@ const AdminDashboard = () => {
           </div>
         </button>
 
-        <button className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:border-emerald-500/40 transition-all group">
+        <button className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:border-emerald-500/40 transition-all group">
           <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
             <span className="text-xl">📅</span>
           </div>
@@ -167,7 +169,7 @@ const AdminDashboard = () => {
           </div>
         </button>
 
-        <button className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 hover:border-orange-500/40 transition-all group">
+        <button className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 hover:border-orange-500/40 transition-all group">
           <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
             <span className="text-xl">📊</span>
           </div>
@@ -177,7 +179,7 @@ const AdminDashboard = () => {
           </div>
         </button>
 
-        <button className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-pink-500/10 to-rose-500/10 border border-pink-500/20 hover:border-pink-500/40 transition-all group">
+        <button className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-br from-pink-500/10 to-rose-500/10 border border-pink-500/20 hover:border-pink-500/40 transition-all group">
           <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
             <span className="text-xl">📝</span>
           </div>

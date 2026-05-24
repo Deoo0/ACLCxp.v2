@@ -1,6 +1,6 @@
-import Header from "../components/layouts/Header";
-import Footer from "../components/layouts/Footer";
-import ConnectivityTest from "../components/ConnectivityTest";
+import Header from "../../components/navigation/PublicHeader";
+import Footer from "../../components/layouts/Footer";
+import ConnectivityTest from "../dev/ConnectivityTest";
 
 export default function ConnectivityTestPage() {
     return (

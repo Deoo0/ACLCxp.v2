@@ -6,7 +6,7 @@ const navItems = [
   { label: "Profile", path: "/profile",   icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
 ];
 
-export default function BottomNav({ active }: { active: string }) {
+export default function BottomNav() {
   const location = useLocation();
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-2 pb-safe">

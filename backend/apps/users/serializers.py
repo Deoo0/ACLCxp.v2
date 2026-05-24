@@ -93,3 +93,86 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return obj.get_full_name()
+
+
+class UpdateUserSerializer(serializers.ModelSerializer):
+    house_id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = User
+        fields = [
+            "email",
+            "first_name",
+            "last_name",
+            "middle_name",
+            "password",
+            "program",
+            "year_level",
+            "phone_number",
+            "contact_person",
+            "contact_number",
+            "bio",
+            "profile_photo",
+            "house_id",
+            "role",
+        ]
+
+    def validate_role(self, value):
+        valid_roles = [choice[0] for choice in User.ROLE_CHOICES]
+
+        if value not in valid_roles:
+            raise serializers.ValidationError(
+                f"Invalid role. Valid roles are: {valid_roles}"
+            )
+
+        return value
+
+    def validate_email(self, value):
+        value = value.lower()
+
+        if not value.endswith("@gmail.com"):
+            raise serializers.ValidationError(
+                "Only @gmail.com email addresses are allowed."
+            )
+
+        user = self.instance
+
+        if User.objects.filter(email=value).exclude(id=user.id).exists():
+            raise serializers.ValidationError("This email is already in use.")
+
+        return value
+
+    def validate_house_id(self, value):
+        try:
+            house = House.objects.get(id=value, is_active=True)
+        except House.DoesNotExist:
+            raise serializers.ValidationError("Invalid house selected.")
+
+        return house
+
+    def update(self, instance, validated_data):
+        new_house = validated_data.pop("house_id", None)
+
+        # Handle house change
+        if new_house and instance.house != new_house:
+
+            # decrement old house
+            if instance.house:
+                House.objects.filter(id=instance.house.id).update(
+                    member_count=models.F("member_count") - 1
+                )
+
+            # increment new house
+            House.objects.filter(id=new_house.id).update(
+                member_count=models.F("member_count") + 1
+            )
+
+            instance.house = new_house
+
+        # Update remaining fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+
+        return instance

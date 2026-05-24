@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import AppHeader from "./AppHeader";
-import BottomNav from "./BottomNav";
+import StudentBottomNav from "../navigation/StudentBottomNav";
 
 type Props = {
   children: ReactNode;
@@ -18,7 +18,7 @@ export default function AuthenticatedLayout({ children }: Props) {
         {children}
       </main>
 
-      <BottomNav active="home" />
+      <StudentBottomNav />
     </div>
   );
 }

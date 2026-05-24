@@ -2,25 +2,25 @@ import { Routes, Route } from "react-router-dom";
 import PublicRoute from "./PublicRoute";
 import ProtectedRoute from "./ProtectedRoute";
 
-import MeritSheetPage from "../pages/MeritSheetPage";
-import LandingPage from "../pages/LandingPage";
-import ConnectivityTestPage from "../pages/ConnectivityTestPage";
-import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/RegisterPage";
-import AboutPage from "../pages/AboutPage";
-import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
-import TermsOfUsePage from "../pages/TermsOfUsePage";
-import Dashboard from "../pages/DashboardPage";
-import ProfilePage from "../pages/ProfilePage";
-import AdminDashboard from "../pages/admin/AdminDashboard";
-import AdminLayout from "../pages/admin/AdminLayout";
-import UsersManagement from "../pages/admin/UsersManagement";
-import EventsManagement from "../pages/admin/EventsManagement";
-import HousesManagement from "../pages/admin/HousesManagement";
-import AttendanceReports from "../pages/admin/AttendanceReports";
-import PointsManagement from "../pages/admin/PointsManagement";
-import SystemSettings from "../pages/admin/SystemSettings";
-import AuditLogs from "../pages/admin/AuditLogs";
+import MeritSheetPage from "../pages/student/MeritSheetPage";
+import LandingPage from "../pages/public/LandingPage";
+import ConnectivityTestPage from "../pages/public/ConnectivityTestPage";
+import LoginPage from "../pages/auth/LoginPage";
+import RegisterPage from "../pages/auth/RegisterPage";
+import AboutPage from "../pages/public/AboutPage";
+import PrivacyPolicyPage from "../pages/public/PrivacyPolicyPage";
+import TermsOfUsePage from "../pages/public/TermsOfUsePage";
+import Dashboard from "../pages/student/DashboardPage";
+import ProfilePage from "../pages/student/ProfilePage";
+import AdminDashboard from "../pages/admin/DashboardPage";
+import AdminLayout from "../components/layouts/AdminLayout";
+import UsersManagement from "../pages/admin/UsersPage";
+import EventsManagement from "../pages/admin/EventsPage";
+import HousesManagement from "../pages/admin/HousesPage";
+import AttendanceReports from "../pages/admin/AttendanceReportsPage";
+import PointsManagement from "../pages/admin/PointsPage";
+import SystemSettings from "../pages/admin/SettingsPage";
+import AuditLogs from "../pages/admin/AuditLogsPage";
 
 export default function AppRoutes() {
   return (

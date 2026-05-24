@@ -195,7 +195,7 @@ export default function SupportChat() {
                 style={{ maxHeight: "75vh", minHeight: "400px" }}
             >
                 {/* Header */}
-                <div className="bg-[#2E308E] px-4 py-3 flex items-center justify-between flex-shrink-0">
+                <div className="bg-[#2E308E] px-4 py-3 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                             <FaCommentDots size={14} className="text-white" />
@@ -282,7 +282,7 @@ export default function SupportChat() {
                 </div>
 
                 {/* Input */}
-                <div className="px-3 py-3 border-t border-gray-100 bg-white flex gap-2 flex-shrink-0">
+                <div className="px-3 py-3 border-t border-gray-100 bg-white flex gap-2 shrink-0">
                     <input
                         ref={inputRef}
                         type="text"
@@ -295,7 +295,7 @@ export default function SupportChat() {
                     <button
                         onClick={() => sendMessage(input)}
                         disabled={!input.trim()}
-                        className="w-10 h-10 rounded-full bg-[#2E308E] text-white flex items-center justify-center hover:bg-[#252770] active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+                        className="w-10 h-10 rounded-full bg-[#2E308E] text-white flex items-center justify-center hover:bg-[#252770] active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
                         aria-label="Send message"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 translate-x-0.5">

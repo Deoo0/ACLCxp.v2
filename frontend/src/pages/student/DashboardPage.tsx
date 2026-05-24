@@ -1,15 +1,15 @@
-import StatCards from "../components/dashboard/StatCards";
-import EventList from "../components/dashboard/EventList";
-import Leaderboard from "../components/dashboard/Leaderboard";
-import AuthenticatedLayout from "../components/layouts/AuthenticatedLayout";
-import { useAuth } from "../context/AuthContext";
+import StatCards from "../../components/dashboard/DashboardStatCards";
+import EventList from "../../components/dashboard/DashboardEventList";
+import Leaderboard from "../../components/dashboard/DashboardLeaderboard";
+import AuthenticatedLayout from "../../components/layouts/AuthenticatedLayout";
+import { useAuth } from "../../context/AuthContext";
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
 
   if (isLoading || !user) return null;
   return (
-    <AuthenticatedLayout>
+    <AuthenticatedLayout title="Dashboard">
       {/* Greeting */}
       <div className="mb-5">
         <p className="text-sm text-gray-400">Good morning,</p>

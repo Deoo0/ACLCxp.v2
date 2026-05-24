@@ -28,7 +28,7 @@ const AdminLayout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 z-40 h-screen transition-transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} w-64`}
@@ -36,9 +36,11 @@ const AdminLayout = () => {
         <div className="h-full px-3 py-4 overflow-y-auto bg-slate-900/95 backdrop-blur-xl border-r border-white/10">
           {/* Logo */}
           <div className="flex items-center gap-3 px-3 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
-              <span className="text-xl font-bold text-white">A</span>
-            </div>
+            <img
+              src="/aclcxp-logo.png"
+              alt="ACLCxp Logo" 
+              className="w-10 h-10 object-contain"  
+            />
             <div>
               <h1 className="text-lg font-bold text-white">ACLCxp</h1>
               <p className="text-xs text-slate-400">Admin Panel</p>
@@ -75,7 +77,7 @@ const AdminLayout = () => {
           {/* User Profile */}
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
                 <span className="text-sm font-bold text-white">
                   {user?.first_name?.[0]}
                 </span>

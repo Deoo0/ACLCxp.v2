@@ -1,4 +1,4 @@
-import AuthenticatedLayout from "../components/layouts/AuthenticatedLayout";
+import AuthenticatedLayout from "../../components/layouts/AuthenticatedLayout";
 
 type Status = "participated" | "attended" | "absent";
 

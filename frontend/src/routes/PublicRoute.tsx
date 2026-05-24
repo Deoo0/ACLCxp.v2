@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import Modal from "./Modal";
+import Modal from "../components/ui/Modal";
 
 export default function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -12,7 +12,13 @@ export default function PublicRoute({ children }: { children: React.ReactNode })
     if (!isLoading && isAuthenticated) setShowModal(true);
   }, [isLoading, isAuthenticated]);
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   if (isAuthenticated) return (
     <>
