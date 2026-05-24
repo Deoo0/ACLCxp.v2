@@ -15,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<AuthUser>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -47,9 +48,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 
   const login = async (credentials: LoginCredentials): Promise<AuthUser> => {
-    const userData = await loginService(credentials);
-    setUser(userData);
-    return userData;
+    await loginService(credentials); // saves tokens, we ignore the returned user
+    const freshUser = await getMe(); // fetch authoritative profile
+    setUser(freshUser);
+    return freshUser;
+  };
+
+  const refreshUser = async (): Promise<void> => {
+    try {
+      const freshUser = await getMe();
+      setUser(freshUser);
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+    }
   };
 
   const logout = async (): Promise<void> => {
@@ -68,6 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isLoading,
       login,
       logout,
+      refreshUser,
     }}>
       {children}
     </AuthContext.Provider>
@@ -81,3 +93,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

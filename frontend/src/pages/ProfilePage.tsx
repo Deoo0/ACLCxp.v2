@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import AuthenticatedLayout from "../components/layouts/AuthenticatedLayout";
 import { useAuth } from "../context/AuthContext";
 
@@ -70,11 +70,15 @@ function QRPlaceholder({ size = 128 }: { size?: number }) {
 }
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localPhoto, setLocalPhoto] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
 
+  useEffect(() => {
+    refreshUser();
+  }, []);
+  
   if (!user) return null;
 
   const initials =
