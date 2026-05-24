@@ -79,7 +79,7 @@ export default function ProfilePage() {
 
   const initials =
     `${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase();
-  const photoSrc = localPhoto ?? user.profile_photo ?? null;
+  const photoSrc = localPhoto ?? (user.profile_photo || null);
   const houseColor = user.house_color ?? "#2E308E";
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
