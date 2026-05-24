@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Modal from "../components/ui/Modal";
@@ -14,14 +14,32 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
   const [showUnauthorizedModal, setShowUnauthorizedModal] = useState(false);
   const navigate = useNavigate();
 
+  const loginDebounceRef = useRef<number | null>(null);
+  const unauthorizedDebounceRef = useRef<number | null>(null);
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
-        setShowLoginModal(true);
-      } else if (roles && !roles.includes(user?.role ?? "")) {
-        setShowUnauthorizedModal(true);
+        loginDebounceRef.current = setTimeout(() => setShowLoginModal(true), 150);
+      } else {
+        setShowLoginModal(false);
+        if (loginDebounceRef.current) clearTimeout(loginDebounceRef.current);
       }
+      if (roles && !roles.includes(user?.role ?? "")) {
+        unauthorizedDebounceRef.current = setTimeout(() => setShowUnauthorizedModal(true), 150);
+      } else {
+        setShowUnauthorizedModal(false);
+        if (unauthorizedDebounceRef.current) clearTimeout(unauthorizedDebounceRef.current);
+      }
+    } else {
+      setShowLoginModal(false);
+      setShowUnauthorizedModal(false);
+      if (loginDebounceRef.current) clearTimeout(loginDebounceRef.current);
+      if (unauthorizedDebounceRef.current) clearTimeout(unauthorizedDebounceRef.current);
     }
+    return () => {
+      if (loginDebounceRef.current) clearTimeout(loginDebounceRef.current);
+      if (unauthorizedDebounceRef.current) clearTimeout(unauthorizedDebounceRef.current);
+    };
   }, [isLoading, isAuthenticated, roles, user]);
 
   if (isLoading) {
