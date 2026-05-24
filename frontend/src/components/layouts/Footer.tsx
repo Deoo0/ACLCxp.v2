@@ -5,7 +5,7 @@ import { FaEnvelope } from "react-icons/fa";
 
 export default function Footer() {
     return (
-        <footer className="bg-[#1E1E1E] px-4 py-4" style={{ fontFamily: 'Inter' }}>
+        <footer className="bg-[#1E1E1E] px-4 py-4 font-inter">
             <div className="max-w-6xl mx-auto">
                 {/* Top Section - Links (Vertical) */}
                 <div className="mb-4">

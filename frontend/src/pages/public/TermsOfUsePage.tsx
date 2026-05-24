@@ -1,6 +1,6 @@
-import Header from "../components/layouts/Header";
-import Footer from "../components/layouts/Footer";
-import SupportChat from "../components/SupportChat";
+import Header from "../../components/navigation/PublicHeader";
+import Footer from "../../components/layouts/Footer";
+import SupportChat from "../../components/ui/SupportChat";
 
 const sections = [
     {
@@ -108,7 +108,7 @@ export default function TermsOfUsePage() {
                                 <ul className="space-y-2 mb-3">
                                     {s.bullets.map((b) => (
                                         <li key={b} className="flex gap-3 text-sm text-gray-600">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-[#D91B22] flex-shrink-0 mt-1.5" />
+                                            <span className="w-1.5 h-1.5 rounded-full bg-[#D91B22] shrink-0 mt-1.5" />
                                             {b}
                                         </li>
                                     ))}

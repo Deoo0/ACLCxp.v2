@@ -32,7 +32,7 @@ export default function EventList() {
           <div key={e.id} className="bg-white border border-gray-100 rounded-xl p-3 flex gap-3 items-start">
 
             {/* Date box */}
-            <div className="flex-shrink-0 w-10 bg-indigo-50 rounded-lg text-center py-1.5">
+            <div className="shrink-0 w-10 bg-indigo-50 rounded-lg text-center py-1.5">
               <p className="text-[9px] font-semibold text-indigo-600 uppercase tracking-wide">{e.month}</p>
               <p className="text-lg font-semibold text-indigo-900 leading-tight">{e.day}</p>
             </div>
@@ -46,7 +46,7 @@ export default function EventList() {
               </span>
             </div>
 
-            <button className="flex-shrink-0 mt-0.5 text-xs font-semibold text-[#2E308E] bg-white border border-indigo-100 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors">
+            <button className="shrink-0 mt-0.5 text-xs font-semibold text-[#2E308E] bg-white border border-indigo-100 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors">
               View
             </button>
           </div>
