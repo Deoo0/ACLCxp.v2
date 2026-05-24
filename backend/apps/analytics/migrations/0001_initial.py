@@ -15,49 +15,114 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='SystemSetting',
+            name="SystemSetting",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('key', models.CharField(db_index=True, max_length=100, unique=True)),
-                ('value', models.TextField()),
-                ('data_type', models.CharField(choices=[('STRING', 'String'), ('INTEGER', 'Integer'), ('BOOLEAN', 'Boolean'), ('JSON', 'JSON')], max_length=20)),
-                ('description', models.TextField(blank=True)),
-                ('category', models.CharField(blank=True, db_index=True, max_length=50)),
-                ('is_public', models.BooleanField(db_index=True, default=False)),
-                ('is_editable', models.BooleanField(default=True)),
-                ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("key", models.CharField(db_index=True, max_length=100, unique=True)),
+                ("value", models.TextField()),
+                (
+                    "data_type",
+                    models.CharField(
+                        choices=[
+                            ("STRING", "String"),
+                            ("INTEGER", "Integer"),
+                            ("BOOLEAN", "Boolean"),
+                            ("JSON", "JSON"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("description", models.TextField(blank=True)),
+                (
+                    "category",
+                    models.CharField(blank=True, db_index=True, max_length=50),
+                ),
+                ("is_public", models.BooleanField(db_index=True, default=False)),
+                ("is_editable", models.BooleanField(default=True)),
+                (
+                    "updated_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'system_settings',
-                'ordering': ['category', 'key'],
+                "db_table": "system_settings",
+                "ordering": ["category", "key"],
             },
         ),
         migrations.CreateModel(
-            name='AuditLog',
+            name="AuditLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user_email', models.EmailField(blank=True, max_length=254)),
-                ('user_role', models.CharField(blank=True, max_length=20)),
-                ('action', models.CharField(db_index=True, max_length=100)),
-                ('resource_type', models.CharField(db_index=True, max_length=50)),
-                ('resource_id', models.BigIntegerField(blank=True, null=True)),
-                ('description', models.TextField()),
-                ('changes', models.JSONField(blank=True, null=True)),
-                ('ip_address', models.GenericIPAddressField(blank=True, null=True)),
-                ('user_agent', models.TextField(blank=True)),
-                ('request_method', models.CharField(blank=True, max_length=10)),
-                ('request_path', models.CharField(blank=True, max_length=500)),
-                ('status', models.CharField(choices=[('SUCCESS', 'Success'), ('FAILURE', 'Failure')], db_index=True, max_length=20)),
-                ('error_message', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("user_email", models.EmailField(blank=True, max_length=254)),
+                ("user_role", models.CharField(blank=True, max_length=20)),
+                ("action", models.CharField(db_index=True, max_length=100)),
+                ("resource_type", models.CharField(db_index=True, max_length=50)),
+                ("resource_id", models.BigIntegerField(blank=True, null=True)),
+                ("description", models.TextField()),
+                ("changes", models.JSONField(blank=True, null=True)),
+                ("ip_address", models.GenericIPAddressField(blank=True, null=True)),
+                ("user_agent", models.TextField(blank=True)),
+                ("request_method", models.CharField(blank=True, max_length=10)),
+                ("request_path", models.CharField(blank=True, max_length=500)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("SUCCESS", "Success"), ("FAILURE", "Failure")],
+                        db_index=True,
+                        max_length=20,
+                    ),
+                ),
+                ("error_message", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'audit_logs',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['user'], name='audit_logs_user_id_73c422_idx'), models.Index(fields=['action'], name='audit_logs_action_31f574_idx'), models.Index(fields=['resource_type'], name='audit_logs_resourc_e11e1b_idx'), models.Index(fields=['user', 'action', '-created_at'], name='audit_logs_user_id_a62c05_idx')],
+                "db_table": "audit_logs",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(fields=["user"], name="audit_logs_user_id_73c422_idx"),
+                    models.Index(
+                        fields=["action"], name="audit_logs_action_31f574_idx"
+                    ),
+                    models.Index(
+                        fields=["resource_type"], name="audit_logs_resourc_e11e1b_idx"
+                    ),
+                    models.Index(
+                        fields=["user", "action", "-created_at"],
+                        name="audit_logs_user_id_a62c05_idx",
+                    ),
+                ],
             },
         ),
     ]

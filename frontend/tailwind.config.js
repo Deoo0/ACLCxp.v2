@@ -5,7 +5,13 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        inter: ['Inter', 'sans-serif'],
+        spartan: ['League Spartan', 'sans-serif'],
+        lato: ['Lato', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 }

@@ -1,17 +1,20 @@
 # ACLCxp API Documentation
 
 ## Base URL
+
 - **Development:** `http://localhost:8000`
 - **Production:** `https://your-domain.com`
 
 ## Users Endpoints
 
 ### Health Check
+
 - **URL:** `/users/health/`
 - **Method:** `GET`
 - **Auth Required:** No
 - **Description:** Test backend connectivity
 - **Success Response (200):**
+
 ```json
 {
   "status": "success",
@@ -21,31 +24,63 @@
 ```
 
 ### Echo Test
+
 - **URL:** `/users/echo/`
 - **Method:** `POST`
 - **Auth Required:** No
 - **Description:** Test data transmission
 - **Request Body:**
+
 ```json
 {
   "test": "data from frontend"
 }
 ```
+
 - **Success Response (200):**
+
 ```json
 {
   "method": "POST",
-  "received_data": {"test": "data from frontend"},
+  "received_data": { "test": "data from frontend" },
   "message": "I received your data successfully!"
 }
 ```
 
+### View User List
+
+- **URL:** `/users/list/`
+- **Method:** `GET`
+- **Auth Required:** No
+- **Description:** View all registered Users
+- **Request Body:**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 8,
+      "student_id": "int",
+      "first_name": "string",
+      "last_name": "string",
+      "program": "string",
+      "year_level": "int",
+      "house_id": "int",
+      "role": "string"
+    }
+  ]
+}
+```
+
 ### Register User
+
 - **URL:** `/users/register/`
 - **Method:** `POST`
 - **Auth Required:** No
 - **Description:** Register a new user account
 - **Request Body:**
+
 ```json
 {
   "email": "string (required)",
@@ -61,7 +96,9 @@
   "contact_number": "string (optional)"
 }
 ```
+
 - **Success Response (201):**
+
 ```json
 {
   "status": "success",
@@ -76,14 +113,18 @@
   }
 }
 ```
+
 - **Error Response (400):**
+
 ```json
 {
   "status": "error",
   "message": "Email already registered"
 }
 ```
+
 - **Error Response (400):**
+
 ```json
 {
   "status": "error",
@@ -91,6 +132,58 @@
 }
 ```
 
+### Update User Informations
+
+- **URL:** `/users/<int:id>/`
+- **Method:** `PATCH`
+- **Auth Required:** YES
+- **Description:** Update user information
+- **Request Body:**
+
+```json
+{
+  "email": "string (required)",
+  "first_name": "string (required)",
+  "last_name": "string (required)",
+  "middle_name": "string (optional)",
+  "program": "string (required)",
+  "year_level": "integer (required, 1-5)",
+  "phone_number": "string (optional)",
+  "contact_person": "string (optional)",
+  "contact_number": "string (optional)",
+  "password": "string (required, min 8 chars)",
+  "bio": "string",
+  "profile_photo": "path",
+  "house_id": "integer",
+  "role": "string"
+}
+```
+
+- **Success Response (200):**
+
+````json
+{
+  {
+    "status": "success",
+    "message": "User updated successfully",
+    "data": {
+        "id": 12,
+        "email": "dev3@gmail.com",
+        "student_id": "4",
+        "first_name": "Lawrence",
+        "last_name": "TheDeveloper",
+        "full_name": "Lawrence TheDeveloper",
+        "program": "BSIT",
+        "year_level": 4,
+        "role": "ADMIN",
+        "house": 5,
+        "house_name": "Cahel",
+        "house_color": "#DB5609",
+        "profile_photo": "",
+        "email_verified": false
+    }
+}
+}
 ## Error Response Format
 All error responses follow this format:
 ```json
@@ -98,13 +191,28 @@ All error responses follow this format:
   "status": "error",
   "message": "Human-readable error description"
 }
-```
+````
 
 ## CORS Configuration
+
 Frontend URLs allowed:
+
 - `http://localhost:5173` (Vite dev server)
 - `http://127.0.0.1:5173`
 - `http://<your-laptop-ip>:5173` (for mobile testing)
 
+> Note: the React frontend uses `VITE_API_URL` from `frontend/.env` and configures Axios with a base URL of `${API_URL}/api`.
+> The connectivity test component uses `GET /api/health/` and `POST /api/echo/`.
+
+## Frontend Auth Endpoints
+
+The React frontend currently integrates with the following auth-related endpoints:
+
+- `POST /auth/login/` — login with `student_id` and `password`
+- `POST /auth/logout/` — logout and blacklist refresh token
+- `POST /auth/token/refresh/` — request a new access token
+- `POST /users/register/` — create a new user account
+
 ## Testing
+
 Use the health check endpoint to verify connectivity before testing other endpoints.

@@ -1,12 +1,7 @@
-import ConnectivityTest from './components/ConnectivityTest'
-import './App.css'
+﻿import AppRoutes from "./routes/AppRoutes";
 
 function App() {
-  return (
-    <div className="App">
-      <ConnectivityTest />
-    </div>
-  )
+  return <AppRoutes />;
 }
 
-export default App
+export default App;

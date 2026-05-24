@@ -1,9 +1,7 @@
-from django.urls import path, include
-from . import views
-from rest_framework.routers import DefaultRouter
-#from apps.houses.views import HouseViewSet
+from django.urls import path
 
-router = DefaultRouter()
-#router.register(r'houses', HouseViewSet, basename='house')
+# from .views import chat
 
-urlpatterns = router.urls
+urlpatterns = [
+    # path("chat/", chat, name="ai-chat"),
+]
