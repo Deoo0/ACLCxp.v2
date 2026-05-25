@@ -17,27 +17,27 @@ export default function Header() {
 
     return (
         <header
-            className={`fixed top-0 w-full z-50 bg-[#2E308E] backdrop-blur-sm border-b border-white/10 px-4 py-2 transition-transform duration-300`}
+            className={`fixed top-0 w-full z-50 bg-[#1E1E1E] border-white/10 px-8 py-2 transition-transform duration-300`}
         >
-            <div className="flex items-center justify-between max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mx-auto">
 
                 {/* Logo */}
                 <div
                     onClick={handleLogoClick}
-                    className="flex items-center gap-2 cursor-pointer"
+                    className="flex items-center gap-1 cursor-pointer"
                 >
                     <img
                         src="aclcxp-logo.png"
                         alt="ACLCxp Logo"
-                        className="w-12 h-12 object-contain"
+                        className="w-14 h-14 object-contain"
                         />
-                    <div>
-                        <h1 className="font-bold text-2xl tracking-wide hidden sm:inline text-white">
+                    <div className="flex translate-y-1 items-end">
+                        <h1 className="font-bold text-3xl tracking-wide hidden sm:inline text-white">
                             ACLC
                         </h1>
-                        <h1 className="font-bold text-2xl tracking-wide hidden sm:inline text-[#D91B22]">
+                        <span className="font-bold font-arcade text-3xl tracking-wide sm:inline text-[#D91B22]">
                             xp
-                        </h1>
+                        </span>
                     </div>
                 </div>
 

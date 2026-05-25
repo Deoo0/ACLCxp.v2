@@ -1,43 +1,75 @@
 export default function Hero() {
     return (
-        <section className="px-4 relative h-125 rounded-b-4xl overflow-hidden">        
-        
-        {/* Background Image */}
+        <section className="relative min-h-screen overflow-hidden">
+
+        {/* Background */}
         <img
             src="/aclcxp-bg.png"
-            alt="Hero Background"
+            alt="ACLC XP Hero"
             className="absolute inset-0 w-full h-full object-cover"
         />
 
-        {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-black/50"></div>
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/20" />
 
         {/* Content */}
-        <div className="relative z-10 flex justify-between items-start py-8 max-w-6xl mx-auto h-full">
+        <div className="relative z-10 min-h-screen flex items-center">
 
-            {/* Left: Logo */}
-            <div className="text-white">
-            <h1 className="text-5xl font-spartan font-extrabold leading-[0.8]">
-                ACLC <span className="text-red-500"><br/>
-                XP</span>
-            </h1>
+            <div className="max-w-7xl mx-auto w-full px-6">
+
+                <div className="grid lg:grid-cols-2 items-center gap-12">
+
+                    <div className="text-center lg:text-left px-4">
+
+                    {/* House Logos */}
+                    <div className="flex justify-center lg:justify-start gap-3 mb-4">
+                        <img src="/house-logos/gia-logo.png" className="h-8" />
+                        <img src="/house-logos/chl-logo.png" className="h-8" />
+                        <img src="/house-logos/azl-logo.png" className="h-8" />
+                        <img src="/house-logos/rxo-logo.png" className="h-8" />
+                        <img src="/house-logos/vrd-logo.png" className="h-8" />
+                    </div>
+
+                    {/* Logo Text */}
+                    <h1 className="font-xirod text-6xl md:text-8xl text-white">
+                        ACLC
+                    </h1>
+                    <span className="text-[#D91B22] text-5xl font-arcade">xp</span>
+
+                    <p className="font-arcade text-white mt-3 tracking-widest">
+                        LEVEL UP THROUGH FUN
+                    </p>
+
+                    <p className="mt-6 text-gray-200 max-w-lg">
+                        Join the intramurals, earn points,
+                        and see your name on the leaderboard.
+                        Let the games begin!
+                    </p>
+
+                    <button
+                        className="
+                        mt-8
+                        px-10
+                        py-3
+                        rounded-xl
+                        bg-yellow-300
+                        text-black
+                        font-bold
+                        border-2 border-black
+                        hover:scale-105
+                        transition
+                        "
+                    >
+                        LOGIN
+                    </button>
+
+                    </div>
+
+                </div>
+
             </div>
 
-            {/* Right: Tagline */}
-            <h1 className="text-right text-white text-md font-extralight max-w-40 leading-[0.9] tracking-wider">
-            WHERE PARTICIPATION<br/>
-            BECOMES PERFORMANCE
-            </h1>
         </div>
-
-        {/* underlaping logo */}
-        <div className="absolute top-35 left-1/2 -translate-x-1/2 w-3/4 max-h-3/4"> 
-            <img
-                src="/aclc-logo.png"
-                alt="ACLC Logo"   
-                className="w-full h-full object-contain"
-            />
-        </div>  
         </section>
-    );
+  );
 }

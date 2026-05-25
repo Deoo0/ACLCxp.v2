@@ -94,7 +94,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="flex flex-col gap-4 pb-6">
+    <>
       <div className="flex flex-col gap-4 pb-6">
 
         {/* Avatar + Name */}
@@ -204,7 +204,7 @@ export default function ProfilePage() {
         onClose={() => setQrOpen(false)}
       />
     )}
-    </div>
+    </>
   );
 }
 

@@ -1,7 +1,6 @@
 import StatCards from "../../components/dashboard/DashboardStatCards";
 import EventList from "../../components/dashboard/DashboardEventList";
 import Leaderboard from "../../components/dashboard/DashboardLeaderboard";
-import AuthenticatedLayout from "../../components/layouts/UserLayout";
 import { useAuth } from "../../context/AuthContext";
 
 export default function DashboardPage() {
@@ -9,7 +8,7 @@ export default function DashboardPage() {
 
   if (isLoading || !user) return null;
   return (
-    <AuthenticatedLayout title="Dashboard">
+    <>
       {/* Greeting */}
       <div className="mb-5">
         <p className="text-sm text-gray-400">Good morning,</p>
@@ -53,6 +52,6 @@ export default function DashboardPage() {
 
         <Leaderboard />
       </section>
-    </AuthenticatedLayout>
+    </>
   );
 }

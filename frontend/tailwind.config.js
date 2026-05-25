@@ -10,6 +10,8 @@ export default {
         inter: ['Inter', 'sans-serif'],
         spartan: ['League Spartan', 'sans-serif'],
         lato: ['Lato', 'sans-serif'],
+        xirod: ['Xirod', 'sans-serif'],
+        arcade: ['ArcadeClassic', 'sans-serif'], 
       },
     },
   },

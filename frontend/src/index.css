@@ -2,7 +2,17 @@
 
 /* ⇓ custom styles ⇓ */
 
-:root {
+@font-face {
+  font-family: "Xirod";
+  src: url("/fonts/Xirod.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "ArcadeClassic";
+  src: url("/fonts/ArcadeClassic.TTF") format("truetype");
+}
+
+/* :root {
   font-family: Inter, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -15,11 +25,11 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
+} */
 
 /* Heading tags use League Spartan */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'League Spartan', sans-serif;
+  font-family: 'Xirod', sans-serif;
 }
 
 body {
