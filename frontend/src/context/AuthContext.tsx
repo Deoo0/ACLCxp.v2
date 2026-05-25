@@ -46,12 +46,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initAuth();
   }, []);
 
-
   const login = async (credentials: LoginCredentials): Promise<AuthUser> => {
-    await loginService(credentials); // saves tokens, we ignore the returned user
-    const freshUser = await getMe(); // fetch authoritative profile
-    setUser(freshUser);
-    return freshUser;
+    setIsLoading(true);
+    try {
+      await loginService(credentials); // saves tokens, we ignore the returned user
+      const freshUser = await getMe(); // fetch authoritative profile
+      setUser(freshUser);
+      return freshUser;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const refreshUser = async (): Promise<void> => {
@@ -59,16 +63,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const freshUser = await getMe();
       setUser(freshUser);
     } catch (error) {
-      console.error("Failed to refresh user:", error);
+      console.error("Failed to refresh user",error);
+
+      clearTokens();
+      setUser(null);
     }
   };
 
   const logout = async (): Promise<void> => {
+    setIsLoading(true);
+
     try {
       await logoutService();
     } finally {
       clearTokens();
       setUser(null);
+      setIsLoading(false);
     }
   };
 

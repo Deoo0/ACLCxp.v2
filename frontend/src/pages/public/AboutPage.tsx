@@ -1,5 +1,5 @@
 // import { useNavigate } from "react-router-dom";
-import Header from "../../components/navigation/PublicHeader";
+import Header from "../../components/navigation/PublicNavBar";
 import Footer from "../../components/navigation/Footer";
 import SupportChat from "../../components/ui/SupportChat";
 

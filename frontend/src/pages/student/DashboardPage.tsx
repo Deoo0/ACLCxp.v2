@@ -1,7 +1,7 @@
 import StatCards from "../../components/dashboard/DashboardStatCards";
 import EventList from "../../components/dashboard/DashboardEventList";
 import Leaderboard from "../../components/dashboard/DashboardLeaderboard";
-import AuthenticatedLayout from "../../components/layouts/AuthenticatedLayout";
+import AuthenticatedLayout from "../../components/layouts/UserLayout";
 import { useAuth } from "../../context/AuthContext";
 
 export default function DashboardPage() {

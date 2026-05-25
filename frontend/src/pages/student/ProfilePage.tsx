@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from "react";
-import AuthenticatedLayout from "../../components/layouts/AuthenticatedLayout";
 import { useAuth } from "../../context/AuthContext";
 
 const YEAR_LABELS: Record<number, string> = {
@@ -95,7 +94,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <AuthenticatedLayout>
+    <div className="flex flex-col gap-4 pb-6">
       <div className="flex flex-col gap-4 pb-6">
 
         {/* Avatar + Name */}
@@ -193,21 +192,19 @@ export default function ProfilePage() {
             Tap to open fullscreen for scanning
           </p>
         </div>
-
       </div>
-
-      {qrOpen && (
-        <QRModal
-          name={user.full_name}
-          studentId={user.student_id}
-          photo={photoSrc}
-          initials={initials}
-          houseColor={houseColor}
-          houseName={user.house_name}
-          onClose={() => setQrOpen(false)}
-        />
-      )}
-    </AuthenticatedLayout>
+    {qrOpen && (
+      <QRModal
+        name={user.full_name}
+        studentId={user.student_id}
+        photo={photoSrc}
+        initials={initials}
+        houseColor={houseColor}
+        houseName={user.house_name}
+        onClose={() => setQrOpen(false)}
+      />
+    )}
+    </div>
   );
 }
 
