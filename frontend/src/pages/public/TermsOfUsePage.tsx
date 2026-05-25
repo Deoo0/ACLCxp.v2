@@ -1,5 +1,5 @@
 import Header from "../../components/navigation/PublicHeader";
-import Footer from "../../components/layouts/Footer";
+import Footer from "../../components/navigation/Footer";
 import SupportChat from "../../components/ui/SupportChat";
 
 const sections = [

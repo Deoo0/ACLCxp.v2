@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import AppHeader from "./AppHeader";
+import AppHeader from "../navigation/AppHeader";
 import StudentBottomNav from "../navigation/StudentBottomNav";
 
 type Props = {

@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import PublicRoute from "./PublicRoute";
 import ProtectedRoute from "./ProtectedRoute";
 
+
 import LandingPage from "../pages/public/LandingPage";
 import ConnectivityTestPage from "../pages/public/ConnectivityTestPage";
 import AboutPage from "../pages/public/AboutPage";
@@ -24,17 +25,20 @@ import PointsManagement from "../pages/admin/PointsPage";
 import SystemSettings from "../pages/admin/SettingsPage";
 import AuditLogs from "../pages/admin/AuditLogsPage";
 
+import PublicLayout from "../components/layouts/PublicLayout";
 import AdminLayout from "../components/layouts/AdminLayout";
 
 
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/connectivity" element={<ConnectivityTestPage />} />
-      <Route path="/about" element={<AboutPage />} />
-      <Route path="/privacy" element={<PrivacyPolicyPage />} />
-      <Route path="/terms" element={<TermsOfUsePage />} />
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/connectivity" element={<ConnectivityTestPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsOfUsePage />} />
+      </Route>
 
       <Route 
         path="/profile" 
