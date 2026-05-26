@@ -13,7 +13,7 @@ export default function Hero() {
         <div className="absolute inset-0 bg-black/20" />
 
         {/* Content */}
-        <div className="relative z-10 min-h-screen flex items-center">
+        <div className="relative z-10 min-h-screen flex items-center translate-y-[-10%] ">
 
             <div className="max-w-7xl mx-auto w-full px-6">
 
@@ -30,11 +30,11 @@ export default function Hero() {
                         <img src="/house-logos/vrd-logo.png" className="h-8" />
                     </div>
 
-                    {/* Logo Text */}
+                    {/* Logo Text align xp to top of aclc like superscript*/}
                     <h1 className="font-xirod text-6xl md:text-8xl text-white">
                         ACLC
+                        <span className="text-[#D91B22] text-4xl md:text-6xl align-super font-arcade"> XP</span>
                     </h1>
-                    <span className="text-[#D91B22] text-5xl font-arcade">xp</span>
 
                     <p className="font-arcade text-white mt-3 tracking-widest">
                         LEVEL UP THROUGH FUN

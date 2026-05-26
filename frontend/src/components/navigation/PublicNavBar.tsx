@@ -31,22 +31,20 @@ export default function Header() {
                         alt="ACLCxp Logo"
                         className="w-14 h-14 object-contain"
                         />
-                    <div className="flex translate-y-1 items-end">
-                        <h1 className="font-bold text-3xl tracking-wide hidden sm:inline text-white">
+                    <div className="flex translate-y-0.5">
+                        <h1 className="font-bold text-2xl tracking-wide hidden sm:inline text-white">
                             ACLC
                         </h1>
-                        <span className="font-bold font-arcade text-3xl tracking-wide sm:inline text-[#D91B22]">
-                            xp
-                        </span>
+                        <span className="text-[#D91B22] text-sm font-bold ml-1 tracking-wide hidden sm:inline font-arcade">XP</span>
                     </div>
                 </div>
 
                 {/* Login Button */}
             <Link
                 to="/login"
-                className="px-4 py-1.5 bg-white text-[#2E308E] hover:bg-gray-100 rounded-lg font-bold text-sm transition-colors duration-200"
+                className="px-3 py-1 border-2 border-[yellow] text-[yellow] hover:bg-[yellow] hover:border-[black] hover:text-[black] rounded-lg font-arcade text-md transition-colors duration-200"
                 >
-                Log-in
+                <p className="translate-y-px">Login</p> 
             </Link>
             </div>
         </header>

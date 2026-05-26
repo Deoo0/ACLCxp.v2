@@ -5,15 +5,7 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {
-      fontFamily: {
-        inter: ['Inter', 'sans-serif'],
-        spartan: ['League Spartan', 'sans-serif'],
-        lato: ['Lato', 'sans-serif'],
-        xirod: ['Xirod', 'sans-serif'],
-        arcade: ['ArcadeClassic', 'sans-serif'], 
-      },
-    },
+    extend: {},
   },
   plugins: [],
 }
