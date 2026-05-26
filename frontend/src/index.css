@@ -20,12 +20,16 @@
   font-family: "ArcadeClassic", sans-serif;
 }
 
-/* Heading tags use League Spartan */
-h1, h2, h3, h4, h5, h6 {
+h1, h2{
   font-family: 'Xirod', sans-serif;
 }
 
+h3, h4, h5, h6 {
+  font-family: 'ArcadeClassic', sans-serif;
+}
+
 body {
+  font-family: inter, sans-serif;
   margin: 0;
   width: 100%;
   min-height: 100vh;

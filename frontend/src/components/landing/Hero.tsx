@@ -6,14 +6,21 @@ export default function Hero() {
         <img
             src="/aclcxp-bg.png"
             alt="ACLC XP Hero"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="
+                absolute inset-0
+                w-full h-full
+                object-cover
+                object-[85%_center]
+                md:object-[95%_center]
+                lg:object-right
+            "
         />
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-black/70 lg:bg-black/50 transition-all" />
 
         {/* Content */}
-        <div className="relative z-10 min-h-screen flex items-center translate-y-[-10%] ">
+        <div className="relative z-10 min-h-screen flex items-center translate-y-[-10%] transition-transform duration-500 ">
 
             <div className="max-w-7xl mx-auto w-full px-6">
 
@@ -22,12 +29,12 @@ export default function Hero() {
                     <div className="text-center lg:text-left px-4">
 
                     {/* House Logos */}
-                    <div className="flex justify-center lg:justify-start gap-3 mb-4">
-                        <img src="/house-logos/gia-logo.png" className="h-8" />
-                        <img src="/house-logos/chl-logo.png" className="h-8" />
-                        <img src="/house-logos/azl-logo.png" className="h-8" />
-                        <img src="/house-logos/rxo-logo.png" className="h-8" />
-                        <img src="/house-logos/vrd-logo.png" className="h-8" />
+                    <div className="flex justify-center lg:justify-start gap-3 mb-3">
+                        <img src="/house-logos/azl-logo.png" className="h-10" />
+                        <img src="/house-logos/gia-logo.png" className="h-10" />
+                        <img src="/house-logos/vrd-logo.png" className="h-10" />
+                        <img src="/house-logos/chl-logo.png" className="h-10" />
+                        <img src="/house-logos/rxo-logo.png" className="h-10" />
                     </div>
 
                     {/* Logo Text align xp to top of aclc like superscript*/}
@@ -36,31 +43,19 @@ export default function Hero() {
                         <span className="text-[#D91B22] text-4xl md:text-6xl align-super font-arcade"> XP</span>
                     </h1>
 
-                    <p className="font-arcade text-white mt-3 tracking-widest">
+                    <p className="font-arcade text-white text-xl tracking-widest">
                         LEVEL UP THROUGH FUN
                     </p>
 
-                    <p className="mt-6 text-gray-200 max-w-lg">
-                        Join the intramurals, earn points,
+                    <p className="mt-3 text-gray-200">
+                        Join, earn points,
                         and see your name on the leaderboard.
-                        Let the games begin!
                     </p>
 
                     <button
-                        className="
-                        mt-8
-                        px-10
-                        py-3
-                        rounded-xl
-                        bg-yellow-300
-                        text-black
-                        font-bold
-                        border-2 border-black
-                        hover:scale-105
-                        transition
-                        "
+                        className="mt-8 px-6 py-2 rounded-xl bg-yellow-300 text-black font-arcade text-2xl border-2 border-black hover:scale-105 transition"
                     >
-                        LOGIN
+                        Join now!
                     </button>
 
                     </div>

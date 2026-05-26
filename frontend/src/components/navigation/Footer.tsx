@@ -54,7 +54,7 @@ export default function Footer() {
 
                     {/* Phone */}
                     <a
-                        href="tel:+639123456789"
+                        href="tel:+639273483570"
                         title="Call Us"
                         className="
                             w-11 h-11
