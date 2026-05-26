@@ -151,7 +151,7 @@ export default function RegisterPage() {
                 password: formData.password,
                 first_name: formData.firstName.trim(),
                 last_name: formData.lastName.trim(),
-                middle_name: formData.middleName.trim() || null,
+                middle_name: formData.middleName.trim() || "",
                 program: formData.program,
                 year_level: parseInt(formData.yearLevel),
                 house_id: parseInt(formData.houseId),
