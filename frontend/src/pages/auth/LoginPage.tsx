@@ -61,12 +61,14 @@ export default function LoginPage() {
 
       const status = err?.response?.status;
 
-      if (status === 401) {
-        setError("Incorrect password.");
+      if (status === 400) {
+        setError("Please fill in all required fields.");  
+      } else if (status === 401) {
+        setError("Incorrect Student ID or Password. Please try again.");
       } else if (status === 403) {
-        setError("Your account is disabled.");
+        setError("Your account is disabled. Please approach the SSC for assistance.");
       } else if (status === 404) {
-        setError("User not found.");
+        setError("No account found with that Student ID. Please register first.");
       } else {
         setError("Something went wrong.");
       }

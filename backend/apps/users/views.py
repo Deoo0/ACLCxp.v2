@@ -47,6 +47,7 @@ def list_user(request):
         "student_id",
         "first_name",
         "last_name",
+        "middle_name",
         "program",
         "year_level",
         "house_id",
@@ -85,6 +86,7 @@ def register_user(request):
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
+                "middle_name": user.middle_name,
                 "role": user.role,
                 "house": (
                     {
