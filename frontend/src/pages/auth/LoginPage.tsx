@@ -53,8 +53,9 @@ export default function LoginPage() {
 
     } catch (err: any) {
         const status = err?.response?.status;
-        if (status === 404 || status === 400) setError("No account found with that Student ID.");
-        else if (status === 401) setError("Incorrect password. Please try again.");
+        if (status === 404 || status === 400) setError("No account found with that Student ID. Please register first.");
+        else if (status === 403) setError ("Your account has been disabled. Please contact the administrator.");
+        else if (status === 401) setError("Invalid Student ID or password. Please try again.");
         else setError("Something went wrong. Please try again.");
     } finally {
         setLoading(false);
