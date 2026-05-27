@@ -1,32 +1,224 @@
-import { Link, useLocation } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";   
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { UserNavItems } from "./NavItems";        
+import { HiMenu, HiChevronDown, HiExternalLink } from "react-icons/hi";
+import { useAuth } from "../../context/AuthContext";
 
-const navItems = [
-  { label: "Home",    path: "/dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
-    { label: "Merit Sheet", path: "/merit", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },  { label: "My Stats",path: "/stats",     icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
-  { label: "Profile", path: "/profile",   icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
-];
+import LoadingScreen from "../../components/feedback/LoadingScreen";    
+import MobileDrawer from "./MobileDrawer";
 
-export default function BottomNav() {
+export default function Header() {  
+  const navigate = useNavigate();
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [showTransition, setShowTransition] = useState(false);
+  const { user, logout } = useAuth();
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handler = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handler);
+
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handler
+      );
+  }, []);
+
+  const drawerItems = UserNavItems;
+
+  const handleLogoClick = () => {
+    if (location.pathname === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/");
+    }
+  };
+
+  const handleLogout = async () => {
+
+    setShowTransition(true);      
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    await logout();
+    navigate("/", { replace: true });
+  };
+
+  if (showTransition) {  
+    return <LoadingScreen />; 
+  } 
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-2 pb-safe">
-      <div className="grid grid-cols-4 max-w-lg mx-auto">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.label}
-              to={item.path}
-              className={`flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${isActive ? "text-[#2E308E]" : "text-gray-400"}`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
-              </svg>
-              {item.label}
-            </Link>
-          );
-        })}
+    <header
+      className={`fixed top-0 w-full z-50 bg-[#1E1E1E] border-white/10 px-8 py-2 transition-transform duration-300`}
+    >
+      <div className="flex items-center justify-between mx-auto">
+
+        {/* Left Side Div */}
+        <div className="flex items-center gap-8">
+          {/* Logo */}
+          <div
+            onClick={handleLogoClick}
+            className="flex items-center gap-1 cursor-pointer"
+          >
+            <img
+              src="aclcxp-logo.png"
+              alt="ACLCxp Logo"
+              className="w-14 h-14 object-contain"
+            />
+            <div className="flex translate-y-0.5">
+              <h1 className="font-bold text-2xl tracking-wide hidden sm:inline text-white">
+                ACLC
+              </h1>
+              <span className="text-[#D91B22] text-sm font-bold ml-1 tracking-wide hidden sm:inline font-arcade">XP</span>
+            </div>
+          </div>
+
+            {/* line separator */}
+            <div className="w-0.5 h-9 bg-white/50 hidden lg:inline" />
+
+            {/* Navigation links */}
+            <nav className="font-arcade text-md text-[white] hidden lg:flex gap-2">
+                {UserNavItems.map((item) => {
+                    if (item.children) {
+                        return (
+                        <div
+                            key={item.label}
+                            className="relative group"
+                        >
+                            <button className="text-white hover:text-[#D91B22] hover:bg-white/25 px-2 rounded-md transition-colors flex items-center gap-1">
+                            {item.label}
+                            <HiChevronDown/>
+                            </button>
+
+                            <div
+                            className="absolute top-full left-0 mt-2 w-50 rounded-md bg-[#1E1E1E] border border-white/20 invisible group-hover:opacity-100 group-hover:visible transition-all"
+                            >
+                            {item.children.map((child) => (
+                                <a
+                                key={child.label}
+                                href={child.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block px-4 py-2 text-md text-white hover:bg-[#D91B22] hover:text-white"
+                                >
+                                    {child.label}
+                                    <HiExternalLink className="inline ml-1 text-white/50" />
+                                </a>
+                            ))}
+                            </div>
+                        </div>
+                        );
+                    }
+
+                    return (
+                        <Link
+                        key={item.path}
+                        to={item.path!}
+                        className="hover:text-[#D91B22] hover:bg-white/25 px-2 rounded-md transition-colors"
+                        >
+                        {item.label}
+                        </Link>
+                    );
+                    })}
+            </nav>
+        </div>
+
+        {/* Button Right Side Div */}
+        <div className="hidden lg:flex items-center gap-3 relative">
+              <div
+                ref={dropdownRef}
+                className="relative"
+              >
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="
+                    flex items-center gap-2
+                    px-3 py-1.5
+                    rounded-lg
+                    bg-white/10
+                    hover:bg-white/20
+                    transition-colors
+                  "
+                >
+
+                  <span className="text-white font-md font-arcade">
+                    {user?.first_name}
+                  </span>
+
+                  <HiChevronDown
+                    className={`
+                      text-white
+                      transition-transform
+                      ${profileOpen ? "rotate-180" : ""}
+                    `}
+                  />
+
+                </button>
+              
+                {profileOpen && (
+                  <div
+                    className="absolute top-full right-0 mt-2 w-60 bg-[#1E1E1E] border border-white/10 rounded-md overflow-hidden shadow-xl"
+                  >
+                    <div className="px-4 py-3 border-b border-white/10">
+                      <p className="text-white font-semibold">
+                        {user?.first_name} {user?.last_name}
+                      </p>
+                      <p className="text-white/50 text-sm">
+                        {user?.email}
+                      </p>
+                    </div>
+                    {/* align items vertically */}
+                    <div className="flex flex-col items-start py-3 px-1 mx-2 mb-1 ">
+                      <Link
+                        to="/profile"
+                        className="flex item-start px-3 py-1 rounded-sm w-full text-sm text-white hover:bg-white/10"
+                      >
+                        Profile
+                      </Link>
+
+                      <button
+                        className="flex item-start px-3 py-1 rounded-sm w-full text-sm text-white hover:bg-white/10"
+                      >
+                        Support
+                      </button>
+
+                      <button
+                        onClick={handleLogout}
+                        className="flex item-start px-3 py-1 rounded-sm w-full text-sm text-white hover:bg-white/10"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+          {/* Mobile Hamburger */}
+          <button
+              onClick={() => setMenuOpen(true)}
+              className="lg:hidden text-white text-2xl px-2.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors duration-200"
+              >
+              <HiMenu size={28} />
+          </button>
+        </div>
+      <MobileDrawer
+        isOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        items={drawerItems}
+        user={user}
+      />
       </div>
-    </nav>
+      
+    </header>    
   );
 }
