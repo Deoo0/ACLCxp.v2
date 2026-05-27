@@ -33,11 +33,7 @@ export default function MeritSheetPage() {
   const totalJoined = records.filter((r) => r.status !== "absent").length;
 
   return (
-    <AuthenticatedLayout
-      title="Merit Sheet"
-      subtitle="Track your participation and earned XP"
-      activeNav="merit"
-    >
+    <>
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         {[
@@ -118,6 +114,6 @@ export default function MeritSheetPage() {
           </span>
         </div>
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
