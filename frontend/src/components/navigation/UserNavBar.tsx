@@ -204,21 +204,23 @@ export default function Header() {
               </div>
 
           {/* Mobile Hamburger */}
-          <button
-              onClick={() => setMenuOpen(true)}
-              className="lg:hidden text-white text-2xl px-2.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors duration-200"
-              >
-              <HiMenu size={28} />
-          </button>
         </div>
+      
+        <button
+            onClick={() => setMenuOpen(true)}
+            className="lg:hidden text-white text-2xl px-2.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors duration-200"
+            >
+            <HiMenu size={28} />
+        </button>
+      
+      </div>
+      
       <MobileDrawer
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
         items={drawerItems}
         user={user}
       />
-      </div>
-      
     </header>    
   );
 }
