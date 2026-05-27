@@ -4,6 +4,7 @@ import { FaArrowRight, FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import SupportChat from "../../components/ui/SupportChat";
+import LoadingScreen from "../../components/feedback/LoadingScreen";
 
 interface House {
     id: number;
@@ -21,7 +22,8 @@ export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);  
+    const [showTransition, setShowTransition] = useState(false);
 
     const [formData, setFormData] = useState({
         studentId: "",
@@ -266,8 +268,10 @@ export default function RegisterPage() {
         }
 
         try {
-            setLoading(true);
             setError("");
+            setLoading(true);
+            setShowTransition(true);      
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
             await api.post("/users/register/", {
                 student_id: formData.studentId,
@@ -287,8 +291,12 @@ export default function RegisterPage() {
                 password: formData.password,
             });
 
+            
             navigate("/dashboard");
         } catch (err: any) {
+            setShowTransition(false);
+            setLoading(false);
+            
             const data = err?.response?.data;
 
             if (data?.student_id?.[0]) {
@@ -310,10 +318,12 @@ export default function RegisterPage() {
                 data?.detail ??
                 "Registration failed."
             );
-        } finally {
-            setLoading(false);
         }
     };
+
+    if (showTransition) {
+        return <LoadingScreen />;
+    }
 
     return (
         <>

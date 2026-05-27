@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import type { AuthUser } from "../../services/auth";
 import { HiX, HiChevronDown } from "react-icons/hi";
+import LoadingScreen from "../../components/feedback/LoadingScreen";
 
 interface DrawerItem {
   label: string;
@@ -26,7 +27,10 @@ export default function MobileDrawer({
 }: MobileDrawerProps) {
     const { user, logout } = useAuth();
     const [openGroup, setOpenGroup] = useState<string | null>(null);
+    const [showTransition, setShowTransition] = useState(false);
     const drawerRef = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
+
 
     useEffect(() => {
         if (isOpen) {
@@ -44,6 +48,10 @@ export default function MobileDrawer({
             onClose();
         }
     };
+
+    if (showTransition) {  
+        return <LoadingScreen />; 
+    } 
 
     return (
         <div className={`fixed inset-0 z-50 flex ${isOpen ? '' : 'pointer-events-none'}`}>
@@ -147,9 +155,6 @@ export default function MobileDrawer({
                     ) : (
                         <>
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-full bg-[#D91B22] flex items-center justify-center font-bold">
-                                    {user.first_name?.[0]}
-                                </div>
                                 <div>
                                     <p className="text-white font-semibold">
                                         {user.first_name}
@@ -169,10 +174,13 @@ export default function MobileDrawer({
                                 </Link>
                                 <button
                         onClick={async () => {
+                            setShowTransition(true);      
+                            await new Promise(resolve => setTimeout(resolve, 1500));
                             await logout();
+                            navigate("/", { replace: true });
                             onClose();
                         }}
-                        className="text-left text-red-400 hover:bg-red-500/10 p-2 rounded-lg"
+                        className="text-left text-white hover:bg-red-500/10 p-2 rounded-lg"
                         >
                         Logout
                         </button>
