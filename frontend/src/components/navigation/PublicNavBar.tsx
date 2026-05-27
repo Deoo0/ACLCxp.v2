@@ -102,7 +102,7 @@ export default function Header() {
                     {/* Login Button */}
                     <Link
                         to="/login"
-                        className="px-3 py-1 border bg-[yellow] border-[black] text-[black] hover:bg-white/0 hover:border-[white] hover:text-[] rounded-lg font-arcade text-md transition-colors duration-200"
+                        className="px-3 py-1 border bg-[yellow] border-[black] text-[black] hover:bg-[black] hover:border-[yellow] hover:text-[yellow] rounded-lg font-arcade text-md transition-colors duration-200"
                         >
                         <p className="translate-y-px">Login</p> 
                     </Link>

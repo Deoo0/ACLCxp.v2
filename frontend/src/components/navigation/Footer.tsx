@@ -11,16 +11,16 @@ export default function Footer() {
                 <div className="mb-4">
                     <nav className="flex flex-col gap-2 text-sm">
                         <Link to="/about" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
-                            About Page
+                            About
                         </Link>
                         <Link to="/privacy" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
-                            Privacy Policy Page
+                            Privacy Policy
                         </Link>
                         <Link to="/terms" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
-                            Terms of Use Page
+                            Terms  of  Use
                         </Link>
                         <Link to="/connectivity" className="text-white hover:text-indigo-400" onClick={() => window.scrollTo(0, 0)}>
-                            Connectivity Test
+                            Connectivity  Test
                         </Link>
                     </nav>
                 </div>

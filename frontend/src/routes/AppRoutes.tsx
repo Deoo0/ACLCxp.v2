@@ -54,8 +54,7 @@ export default function AppRoutes() {
       </Route>
 
       <Route
-        path="/login"
-        element={
+        path="/login" element={
           <PublicRoute>
             <LoginPage />
           </PublicRoute>

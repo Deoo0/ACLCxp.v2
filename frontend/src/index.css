@@ -34,3 +34,13 @@ body {
   width: 100%;
   min-height: 100vh;
 }
+
+@keyframes loading {
+  0% {
+    width: 0%;
+  }
+
+  100% {
+    width: 100%;
+  }
+}

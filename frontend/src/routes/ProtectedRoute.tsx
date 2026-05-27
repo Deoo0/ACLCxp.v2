@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import LoadingScreen from "../components/feedback/LoadingScreen";
 import Modal from "../components/ui/Modal";
 
 interface ProtectedRouteProps {
@@ -43,11 +44,7 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
   }, [isLoading, isAuthenticated, roles, user]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading...
-      </div>
-    );
+    return <LoadingScreen/>;
   }
 
   if (!isAuthenticated) return (
