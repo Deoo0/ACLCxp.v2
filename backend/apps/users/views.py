@@ -62,41 +62,37 @@ def list_user(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def register_user(request):
+
+    student_id = request.data.get("student_id", "").strip()
+    email = request.data.get("email", "").strip().lower()
+
+    if student_id and User.objects.filter(student_id=student_id).exists():
+        return Response(
+            {
+                "status": "error",
+                "message": "This Student ID is already registered. Please log in instead.",
+            },
+            status=status.HTTP_409_CONFLICT,
+        )
+
+    if email and User.objects.filter(email=email).exists():
+        return Response(
+            {
+                "status": "error",
+                "message": "This email is already registered. Please log in instead.",
+            },
+            status=status.HTTP_409_CONFLICT,
+        )
+
+    # Now run serializer for all other validation
     serializer = RegisterSerializer(data=request.data)
 
     if not serializer.is_valid():
-        errors = serializer.errors
-
-        if "student_id" in errors:
-            error_messages = errors["student_id"]
-            if any("unique" in str(msg).lower() or "already exists" in str(msg).lower() for msg in error_messages):
-                return Response(
-                    {
-                        "status": "error",
-                        "message": "This Student ID is already registered. Please log in instead.",
-                        "errors": errors,
-                    },
-                    status=status.HTTP_409_CONFLICT,  # 409 = resource already exists
-                )
-
-        if "email" in errors:
-            error_messages = errors["email"]
-            if any("unique" in str(msg).lower() or "already exists" in str(msg).lower() for msg in error_messages):
-                return Response(
-                    {
-                        "status": "error",
-                        "message": "This email is already registered. Please log in instead.",
-                        "errors": errors,
-                    },
-                    status=status.HTTP_409_CONFLICT,
-                )
-
-        # All other validation errors
         return Response(
             {
                 "status": "error",
                 "message": "Validation failed",
-                "errors": errors,
+                "errors": serializer.errors,
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
