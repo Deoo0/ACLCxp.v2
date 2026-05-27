@@ -1,5 +1,3 @@
-import Header from "../../components/navigation/PublicHeader";
-import Footer from "../../components/layouts/Footer";
 import SupportChat from "../../components/ui/SupportChat";
 
 const sections = [
@@ -93,7 +91,6 @@ export default function PrivacyPolicyPage() {
         <>
         <SupportChat />
         <div className="min-h-screen bg-white flex flex-col">
-            <Header />
 
             {/* Hero Banner */}
             <section className="relative h-52 overflow-hidden">
@@ -152,7 +149,6 @@ export default function PrivacyPolicyPage() {
                 </div>
             </main>
 
-            <Footer />
         </div>
     </>
     );

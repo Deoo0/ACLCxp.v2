@@ -2,6 +2,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
+import LoadingScreen from "../../components/feedback/LoadingScreen";    
 import ForgotPasswordModal from "../../components/ui/ForgotPasswordModal";
 import SupportChat from "../../components/ui/SupportChat";
 
@@ -10,21 +11,11 @@ export default function LoginPage() {
   const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
-
+  const [loading, setLoading] = useState(false);  
+  const [showTransition, setShowTransition] = useState(false);
   const { login } = useAuth();
-
-  const validate = (): string | null => {
-    if (!studentId.trim() && !password.trim())
-      return "Please fill out all fields.";
-    if (!studentId.trim()) return "Student ID is required.";
-    if (!/^\d+$/.test(studentId))
-      return "Student ID must contain numbers only.";
-    if (!password.trim()) return "Password is required.";
-    return null;
-  };
 
   const handleStudentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, "");
@@ -36,40 +27,66 @@ export default function LoginPage() {
   };
 
   const handleLogin = async () => {
-    const validationError = validate();
-    if (validationError) { setError(validationError); return; }
+    
+    if (!studentId.trim()) {
+      setError("Please enter your Student ID.");
+      return;
+    }
+
+    if (!password.trim()) {
+      setError("Please enter your password.");
+      return;
+    }
 
     try {
-        setLoading(true);
-        setError("");
-        const loggedInUser = await login({ student_id: studentId, password });
+      setError("");
+      setLoading(true);
+      setShowTransition(true);      
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // Role-based redirect right after login resolves
-        if (loggedInUser.role === "ADMIN") {
-            navigate("/admin", { replace: true });
-        } else {
-            navigate("/dashboard", { replace: true });
-        }
+      const loggedInUser = await login({
+        student_id: studentId,
+        password,
+      });
+      
+      if (loggedInUser.role === "ADMIN") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
 
     } catch (err: any) {
-        const status = err?.response?.status;
-        if (status === 404 || status === 400) setError("No account found with that Student ID. Please register first.");
-        else if (status === 403) setError ("Your account has been disabled. Please contact the administrator.");
-        else if (status === 401) setError("Invalid Student ID or password. Please try again.");
-        else setError("Something went wrong. Please try again.");
-    } finally {
-        setLoading(false);
-    }
-};
+      setShowTransition(false);
+      setLoading(false);
+
+      const status = err?.response?.status;
+
+      if (status === 400) {
+        setError("Please fill in all required fields.");  
+      } else if (status === 401) {
+        setError("Incorrect Student ID or Password. Please try again.");
+      } else if (status === 403) {
+        setError("Your account is disabled. Please approach the SSC for assistance.");
+      } else if (status === 404) {
+        setError("No account found with that Student ID. Please register first.");
+      } else {
+        setError("Something went wrong.");
+      }
+    } 
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleLogin();
   };
 
-    return (
-        <>
-            <SupportChat />
-            <section className="relative min-h-screen overflow-hidden">
+  if (showTransition) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <>
+      <SupportChat />
+      <section className="relative min-h-screen overflow-hidden">
 
         {/* Background */}
         <img
@@ -180,7 +197,7 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full mt-6 py-3 rounded-full bg-white text-[#2E308E] font-bold hover:bg-gray-100 transition-all"
               >
-                {loading ? "Logging in..." : "LOG IN"}
+                {loading ? "Logging in..." : "Login"}
               </button>
 
               {/* Sign Up */}

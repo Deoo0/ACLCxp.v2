@@ -2,28 +2,45 @@
 
 /* ⇓ custom styles ⇓ */
 
-:root {
-  font-family: Inter, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@font-face {
+  font-family: "Xirod";
+  src: url("/fonts/Xirod.otf") format("opentype");
 }
 
-/* Heading tags use League Spartan */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'League Spartan', sans-serif;
+@font-face {
+  font-family: "ArcadeClassic";
+  src: url("/fonts/ArcadeClassic.TTF") format("truetype");
+}
+
+.font-xirod {
+  font-family: "Xirod", sans-serif;
+}
+
+.font-arcade {
+  font-family: "ArcadeClassic", sans-serif;
+}
+
+h1, h2{
+  font-family: 'Xirod', sans-serif;
+}
+
+h3, h4, h5, h6 {
+  font-family: 'ArcadeClassic', sans-serif;
 }
 
 body {
+  font-family: inter, sans-serif;
   margin: 0;
   width: 100%;
   min-height: 100vh;
+}
+
+@keyframes loading {
+  0% {
+    width: 0%;
+  }
+
+  100% {
+    width: 100%;
+  }
 }
