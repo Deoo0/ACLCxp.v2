@@ -65,11 +65,38 @@ def register_user(request):
     serializer = RegisterSerializer(data=request.data)
 
     if not serializer.is_valid():
+        errors = serializer.errors
+
+        if "student_id" in errors:
+            error_messages = errors["student_id"]
+            if any("unique" in str(msg).lower() or "already exists" in str(msg).lower() for msg in error_messages):
+                return Response(
+                    {
+                        "status": "error",
+                        "message": "This Student ID is already registered. Please log in instead.",
+                        "errors": errors,
+                    },
+                    status=status.HTTP_409_CONFLICT,  # 409 = resource already exists
+                )
+
+        if "email" in errors:
+            error_messages = errors["email"]
+            if any("unique" in str(msg).lower() or "already exists" in str(msg).lower() for msg in error_messages):
+                return Response(
+                    {
+                        "status": "error",
+                        "message": "This email is already registered. Please log in instead.",
+                        "errors": errors,
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+        # All other validation errors
         return Response(
             {
                 "status": "error",
                 "message": "Validation failed",
-                "errors": serializer.errors,
+                "errors": errors,
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
