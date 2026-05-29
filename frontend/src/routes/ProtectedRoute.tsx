@@ -61,19 +61,26 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
     </>
   );
 
-  if (roles && !roles.includes(user?.role ?? "")) return (
-    <>
-      {showUnauthorizedModal && (
-        <Modal
-          title="Unauthorized"
-          message="You do not have permission to access this page."
-          actionLabel="Back to Dashboard"
-          actionTo="/dashboard"
-          onClose={() => navigate("/dashboard", { replace: true })}
-        />
-      )}
-    </>
-  );
+  if (roles && !roles.includes(user?.role ?? "")) {
+    const redirectPath =
+      user?.role === "ADMIN"
+        ? "/admin"
+        : "/dashboard";
+
+    return (
+      <>
+        {showUnauthorizedModal && (
+          <Modal
+            title="Unauthorized"
+            message="You do not have permission to access this page."
+            actionLabel="Go Back"
+            actionTo={redirectPath}
+            onClose={() => navigate(redirectPath, { replace: true })}
+          />
+        )}
+      </>
+    );
+  }
 
   return <>{children}</>;
 }

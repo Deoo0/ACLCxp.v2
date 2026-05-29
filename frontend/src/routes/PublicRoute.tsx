@@ -3,15 +3,20 @@ import LoadingScreen from "../components/feedback/LoadingScreen";
 import { Navigate } from "react-router-dom";
 
 export default function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 ;
   if (isLoading) {
     return <LoadingScreen />;
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+  if (user?.role === "ADMIN") {
+    return <Navigate to="/admin" replace />;
+  } else {
+    return <Navigate to="/" replace />;
   }
+
+}
 
   return <>{children}</>;
 }

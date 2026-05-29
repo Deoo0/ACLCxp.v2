@@ -40,19 +40,20 @@ export default function LoginPage() {
 
     try {
       setError("");
+      
+      
       setLoading(true);
       setShowTransition(true);      
       await new Promise(resolve => setTimeout(resolve, 1500));
-
       const loggedInUser = await login({
         student_id: studentId,
         password,
       });
-      
+
       if (loggedInUser.role === "ADMIN") {
-        navigate("/admin", { replace: true });
+        navigate("/admin");
       } else {
-        navigate("/dashboard", { replace: true });
+        navigate("/");
       }
 
     } catch (err: any) {
