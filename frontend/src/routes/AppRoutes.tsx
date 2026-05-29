@@ -15,6 +15,7 @@ import RegisterPage from "../pages/auth/RegisterPage";
 import MeritSheetPage from "../pages/student/MeritSheetPage";
 import Dashboard from "../pages/student/DashboardPage";
 import ProfilePage from "../pages/student/ProfilePage";
+import StatsPage from "../pages/student/StatsPage";
 
 import AdminDashboard from "../pages/admin/DashboardPage";
 import UsersManagement from "../pages/admin/UsersPage";
@@ -51,6 +52,7 @@ export default function AppRoutes() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/merit" element={<MeritSheetPage />} />
+        <Route path="/stats" element={<StatsPage/>} />
       </Route>
 
       <Route
