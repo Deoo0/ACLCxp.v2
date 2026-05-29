@@ -1,5 +1,3 @@
-import AuthenticatedLayout from "../../components/layouts/UserLayout";
-
 type Status = "participated" | "attended" | "absent";
 
 interface EventRecord {

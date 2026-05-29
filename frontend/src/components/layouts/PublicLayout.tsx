@@ -5,32 +5,30 @@ import UserNavBar from "../navigation/UserNavBar";
 import Footer from "../navigation/Footer";
 import SupportChat from "../ui/SupportChat";
 
-const { user } = useAuth();
 
 
 export default function PublicLayout() {
+    const { user } = useAuth();
     
     const isUserRole =
-    user?.role === "STUDENT" ||
-    user?.role === "FACILITATOR";
+    user?.role === "STUDENT";
     
     if (user?.role === "ADMIN") {
         return <Navigate to="/admin" replace />;
-    } else if (isUserRole) {
-        return (
-            <>
-                {isUserRole
-                    ? <UserNavBar />
-                    : <PublicNavBar />
-                }
+    } 
+    return (
+        <>
+            {isUserRole
+                ? <UserNavBar />
+                : <PublicNavBar />
+            }
 
-                <main>
-                    <Outlet />
-                </main>
+            <main>
+                <Outlet />
+            </main>
 
-                <Footer />
-                <SupportChat />
-            </>
-        );
-    }
+            <Footer />
+            <SupportChat />
+        </>
+    );
 }
