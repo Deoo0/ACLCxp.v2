@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+
 
 export default function Hero() {
+    const { user } = useAuth();
+
     return (
         <section className="relative min-h-screen overflow-hidden">
 
@@ -12,14 +16,13 @@ export default function Hero() {
                 absolute inset-0
                 w-full h-full
                 object-cover
-                object-[85%_center]
-                md:object-[95%_center]
+                object-[10%_center]
                 lg:object-right
             "
         />
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black/65 lg:bg-black/50 transition-all" />
+        <div className="absolute inset-0 bg-black/50 transition-all" />
 
         {/* Content */}
         <div className="relative z-10 min-h-screen flex items-center translate-y-[-10%] transition-transform duration-500 ">
@@ -55,7 +58,13 @@ export default function Hero() {
                     </p>
 
                     <Link
-                        to="/login"
+                        to={
+                            user?.role === "ADMIN"
+                            ? "/admin"
+                            : user?.role === "STUDENT"
+                            ? "/dashboard"
+                            : "/login"
+                        }
                         className="px-6 py-2 rounded-xl bg-yellow-300 text-black font-arcade text-2xl border-2 border-black hover:scale-105 transition"
                     >
                         start!
@@ -69,5 +78,5 @@ export default function Hero() {
 
         </div>
         </section>
-  );
+    );
 }

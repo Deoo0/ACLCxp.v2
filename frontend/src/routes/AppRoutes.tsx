@@ -44,7 +44,7 @@ export default function AppRoutes() {
 
       <Route
         element={
-          <ProtectedRoute>
+          <ProtectedRoute roles={["STUDENT",]}>
             <UserLayout />
           </ProtectedRoute>
         }

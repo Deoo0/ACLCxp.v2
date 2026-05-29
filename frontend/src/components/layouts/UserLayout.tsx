@@ -1,10 +1,11 @@
 import { Outlet } from "react-router-dom";
 import UserNavBar from "../navigation/UserNavBar";
+import Footer from "../navigation/Footer";  
 
 export default function UserLayout() {
   return (
     <>
-      <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="min-h-screen bg-gray-50 pb-10">
         <div className="h-18 border-b bg-[#1E1E1E]">
           <UserNavBar/>
         </div>
@@ -14,6 +15,7 @@ export default function UserLayout() {
         </main>
 
       </div>
+      <Footer />
     </>
   );
 }
