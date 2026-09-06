@@ -77,9 +77,9 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-amber-400"><Sparkles className="h-4 w-4" /> Today’s progress</div>
               <h2 className="mt-3 text-xl font-semibold text-neutral-50 sm:text-2xl">You’re {NEXT_MILESTONE - MERIT_POINTS} points from your next milestone.</h2>
               <p className="mt-2 max-w-xl text-sm leading-6 text-neutral-400">Keep building your record through event participation, achievements, and house activities.</p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link to="/merit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-sm font-semibold text-neutral-950 transition hover:bg-amber-300 active:scale-[0.98]">View merit sheet <ArrowRight className="h-4 w-4" /></Link>
-                <Link to="/events" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-neutral-200 transition hover:bg-white/[0.07] active:scale-[0.98]"><CalendarDays className="h-4 w-4" /> Explore events</Link>
+              <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap">
+                <Link to="/merit" className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-sm font-semibold text-neutral-950 transition hover:bg-amber-300 active:scale-[0.98] sm:w-auto">View merit sheet <ArrowRight className="h-4 w-4" /></Link>
+                <Link to="/events" className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-neutral-200 transition hover:bg-white/[0.07] active:scale-[0.98] sm:w-auto"><CalendarDays className="h-4 w-4" /> Explore events</Link>
               </div>
             </div>
             <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-neutral-950/40 p-3.5 sm:w-52 sm:flex-col sm:text-center">
@@ -97,27 +97,29 @@ export default function DashboardPage() {
         </section>
 
         <div className="grid gap-5 lg:grid-cols-5 lg:gap-6">
-          <section className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5 sm:p-6 lg:col-span-3">
-            <div className="flex items-center justify-between gap-3">
-              <div><h2 className="text-base font-semibold text-neutral-100">Upcoming events</h2><p className="mt-1 text-sm text-neutral-500">Your next chances to earn merit points.</p></div>
-              <Link to="/events" className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-amber-400 hover:text-amber-300">See all <ChevronRight className="h-4 w-4" /></Link>
+          <section className="min-w-0 rounded-2xl border border-white/10 bg-neutral-900/60 p-4 sm:p-6 lg:col-span-3">
+            <div className="flex flex-col gap-3 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between">
+              <div className="min-w-0"><h2 className="text-base font-semibold text-neutral-100">Upcoming events</h2><p className="mt-1 text-sm text-neutral-500">Your next chances to earn merit points.</p></div>
+              <Link to="/events" className="inline-flex min-h-10 w-full shrink-0 items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-medium text-amber-400 transition hover:bg-white/[0.06] hover:text-amber-300 min-[380px]:w-auto min-[380px]:border-0 min-[380px]:bg-transparent min-[380px]:px-0">See all <ChevronRight className="h-4 w-4" /></Link>
             </div>
             <div className="mt-5 space-y-3">
               {upcomingEvents.map((event) => (
-                <Link key={event.id} to="/events" className="group flex items-center gap-3 rounded-xl border border-white/5 bg-neutral-950/40 p-3 transition hover:border-white/10 hover:bg-white/[0.04] sm:gap-4 sm:p-4">
-                  <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-white/[0.06] text-center"><span className="text-[10px] font-medium uppercase text-neutral-500">{format(new Date(event.startAt), "MMM")}</span><span className="text-base font-semibold leading-none text-neutral-100">{format(new Date(event.startAt), "d")}</span></div>
-                  <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-neutral-100">{event.title}</p><p className="mt-1 truncate text-xs text-neutral-500">{formatEventDate(event.startAt)} · {event.house}</p>{event.location && <p className="mt-1 flex items-center gap-1 truncate text-xs text-neutral-500"><MapPin className="h-3 w-3 shrink-0" />{event.location}</p>}</div>
-                  <ChevronRight className="h-5 w-5 shrink-0 text-neutral-600 transition group-hover:text-neutral-300" />
+                <Link key={event.id} to="/events" className="group block rounded-2xl border border-white/5 bg-neutral-950/40 p-4 transition hover:border-white/10 hover:bg-white/[0.04] sm:flex sm:items-center sm:gap-4">
+                  <div className="flex items-start justify-between gap-3 sm:contents">
+                    <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-white/[0.06] text-center"><span className="text-[10px] font-medium uppercase text-neutral-500">{format(new Date(event.startAt), "MMM")}</span><span className="text-base font-semibold leading-none text-neutral-100">{format(new Date(event.startAt), "d")}</span></div>
+                    <ChevronRight className="h-5 w-5 shrink-0 text-neutral-600 transition group-hover:text-neutral-300 sm:order-3" />
+                  </div>
+                  <div className="mt-3 min-w-0 sm:mt-0 sm:flex-1"><p className="text-sm font-semibold leading-5 text-neutral-100">{event.title}</p><div className="mt-2 flex flex-wrap gap-x-2 gap-y-1 text-xs text-neutral-500"><span>{formatEventDate(event.startAt)}</span><span aria-hidden="true">•</span><span>{event.house}</span></div>{event.location && <p className="mt-1.5 flex items-start gap-1.5 text-xs leading-4 text-neutral-500"><MapPin className="mt-0.5 h-3 w-3 shrink-0" /><span>{event.location}</span></p>}</div>
                 </Link>
               ))}
             </div>
           </section>
 
-          <div className="space-y-5 lg:col-span-2 lg:space-y-6">
-            <section className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5 sm:p-6">
-              <div className="flex items-center justify-between"><div><h2 className="text-base font-semibold text-neutral-100">Merit progress</h2><p className="mt-1 text-sm text-neutral-500">Current semester</p></div><span className="text-sm font-semibold text-amber-400">{milestoneProgress}%</span></div>
-              <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-white/5"><div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-300" style={{ width: `${milestoneProgress}%` }} /></div>
-              <div className="mt-3 flex justify-between text-xs text-neutral-500"><span>{MERIT_POINTS} pts earned</span><span>{NEXT_MILESTONE} pts goal</span></div>
+          <div className="min-w-0 space-y-5 lg:col-span-2 lg:space-y-6">
+            <section className="rounded-2xl border border-white/10 bg-neutral-900/60 p-4 sm:p-6">
+              <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="text-base font-semibold text-neutral-100">Merit progress</h2><p className="mt-1 text-sm text-neutral-500">Current semester</p></div><span className="shrink-0 rounded-full bg-amber-400/10 px-2.5 py-1 text-sm font-semibold text-amber-400">{milestoneProgress}%</span></div>
+              <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/5"><div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-300" style={{ width: `${milestoneProgress}%` }} /></div>
+              <div className="mt-3 grid grid-cols-2 gap-3"><div className="min-w-0 rounded-xl bg-white/[0.03] p-3"><p className="text-[11px] uppercase tracking-wide text-neutral-500">Earned</p><p className="mt-1 truncate text-sm font-semibold text-neutral-200">{MERIT_POINTS} pts</p></div><div className="min-w-0 rounded-xl bg-white/[0.03] p-3"><p className="text-[11px] uppercase tracking-wide text-neutral-500">Goal</p><p className="mt-1 truncate text-sm font-semibold text-neutral-200">{NEXT_MILESTONE} pts</p></div></div>
               <Link to="/merit" className="mt-5 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/10 text-sm font-medium text-neutral-300 transition hover:bg-white/[0.05]">Open merit sheet <ArrowRight className="h-4 w-4" /></Link>
             </section>
             <section className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5 sm:p-6">

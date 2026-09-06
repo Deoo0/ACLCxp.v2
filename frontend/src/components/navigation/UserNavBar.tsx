@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ChevronDown, LogOut, Menu, QrCode, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, QrCode, UserRound } from "lucide-react";
 import { UserNavItems } from "./NavItems";
 import { useAuth } from "../../context/AuthContext";
-import MobileDrawer from "./MobileDrawer";
 
 interface UserNavBarProps {
   onQrCode?: () => void;
@@ -15,7 +14,6 @@ const housesItem = UserNavItems.find((item) => item.children);
 export default function UserNavBar({ onQrCode }: UserNavBarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [housesOpen, setHousesOpen] = useState(false);
   const desktopMenuRef = useRef<HTMLDivElement>(null);
@@ -101,10 +99,9 @@ export default function UserNavBar({ onQrCode }: UserNavBarProps) {
 
         <div className="flex items-center gap-2 lg:hidden">
           <button type="button" onClick={onQrCode} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-amber-400 transition hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400" aria-label="Show my QR code"><QrCode className="h-5 w-5" /></button>
-          <button type="button" onClick={() => setMenuOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-neutral-200 transition hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400" aria-label="Open navigation menu"><Menu className="h-5 w-5" /></button>
+          <button type="button" onClick={handleLogout} className="flex h-10 w-10 items-center justify-center rounded-xl border border-rose-400/20 bg-rose-400/10 text-rose-300 transition hover:bg-rose-400/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300" aria-label="Sign out"><LogOut className="h-5 w-5" /></button>
         </div>
       </div>
-      <MobileDrawer isOpen={menuOpen} onClose={() => setMenuOpen(false)} items={UserNavItems} onQrCode={onQrCode} />
     </header>
   );
 }

@@ -1,13 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import UserNavBar from "../navigation/UserNavBar";
 import BottomNavigation from "../navigation/BottomNavigation";
 import { useAuth } from "../../context/AuthContext";
 import { HiHome, HiChartBar, HiAcademicCap, HiUser, HiQrcode } from "react-icons/hi";
+import { ScanLine, ShieldCheck, Sparkles, X } from "lucide-react";
 
 export default function UserLayout() {
   const { user } = useAuth();
   const [qrOpen, setQrOpen] = useState(false);
+  const [isEntering, setIsEntering] = useState(true);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setIsEntering(false));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    const openStudentPass = () => setQrOpen(true);
+    window.addEventListener("aclcxp:open-student-qr", openStudentPass);
+    return () => window.removeEventListener("aclcxp:open-student-qr", openStudentPass);
+  }, []);
 
   // You'll need to add the QRModal component here (copy it from ProfilePage)
   function QRPlaceholder({ size = 128 }: { size?: number }) {
@@ -77,76 +90,54 @@ interface QRModalProps {
 
 function QRModal({ name, studentId, photo, initials, houseColor, houseName, onClose }: QRModalProps) {
   return (
-    <div
-      className="fixed inset-0 z-100 flex flex-col"
-      style={{
-        background: `linear-gradient(to top, #ffffff 0%, #ffffff 20%, ${houseColor} 85%, color-mix(in srgb, ${houseColor} 85%, #000000) 100%)`,
-      }}
-    >
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-5 py-4">
-        <p className="text-sm font-semibold text-white">Student QR</p>
-        <button
-          onClick={onClose}
-          className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center"
-          aria-label="Close"
-        >
-          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+    <div className="fixed inset-0 overflow-y-auto bg-[#08090d] text-neutral-100" style={{ zIndex: 2147483647 }} role="dialog" aria-modal="true" aria-label="Student event pass">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="qr-orbit absolute -left-24 top-20 h-64 w-64 rounded-full blur-3xl" style={{ backgroundColor: `${houseColor}2e` }} />
+        <div className="absolute -right-28 bottom-8 h-72 w-72 rounded-full bg-amber-400/[0.07] blur-3xl" />
       </div>
 
-      {/* Body */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 gap-7">
+      <div className="relative mx-auto flex min-h-full w-full max-w-xl flex-col px-4 py-5 sm:px-6 sm:py-7">
+        <header className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-amber-400"><Sparkles className="h-5 w-5" /></div>
+            <div><p className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-500">ACLCxp</p><h1 className="text-sm font-semibold text-neutral-100">My Event Pass</h1></div>
+          </div>
+          <button type="button" onClick={onClose} className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-neutral-300 transition hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400" aria-label="Close event pass"><X className="h-5 w-5" /></button>
+        </header>
 
-        {/* Avatar */}
-        <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-md shrink-0">
-          {photo ? (
-            <img src={photo} alt={name} className="w-full h-full object-cover" />
-          ) : (
-            <div
-              className="w-full h-full flex items-center justify-center text-white text-3xl font-bold"
-              style={{ backgroundColor: houseColor }}
-            >
-              {initials}
+        <main className="qr-pass-enter my-auto py-7 sm:py-9">
+          <section className="overflow-hidden rounded-3xl border border-white/10 bg-neutral-900/90 shadow-2xl shadow-black/40">
+            <div className="relative border-b border-white/[0.08] px-5 pb-5 pt-6 sm:px-7">
+              <div className="absolute inset-x-0 top-0 h-1" style={{ background: `linear-gradient(90deg, transparent, ${houseColor}, transparent)` }} />
+              <div className="flex items-center gap-4">
+                <div className="relative shrink-0">
+                  <div className="qr-pulse-ring absolute -inset-2 rounded-full border" style={{ borderColor: `${houseColor}66` }} />
+                  <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-white/20 shadow-lg" style={{ backgroundColor: houseColor }}>
+                    {photo ? <img src={photo} alt={name} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-xl font-bold text-neutral-950">{initials}</div>}
+                  </div>
+                </div>
+                <div className="min-w-0"><p className="text-[11px] font-medium uppercase tracking-wider text-neutral-500">Student pass</p><h2 className="mt-1 truncate text-xl font-semibold tracking-tight text-neutral-50">{name}</h2><p className="mt-1 font-mono text-xs tracking-widest text-neutral-400">{studentId}</p></div>
+              </div>
+              {houseName && <div className="mt-5 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium" style={{ borderColor: `${houseColor}55`, backgroundColor: `${houseColor}18`, color: houseColor }}><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: houseColor }} />{houseName}</div>}
             </div>
-          )}
-        </div>
 
-        {/* Name + USN + House */}
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900">{name}</h2>
-          <p className="text-sm text-gray-500 mt-1 tracking-widest font-mono">{studentId}</p>
-          {houseName && (
-            <div className="flex items-center justify-center gap-1.5 mt-2">
-              <div
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: houseColor }}
-              />
-              <p className="text-xs text-gray-500 font-medium">{houseName}</p>
+            <div className="px-5 py-6 sm:px-7 sm:py-7">
+              <div className="flex items-center justify-between"><div><p className="text-sm font-semibold text-neutral-100">Ready to check in</p><p className="mt-1 text-xs text-neutral-500">Present this code to your event facilitator.</p></div><span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />Active</span></div>
+
+              <div className="relative mx-auto mt-6 w-fit rounded-3xl bg-white p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_18px_50px_rgba(0,0,0,0.35)] sm:p-5">
+                <QRPlaceholder size={220} />
+                <div className="pointer-events-none absolute inset-4 overflow-hidden rounded-xl sm:inset-5"><span className="qr-scan-line absolute inset-x-0 h-px bg-amber-400/90 shadow-[0_0_12px_3px_rgba(251,191,36,0.65)]" /></div>
+              </div>
+
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-3.5"><ScanLine className="h-4 w-4 text-amber-400" /><p className="mt-2 text-xs font-medium text-neutral-200">Scan to check in</p><p className="mt-1 text-[11px] leading-4 text-neutral-500">One scan records your attendance.</p></div>
+                <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-3.5"><ShieldCheck className="h-4 w-4 text-emerald-400" /><p className="mt-2 text-xs font-medium text-neutral-200">Merit protected</p><p className="mt-1 text-[11px] leading-4 text-neutral-500">Your points update automatically.</p></div>
+              </div>
             </div>
-          )}
-        </div>
+          </section>
+        </main>
 
-        {/* QR */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <QRPlaceholder size={220} />
-        </div>
-
-        <p className="text-xs text-gray-400 text-center">
-          Show this to your facilitator during events
-        </p>
-      </div>
-      
-      {/* Bottom brand */}
-      <div className="py-5 flex justify-center">
-        {/* Option B — pill with primary/accent bg */}
-        <div className="px-4 py-1.5 rounded-full bg-[#2E308E]">
-          <p className="text-xs font-bold tracking-widest uppercase text-white">
-            ACLC<span className="text-[#D91B22]">xp</span>
-          </p>
-        </div>
+        <p className="pb-1 text-center text-xs text-neutral-600">Keep this screen open until your attendance is confirmed.</p>
       </div>
     </div>
   );
@@ -154,6 +145,10 @@ function QRModal({ name, studentId, photo, initials, houseColor, houseName, onCl
   return (
     <>
       <div className="min-h-screen w-full bg-neutral-950">
+        <div
+          className={`pointer-events-none fixed inset-0 z-[55] bg-neutral-950 transition-opacity duration-300 ${isEntering ? "opacity-100" : "opacity-0"}`}
+          aria-hidden="true"
+        />
         <div className="h-20">
           <UserNavBar onQrCode={() => setQrOpen(true)} />
         </div>
