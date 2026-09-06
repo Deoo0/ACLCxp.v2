@@ -153,12 +153,12 @@ function QRModal({ name, studentId, photo, initials, houseColor, houseName, onCl
 }
   return (
     <>
-      <div className="min-h-screen w-full bg-gray-50">
-        <div className="h-18 border-b bg-[#1E1E1E]">
-          <UserNavBar />
+      <div className="min-h-screen w-full bg-neutral-950">
+        <div className="h-20">
+          <UserNavBar onQrCode={() => setQrOpen(true)} />
         </div>
 
-        <main className="w-full px-0 pt-0 pb-24 sm:pb-0">
+        <main className="w-full px-0 pt-0 pb-28 lg:pb-0">
           <Outlet />
         </main>
 

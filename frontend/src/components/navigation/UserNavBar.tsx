@@ -1,205 +1,110 @@
-import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { ChevronDown, LogOut, Menu, QrCode, UserRound } from "lucide-react";
 import { UserNavItems } from "./NavItems";
-import { HiMenu, HiChevronDown, HiExternalLink } from "react-icons/hi";
 import { useAuth } from "../../context/AuthContext";
-
-import LoadingScreen from "../../components/feedback/LoadingScreen";
 import MobileDrawer from "./MobileDrawer";
 
-export default function Header() {
+interface UserNavBarProps {
+  onQrCode?: () => void;
+}
+
+const primaryItems = UserNavItems.filter((item) => item.path);
+const housesItem = UserNavItems.find((item) => item.children);
+
+export default function UserNavBar({ onQrCode }: UserNavBarProps) {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [showTransition, setShowTransition] = useState(false);
-  const { user, logout } = useAuth();
+  const [housesOpen, setHousesOpen] = useState(false);
+  const desktopMenuRef = useRef<HTMLDivElement>(null);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const handler = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+    const closeMenus = (event: MouseEvent) => {
+      if (!desktopMenuRef.current?.contains(event.target as Node)) {
         setProfileOpen(false);
+        setHousesOpen(false);
       }
     };
-
-    document.addEventListener("mousedown", handler);
-
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("mousedown", closeMenus);
+    return () => document.removeEventListener("mousedown", closeMenus);
   }, []);
 
-  const drawerItems = UserNavItems;
-
-  const handleLogoClick = () => {
-    if (location.pathname === "/") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      navigate("/");
-    }
-  };
-
   const handleLogout = async () => {
-    setShowTransition(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
     await logout();
     navigate("/", { replace: true });
   };
 
-  if (showTransition) {
-    return <LoadingScreen />;
-  }
+  const initials = `${user?.first_name?.[0] ?? ""}${user?.last_name?.[0] ?? ""}`.toUpperCase() || "S";
 
   return (
-    <header
-      className={`fixed top-0 w-full z-50 bg-[#1E1E1E] border-white/10 px-8 py-2 transition-transform duration-300`}
-    >
-      <div className="flex items-center justify-between mx-auto">
-        {/* Left Side Div */}
-        <div className="flex items-center gap-8">
-          {/* Logo */}
-          <div
-            onClick={handleLogoClick}
-            className="flex items-center gap-1 cursor-pointer"
-          >
-            <img
-              src="aclcxp-logo.png"
-              alt="ACLCxp Logo"
-              className="w-14 h-14 object-contain"
-            />
-            <div className="flex translate-y-0.5">
-              <h1 className="font-bold text-2xl tracking-wide hidden sm:inline text-white">
-                ACLC
-              </h1>
-              <span className="text-[#D91B22] text-sm font-bold ml-1 tracking-wide hidden sm:inline font-arcade">
-                XP
-              </span>
-            </div>
-          </div>
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.08] bg-neutral-950/90 backdrop-blur-xl">
+      <div ref={desktopMenuRef} className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex min-w-0 items-center gap-4 lg:gap-8">
+          <Link to="/dashboard" className="flex shrink-0 items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+            <img src="/aclcxp-logo.png" alt="ACLCxp" className="h-10 w-10 object-contain" />
+            <span className="hidden text-lg font-semibold tracking-tight text-neutral-50 sm:block">ACLC<span className="text-amber-400">xp</span></span>
+          </Link>
 
-          {/* line separator */}
-          <div className="w-0.5 h-9 bg-white/50 hidden lg:inline" />
-
-          {/* Navigation links */}
-          <nav className="font-arcade text-md text-[white] hidden lg:flex gap-2">
-            {UserNavItems.map((item) => {
-              if (item.children) {
-                return (
-                  <div key={item.label} className="relative group">
-                    <button className="text-white hover:text-[#D91B22] hover:bg-white/25 px-2 rounded-md transition-colors flex items-center gap-1">
-                      {item.label}
-                      <HiChevronDown />
-                    </button>
-
-                    <div className="absolute top-full left-0 mt-2 w-50 rounded-md bg-[#1E1E1E] border border-white/20 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                      {item.children.map((child) => (
-                        <a
-                          key={child.label}
-                          href={child.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block px-4 py-2 text-md text-white hover:bg-[#D91B22] hover:text-white"
-                        >
-                          {child.label}
-                          <HiExternalLink className="inline ml-1 text-white/50" />
-                        </a>
-                      ))}
-                    </div>
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Student navigation">
+            {primaryItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path!}
+                className={({ isActive }) => `rounded-lg px-3 py-2 text-sm font-medium transition ${isActive ? "bg-white/[0.08] text-neutral-50" : "text-neutral-400 hover:bg-white/[0.05] hover:text-neutral-200"}`}
+              >
+                {item.label}
+              </NavLink>
+            ))}
+            {housesItem && (
+              <div className="relative">
+                <button type="button" onClick={() => setHousesOpen((open) => !open)} aria-expanded={housesOpen} className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-neutral-400 transition hover:bg-white/[0.05] hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+                  Houses <ChevronDown className={`h-4 w-4 transition-transform ${housesOpen ? "rotate-180" : ""}`} />
+                </button>
+                {housesOpen && (
+                  <div className="absolute left-0 top-full mt-2 w-60 overflow-hidden rounded-xl border border-white/10 bg-neutral-900 p-1.5 shadow-2xl shadow-black/40">
+                    <p className="px-3 pb-1.5 pt-2 text-[11px] font-medium uppercase tracking-wider text-neutral-500">Student houses</p>
+                    {housesItem.children?.map((house) => <a key={house.label} href={house.href} target="_blank" rel="noreferrer" className="block rounded-lg px-3 py-2 text-sm text-neutral-300 transition hover:bg-white/[0.06] hover:text-neutral-50">{house.label}</a>)}
                   </div>
-                );
-              }
-
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path!}
-                  className="hover:text-[#D91B22] hover:bg-white/25 px-2 rounded-md transition-colors"
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+                )}
+              </div>
+            )}
           </nav>
         </div>
 
-        {/* Button Right Side Div */}
-        <div className="hidden lg:flex items-center gap-3 relative">
-          <div ref={dropdownRef} className="relative">
-            <button
-              onClick={() => setProfileOpen(!profileOpen)}
-              className="
-                    flex items-center gap-2
-                    px-3 py-1.5
-                    rounded-lg
-                    bg-white/10
-                    hover:bg-white/20
-                    transition-colors
-                  "
-            >
-              <span className="text-white font-md font-arcade">
-                {user?.first_name}
+        <div className="hidden items-center gap-2 lg:flex">
+          <button type="button" onClick={onQrCode} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-neutral-200 transition hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+            <QrCode className="h-4 w-4 text-amber-400" /> My QR
+          </button>
+          <div className="relative">
+            <button type="button" onClick={() => setProfileOpen((open) => !open)} aria-expanded={profileOpen} className="flex min-h-10 items-center gap-2 rounded-xl px-2 py-1.5 transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+              <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-amber-400 text-xs font-bold text-neutral-950">
+                {user?.profile_photo ? <img src={user.profile_photo} alt="" className="h-full w-full object-cover" /> : initials}
               </span>
-
-              <HiChevronDown
-                className={`
-                      text-white
-                      transition-transform
-                      ${profileOpen ? "rotate-180" : ""}
-                    `}
-              />
+              <span className="max-w-28 truncate text-sm font-medium text-neutral-200">{user?.first_name || "Student"}</span>
+              <ChevronDown className={`h-4 w-4 text-neutral-500 transition-transform ${profileOpen ? "rotate-180" : ""}`} />
             </button>
-
             {profileOpen && (
-              <div className="absolute top-full right-0 mt-2 w-60 bg-[#1E1E1E] border border-white/10 rounded-md overflow-hidden shadow-xl">
-                <div className="px-4 py-3 border-b border-white/10">
-                  <p className="text-white font-semibold">
-                    {user?.first_name} {user?.last_name}
-                  </p>
-                  <p className="text-white/50 text-sm">{user?.email}</p>
+              <div className="absolute right-0 top-full mt-2 w-72 overflow-hidden rounded-xl border border-white/10 bg-neutral-900 p-1.5 shadow-2xl shadow-black/40">
+                <div className="border-b border-white/[0.07] px-3 py-3">
+                  <p className="truncate text-sm font-semibold text-neutral-100">{user?.full_name || "Student"}</p>
+                  <p className="mt-0.5 truncate text-xs text-neutral-500">{user?.email}</p>
+                  {user?.house_name && <p className="mt-2 flex items-center gap-1.5 text-xs text-neutral-400"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: user.house_color || "#F5B300" }} />{user.house_name}</p>}
                 </div>
-                {/* align items vertically */}
-                <div className="flex flex-col items-start py-3 px-1 mx-2 mb-1 ">
-                  <Link
-                    to="/profile"
-                    className="flex item-start px-3 py-1 rounded-sm w-full text-sm text-white hover:bg-white/10"
-                  >
-                    Profile
-                  </Link>
-
-                  <button className="flex item-start px-3 py-1 rounded-sm w-full text-sm text-white hover:bg-white/10">
-                    Support
-                  </button>
-
-                  <button
-                    onClick={handleLogout}
-                    className="flex item-start px-3 py-1 rounded-sm w-full text-sm text-white hover:bg-white/10"
-                  >
-                    Logout
-                  </button>
-                </div>
+                <Link to="/profile" onClick={() => setProfileOpen(false)} className="mt-1 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-neutral-300 transition hover:bg-white/[0.06] hover:text-neutral-50"><UserRound className="h-4 w-4" /> Profile</Link>
+                <button type="button" onClick={handleLogout} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-rose-300 transition hover:bg-rose-400/10"><LogOut className="h-4 w-4" /> Sign out</button>
               </div>
             )}
           </div>
-
-          {/* Mobile Hamburger */}
         </div>
 
-        <button
-          onClick={() => setMenuOpen(true)}
-          className="lg:hidden text-white text-2xl px-2.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors duration-200"
-        >
-          <HiMenu size={28} />
-        </button>
+        <div className="flex items-center gap-2 lg:hidden">
+          <button type="button" onClick={onQrCode} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-amber-400 transition hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400" aria-label="Show my QR code"><QrCode className="h-5 w-5" /></button>
+          <button type="button" onClick={() => setMenuOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-neutral-200 transition hover:bg-white/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400" aria-label="Open navigation menu"><Menu className="h-5 w-5" /></button>
+        </div>
       </div>
-
-      <MobileDrawer
-        isOpen={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        items={drawerItems}
-        user={user}
-      />
+      <MobileDrawer isOpen={menuOpen} onClose={() => setMenuOpen(false)} items={UserNavItems} onQrCode={onQrCode} />
     </header>
   );
 }
