@@ -49,7 +49,7 @@ export default function LoadingScreen() {
     }, []);
 
     return (
-        <div className="fixed inset-0 z-9999 overflow-hidden">
+        <div className="fixed inset-0 overflow-hidden bg-neutral-950" style={{ zIndex: 2147483647 }}>
 
         {/* Background */}
         <img

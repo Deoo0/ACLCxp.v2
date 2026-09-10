@@ -1,10 +1,12 @@
+import { CalendarCheck2, Medal, Sparkles, Trophy } from "lucide-react";
+
+const stats = [
+  { label: "Merit points", value: "245", note: "55 pts to next milestone", icon: Sparkles, accent: "text-amber-300 bg-amber-400/10" },
+  { label: "Attendance", value: "82%", note: "18 of 22 events", icon: CalendarCheck2, accent: "text-sky-300 bg-sky-400/10" },
+  { label: "House standing", value: "#12", note: "of 214 students", icon: Trophy, accent: "text-violet-300 bg-violet-400/10" },
+  { label: "Achievements", value: "3 / 6", note: "badges unlocked", icon: Medal, accent: "text-emerald-300 bg-emerald-400/10" },
+];
 
 export default function StatsPage() {
-    return(
-        <div className="flex w-full min-h-full justify-center item-center">
-            <p className="font-xirod text-black/25">
-                Stats Page - Under Construction
-            </p>
-        </div>
-    );
+  return <div className="min-h-[calc(100vh-80px)] bg-neutral-950 text-neutral-200"><main className="mx-auto w-full max-w-5xl space-y-5 px-4 py-6 sm:space-y-6 sm:px-6 sm:py-8 lg:px-8"><header><p className="text-sm text-neutral-400">Your semester at a glance</p><h1 className="mt-1 text-2xl font-semibold tracking-tight text-neutral-50 sm:text-3xl">Student statistics</h1></header><section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">{stats.map(({ label, value, note, icon: Icon, accent }) => <div key={label} className="rounded-2xl border border-white/10 bg-neutral-900/60 p-4 sm:p-5"><div className={`flex h-9 w-9 items-center justify-center rounded-xl ${accent}`}><Icon className="h-4 w-4" /></div><p className="mt-4 text-2xl font-semibold text-neutral-50 sm:text-3xl">{value}</p><p className="mt-1 text-xs font-medium text-neutral-300">{label}</p><p className="mt-1 text-[11px] leading-4 text-neutral-500">{note}</p></div>)}</section><section className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5 sm:p-6"><div className="flex items-center justify-between gap-4"><div><h2 className="text-base font-semibold text-neutral-100">Merit milestone</h2><p className="mt-1 text-sm text-neutral-500">Your progress toward 300 points.</p></div><span className="text-sm font-semibold text-amber-400">82%</span></div><div className="mt-5 h-3 overflow-hidden rounded-full bg-white/5"><div className="h-full w-[82%] rounded-full bg-gradient-to-r from-amber-500 to-amber-300" /></div><div className="mt-3 flex justify-between text-xs text-neutral-500"><span>245 pts earned</span><span>300 pts goal</span></div></section><section className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5 text-center sm:p-6"><div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.05] text-amber-400"><Sparkles className="h-5 w-5" /></div><h2 className="mt-4 text-base font-semibold text-neutral-100">More insights are on the way</h2><p className="mx-auto mt-1 max-w-md text-sm leading-6 text-neutral-500">Event trends and merit history will appear here as more attendance data is recorded.</p></section></main></div>;
 }

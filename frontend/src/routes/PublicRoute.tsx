@@ -13,7 +13,10 @@ export default function PublicRoute({ children }: { children: React.ReactNode })
   if (user?.role === "ADMIN") {
     return <Navigate to="/admin" replace />;
   } else {
-    return <Navigate to="/" replace />;
+    // Auth state is set before LoginPage's navigate call completes. Sending a
+    // signed-in student to the public landing page mounted its white surface
+    // and overrode the intended dashboard redirect.
+    return <Navigate to="/dashboard" replace />;
   }
 
 }

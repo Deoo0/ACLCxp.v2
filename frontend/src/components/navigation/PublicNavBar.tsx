@@ -1,9 +1,6 @@
-import { useState } from "react";   
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { PublicNavItems } from "./NavItems";        
-import { HiMenu, HiChevronDown, HiExternalLink } from "react-icons/hi";
-
-import MobileDrawer from "./MobileDrawer";
+import { HiChevronDown, HiExternalLink } from "react-icons/hi";
 
 export default function Header() {
     
@@ -17,10 +14,6 @@ export default function Header() {
         }
     };
     
-    const [menuOpen, setMenuOpen] = useState(false);
-
-    const drawerItems = PublicNavItems;
-
     return (
         <header
             className={`fixed top-0 w-full z-50 bg-[#1E1E1E] border-white/10 px-8 py-2 transition-transform duration-300`}
@@ -116,19 +109,13 @@ export default function Header() {
                     </Link>
                 </div>
 
-                {/* Mobile Hamburger */}
-                <button
-                    onClick={() => setMenuOpen(true)}
-                    className="lg:hidden text-white text-2xl px-2.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors duration-200"
-                    >
-                    <HiMenu size={28} />
-                </button>
+                <Link
+                    to="/login"
+                    className="lg:hidden rounded-xl bg-[yellow] px-4 py-2 text-sm font-semibold text-black transition hover:bg-yellow-300"
+                >
+                    Login
+                </Link>
             </div>
-            <MobileDrawer   
-                isOpen={menuOpen}   
-                onClose={() => setMenuOpen(false)}
-                items={drawerItems} 
-            />  
         </header>    
     );
 }

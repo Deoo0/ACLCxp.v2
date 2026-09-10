@@ -53,7 +53,9 @@ export default function LoginPage() {
       if (loggedInUser.role === "ADMIN") {
         navigate("/admin");
       } else {
-        navigate("/");
+        // Send students straight to their dark dashboard. Routing through the
+        // public landing page briefly mounted its white surface after loading.
+        navigate("/dashboard", { replace: true });
       }
 
     } catch (err: any) {
