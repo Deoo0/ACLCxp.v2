@@ -1,7 +1,8 @@
 // frontend/src/pages/admin/AdminLayout.tsx
 import { useState } from "react";
-import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import PageTransition from "../feedback/PageTransition";
 
 const AdminLayout = () => {
   const location = useLocation();
@@ -149,7 +150,7 @@ const AdminLayout = () => {
 
         {/* Page Content */}
         <main className="p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          <PageTransition />
         </main>
       </div>
     </div>

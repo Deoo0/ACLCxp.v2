@@ -50,7 +50,8 @@ export const PublicNavItems = [
 export const UserNavItems = [
   { label: "Dashboard", path: "/dashboard" },
   { label: "Merit", path: "/merit" },
-  { label: "Stats", path: "/stats" },
+  { label: "Leaderboard", path: "/stats" },
+  { label: "Events", path: "/events" },
   {
     label: "Houses",
     children: [

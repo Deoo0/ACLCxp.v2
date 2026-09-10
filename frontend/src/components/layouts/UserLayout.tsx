@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
 import UserNavBar from "../navigation/UserNavBar";
 import BottomNavigation from "../navigation/BottomNavigation";
+import PageTransition from "../feedback/PageTransition";
 import { useAuth } from "../../context/AuthContext";
-import { HiHome, HiChartBar, HiAcademicCap, HiUser, HiQrcode } from "react-icons/hi";
+import { HiHome, HiCalendar, HiAcademicCap, HiUser, HiQrcode } from "react-icons/hi";
 import { ScanLine, ShieldCheck, Sparkles, X } from "lucide-react";
 
 export default function UserLayout() {
@@ -154,14 +154,14 @@ function QRModal({ name, studentId, photo, initials, houseColor, houseName, onCl
         </div>
 
         <main className="w-full px-0 pt-0 pb-28 lg:pb-0">
-          <Outlet />
+          <PageTransition />
         </main>
 
         <BottomNavigation
           items={[
             { label: "Dashboard", path: "/dashboard", icon: HiHome },
             { label: "Merit", path: "/merit", icon: HiAcademicCap },
-            { label: "Stats", path: "/stats", icon: HiChartBar },
+            { label: "Events", path: "/events", icon: HiCalendar },
             { label: "Profile", path: "/profile", icon: HiUser },
           ]}
           centerAction={{

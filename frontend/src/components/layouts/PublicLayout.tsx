@@ -1,8 +1,9 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import PublicNavBar from "../navigation/PublicNavBar";
 import Footer from "../navigation/Footer";
 import SupportChat from "../ui/SupportChat";
+import PageTransition from "../feedback/PageTransition";
 
 
 
@@ -24,7 +25,7 @@ export default function PublicLayout() {
             <PublicNavBar />
 
             <main>
-                <Outlet />
+                <PageTransition />
             </main>
 
             <Footer />
