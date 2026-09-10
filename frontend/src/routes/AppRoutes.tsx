@@ -16,6 +16,7 @@ import MeritSheetPage from "../pages/student/MeritSheetPage";
 import Dashboard from "../pages/student/DashboardPage";
 import ProfilePage from "../pages/student/ProfilePage";
 import StatsPage from "../pages/student/StatsPage";
+import EventsPage from "../pages/student/EventsPage";
 
 import AdminDashboard from "../pages/admin/DashboardPage";
 import UsersManagement from "../pages/admin/UsersPage";
@@ -29,6 +30,7 @@ import AuditLogs from "../pages/admin/AuditLogsPage";
 import PublicLayout from "../components/layouts/PublicLayout";
 import UserLayout from "../components/layouts/UserLayout";
 import AdminLayout from "../components/layouts/AdminLayout";
+import PageTransition from "../components/feedback/PageTransition";
 
 
 export default function AppRoutes() {
@@ -53,12 +55,13 @@ export default function AppRoutes() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/merit" element={<MeritSheetPage />} />
         <Route path="/stats" element={<StatsPage/>} />
+        <Route path="/events" element={<EventsPage/>} />
       </Route>
 
       <Route
         path="/login" element={
           <PublicRoute>
-            <LoginPage />
+            <PageTransition><LoginPage /></PageTransition>
           </PublicRoute>
         }
       />
@@ -67,7 +70,7 @@ export default function AppRoutes() {
         path="/register"
         element={
           <PublicRoute>
-            <RegisterPage />
+            <PageTransition><RegisterPage /></PageTransition>
           </PublicRoute>
         }
       />

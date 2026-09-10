@@ -210,7 +210,7 @@ export default function LoginPage() {
                   to="/register"
                   className="text-[#D91B22] font-semibold hover:text-red-400"
                 >
-                  Sign Up
+                  Register
                 </Link>
               </p>
             </div>
