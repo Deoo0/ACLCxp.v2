@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 
-export default function LoadingScreen() {    
+interface LoadingScreenProps {
+    /** Set after the protected data/authentication request has completed. */
+    ready?: boolean;
+    /** Called after progress reaches 100% and remains visible briefly. */
+    onComplete?: () => void;
+}
+
+export default function LoadingScreen({ ready = false, onComplete }: LoadingScreenProps) {
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
@@ -47,6 +54,13 @@ export default function LoadingScreen() {
 
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        if (!ready || progress < 100 || !onComplete) return;
+        // Let users actually register the completed bar before navigating away.
+        const completionDelay = window.setTimeout(onComplete, 260);
+        return () => window.clearTimeout(completionDelay);
+    }, [ready, progress, onComplete]);
 
     return (
         <div className="fixed inset-0 overflow-hidden bg-neutral-950" style={{ zIndex: 2147483647 }}>

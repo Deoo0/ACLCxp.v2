@@ -125,6 +125,54 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
         return self.role in ["ORGANIZER", "ADMIN"]
 
 
+class StudentRoster(BaseModel):
+    """School-controlled student records. These records, not signup input, define students."""
+
+    student_number = models.CharField(max_length=20, unique=True, db_index=True)
+    first_name = models.CharField(max_length=50)
+    middle_name = models.CharField(max_length=50, blank=True)
+    last_name = models.CharField(max_length=50)
+    program = models.CharField(max_length=50)
+    year_level = models.PositiveSmallIntegerField()
+    section = models.CharField(max_length=50, blank=True)
+    is_eligible = models.BooleanField(default=True, db_index=True)
+    account = models.OneToOneField(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="roster_record"
+    )
+
+    class Meta:
+        db_table = "student_roster"
+        ordering = ["student_number"]
+
+    def __str__(self):
+        return f"{self.student_number} - {self.first_name} {self.last_name}"
+
+
+class IntramuralsTicket(BaseModel):
+    """An opaque, school-issued ticket that may activate exactly one roster record."""
+
+    AVAILABLE = "AVAILABLE"
+    REDEEMED = "REDEEMED"
+    DISABLED = "DISABLED"
+    STATUS_CHOICES = [(AVAILABLE, "Available"), (REDEEMED, "Redeemed"), (DISABLED, "Disabled")]
+
+    ticket_number = models.CharField(max_length=12, unique=True, db_index=True)
+    qr_token = models.CharField(max_length=255, unique=True, db_index=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=AVAILABLE, db_index=True)
+    issued_at = models.DateTimeField(null=True, blank=True)
+    redeemed_at = models.DateTimeField(null=True, blank=True)
+    redeemed_by = models.OneToOneField(
+        StudentRoster, null=True, blank=True, on_delete=models.PROTECT, related_name="redeemed_ticket"
+    )
+
+    class Meta:
+        db_table = "intramurals_tickets"
+        indexes = [models.Index(fields=["status", "ticket_number"])]
+
+    def __str__(self):
+        return f"{self.ticket_number} ({self.status})"
+
+
 class QRCode(BaseModel):
     """Unique QR code for each student"""
 
