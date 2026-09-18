@@ -7,7 +7,7 @@ export default function LandingPage() {
     return (
         <>
         <SupportChat />
-        <div className="min-h-screen bg-white flex flex-col pt-16">
+        <div className="min-h-screen bg-slate-950 flex flex-col pt-16">
             <Hero />
             <OngoingEvents />
             <CTA />

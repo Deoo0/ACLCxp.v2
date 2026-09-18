@@ -109,12 +109,10 @@ export default function Header() {
                     </Link>
                 </div>
 
-                <Link
-                    to="/login"
-                    className="lg:hidden rounded-xl bg-[yellow] px-4 py-2 text-sm font-semibold text-black transition hover:bg-yellow-300"
-                >
-                    Login
-                </Link>
+                <div className="flex items-center gap-2 lg:hidden">
+                    <Link to="/login" className="rounded-xl px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10">Login</Link>
+                    <Link to="/register" className="rounded-xl bg-yellow-300 px-3 py-2 text-sm font-bold text-black transition hover:bg-yellow-200">Activate</Link>
+                </div>
             </div>
         </header>    
     );

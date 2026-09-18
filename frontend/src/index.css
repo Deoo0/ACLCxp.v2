@@ -103,6 +103,14 @@ body::-webkit-scrollbar { display: none; }
 .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 100%); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
 @keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
 
+@keyframes hero-zoom { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.045); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes hero-copy-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes auth-panel-in { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.hero-copy { animation: hero-copy-in 650ms cubic-bezier(.22, 1, .36, 1) both; }
+.hero-glow { animation: float 7s ease-in-out infinite; }
+.auth-panel-enter { animation: auth-panel-in 430ms cubic-bezier(.22, 1, .36, 1) both; }
+
 /* Student event pass motion — decorative only, with a reduced-motion fallback. */
 @keyframes qr-pass-enter { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes qr-scan { 0%, 100% { transform: translateY(0); opacity: .35; } 50% { transform: translateY(220px); opacity: 1; } }
@@ -126,7 +134,7 @@ body::-webkit-scrollbar { display: none; }
   @keyframes event-sheet-out { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(10px) scale(.98); } }
 }
 @media (prefers-reduced-motion: reduce) {
-  .qr-pass-enter, .qr-scan-line, .qr-orbit, .qr-pulse-ring, .event-modal-backdrop, .event-modal-panel { animation: none; }
+  .qr-pass-enter, .qr-scan-line, .qr-orbit, .qr-pulse-ring, .event-modal-backdrop, .event-modal-panel, .hero-copy, .hero-glow, .auth-panel-enter { animation: none; }
 }
 
 /* small accessible helper */
