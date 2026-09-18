@@ -23,6 +23,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "framer-motion": "^12.43.0",
+    "html5-qrcode": "^2.3.8",
     "lucide-react": "^1.31.0",
     "msw": "^2.15.0",
     "react": "^19.2.0",

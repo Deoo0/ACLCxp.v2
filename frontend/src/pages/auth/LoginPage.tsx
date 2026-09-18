@@ -18,7 +18,7 @@ export default function LoginPage() {
   const { login } = useAuth();
 
   const handleStudentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, "");
+    const val = e.target.value.replace(/[^a-zA-Z0-9-]/g, "").toUpperCase();
     setStudentId(val);
   };
 
@@ -145,8 +145,8 @@ export default function LoginPage() {
               <div className="mb-4">
                 <input
                   type="text"
-                  inputMode="numeric"
-                  placeholder="Student ID"
+                  inputMode="text"
+                  placeholder="Student Number"
                   value={studentId}
                   onChange={handleStudentIdChange}
                   onKeyDown={handleKeyDown}

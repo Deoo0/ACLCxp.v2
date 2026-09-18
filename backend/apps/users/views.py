@@ -62,67 +62,11 @@ def list_user(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def register_user(request):
-
-    student_id = request.data.get("student_id", "").strip()
-    email = request.data.get("email", "").strip().lower()
-
-    if student_id and User.objects.filter(student_id=student_id).exists():
-        return Response(
-            {
-                "status": "error",
-                "message": "This Student ID is already registered. Please log in instead.",
-            },
-            status=status.HTTP_409_CONFLICT,
-        )
-
-    if email and User.objects.filter(email=email).exists():
-        return Response(
-            {
-                "status": "error",
-                "message": "This email is already registered. Please log in instead.",
-            },
-            status=status.HTTP_409_CONFLICT,
-        )
-
-    # Now run serializer for all other validation
-    serializer = RegisterSerializer(data=request.data)
-
-    if not serializer.is_valid():
-        return Response(
-            {
-                "status": "error",
-                "message": "Validation failed",
-                "errors": serializer.errors,
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    user = serializer.save()
-
+    # This legacy endpoint formerly accepted arbitrary identity fields. Keeping it
+    # non-functional prevents callers from bypassing ticket and roster verification.
     return Response(
-        {
-            "status": "success",
-            "message": "User registered successfully",
-            "data": {
-                "id": str(user.id),
-                "student_id": user.student_id,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "middle_name": user.middle_name,
-                "role": user.role,
-                "house": (
-                    {
-                        "id": str(user.house.id),
-                        "name": user.house.name,
-                        "color_code": user.house.color_code,
-                    }
-                    if user.house
-                    else None
-                ),
-            },
-        },
-        status=status.HTTP_201_CREATED,
+        {"status": "error", "message": "Use the ticket-verified registration flow.", "code": "TICKET_VERIFICATION_REQUIRED"},
+        status=status.HTTP_410_GONE,
     )
 
 
