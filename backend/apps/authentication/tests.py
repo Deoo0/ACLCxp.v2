@@ -1,6 +1,40 @@
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 from apps.users.models import IntramuralsTicket, StudentRoster, User
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
+class SessionSecurityTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user("SESSION", "SafePassword!2026", email="session@gmail.com", year_level=1)
+        self.refresh = RefreshToken.for_user(self.user)
+
+    def test_refresh_rotates_and_rejects_reuse(self):
+        response = self.client.post("/api/auth/token/refresh/", {"refresh": str(self.refresh)})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.data["data"]["refresh"], str(self.refresh))
+        self.assertEqual(self.client.post("/api/auth/token/refresh/", {"refresh": str(self.refresh)}).status_code, 401)
+
+    def test_password_reset_revokes_access_and_refresh(self):
+        self.user.set_password("ReplacementPassword!2026")
+        self.user.save()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.refresh.access_token}")
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 401)
+        self.client.credentials()
+        self.assertEqual(self.client.post("/api/auth/token/refresh/", {"refresh": str(self.refresh)}).status_code, 401)
+
+    def test_disabled_account_cannot_refresh(self):
+        self.user.is_active = False
+        self.user.save()
+        self.assertEqual(self.client.post("/api/auth/token/refresh/", {"refresh": str(self.refresh)}).status_code, 401)
+
+    def test_logout_cannot_revoke_another_accounts_token(self):
+        other = User.objects.create_user("OTHER-SESSION", "SafePassword!2026", email="other-session@gmail.com", year_level=1)
+        other_token = str(RefreshToken.for_user(other))
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.refresh.access_token}")
+        self.assertEqual(self.client.post("/api/auth/logout/", {"refresh": other_token}).status_code, 403)
+        self.assertEqual(self.client.post("/api/auth/logout/", {"refresh": str(self.refresh)}).status_code, 200)
 
 
 @override_settings(REST_FRAMEWORK={"DEFAULT_THROTTLE_RATES": {"anon": "1000/hour", "ticket_verification": "1000/minute", "student_verification": "1000/minute", "account_activation": "1000/hour"}})

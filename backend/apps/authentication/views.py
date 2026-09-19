@@ -233,6 +233,8 @@ def logout(request):
 
     try:
         token = RefreshToken(refresh_token)
+        if str(token.get("user_id")) != str(request.user.pk):
+            return Response({"detail": "This token belongs to another account."}, status=403)
         token.blacklist()
         return Response(
             {"status": "success", "message": "Logged out successfully"},
@@ -263,22 +265,19 @@ def refresh_token(request):
         )
 
     try:
+        from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+        from rest_framework_simplejwt.settings import api_settings
+        from rest_framework_simplejwt.utils import get_md5_hash_password
         token = RefreshToken(refresh)
-        return Response(
-            {
-                "status": "success",
-                "message": "Token refreshed successfully",
-                "data": {
-                    "access": str(token.access_token),
-                },
-            },
-            status=status.HTTP_200_OK,
-        )
+        user = User.objects.filter(pk=token.get("user_id"), is_active=True).first()
+        if not user or (api_settings.CHECK_REVOKE_TOKEN and token.get(api_settings.REVOKE_TOKEN_CLAIM) != get_md5_hash_password(user.password)):
+            return Response({"detail": "Session expired. Please sign in again."}, status=401)
+        serializer = TokenRefreshSerializer(data={"refresh": refresh})
+        serializer.is_valid(raise_exception=True)
+        return Response({"status": "success", "data": serializer.validated_data})
     except TokenError:
-        return Response(
-            {"status": "error", "message": "Invalid or expired token"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response({"status": "error", "message": "Invalid or expired token"}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 
 @api_view(["GET"])

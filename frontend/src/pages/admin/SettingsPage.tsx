@@ -1,15 +1,25 @@
-const SystemSettings = () => {
+import { ResourcePage } from "../../components/admin/ConsoleUI";
+export default function SettingsPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">System Settings</h1>
-        <p className="text-slate-400">Configure global ACLCxp settings, permissions, and features here.</p>
-      </div>
-      <div className="rounded-2xl bg-slate-900/50 border border-white/10 p-8">
-        <p className="text-slate-400">This settings page placeholder is in place while the full admin panels are completed.</p>
-      </div>
-    </div>
-  )
+    <ResourcePage
+      title="Portal settings"
+      description="These settings control the student dashboard and event registration. Updates appear when student pages refresh."
+      endpoint="/admin/settings/"
+      canEdit
+      fields={[
+        {
+          name: "value",
+          label: "Setting value",
+          type: "textarea",
+          hint: "Registration: true/false. Milestone: a positive whole number. Support: an email address.",
+        },
+      ]}
+      columns={[
+        { key: "key", label: "Setting" },
+        { key: "description", label: "Purpose" },
+        { key: "value", label: "Current value" },
+        { key: "updated_at", label: "Updated" },
+      ]}
+    />
+  );
 }
-
-export default SystemSettings

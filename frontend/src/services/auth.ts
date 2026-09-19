@@ -33,6 +33,10 @@ export interface AuthUser {
   house_color: string;
   profile_photo: string | null;
   email_verified: boolean;
+  phone_number?: string;
+  contact_person?: string;
+  contact_number?: string;
+  bio?: string;
 }
 
 export interface AuthTokens {
