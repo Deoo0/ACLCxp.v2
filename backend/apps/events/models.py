@@ -106,6 +106,12 @@ class Event(BaseModel):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        constraints = [
+            models.CheckConstraint(condition=models.Q(capacity__gte=1), name="event_capacity_positive"),
+            models.CheckConstraint(condition=models.Q(current_registered__gte=0) & models.Q(current_registered__lte=models.F("capacity")), name="event_registration_bounds"),
+            models.CheckConstraint(condition=models.Q(end_time__gt=models.F("start_time")), name="event_time_order"),
+            models.CheckConstraint(condition=models.Q(registration_opens_at__isnull=True) | models.Q(registration_closes_at__isnull=True) | models.Q(registration_closes_at__gt=models.F("registration_opens_at")), name="event_registration_window"),
+        ]
         db_table = "events"
         ordering = ["-event_date", "-start_time"]
         indexes = [

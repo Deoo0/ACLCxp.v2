@@ -138,4 +138,51 @@ body::-webkit-scrollbar { display: none; }
 }
 
 /* small accessible helper */
+.topbar-dropdown {
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin);
+}
+@keyframes topbar-menu-in {
+  from { opacity: 0; transform: translateY(-6px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes topbar-menu-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-4px) scale(.98); }
+}
+.topbar-dropdown[data-state="open"] { animation: topbar-menu-in 200ms cubic-bezier(.22, 1, .36, 1); }
+.topbar-dropdown[data-state="closed"] { animation: topbar-menu-out 150ms ease-in; pointer-events: none; }
+.topbar-dropdown-persistent, .topbar-hover-dropdown {
+  transform-origin: top;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px) scale(.97);
+  transition: opacity 180ms ease, transform 200ms cubic-bezier(.22, 1, .36, 1), visibility 200ms;
+}
+.topbar-dropdown-persistent[data-state="open"],
+.topbar-hover-menu:hover .topbar-hover-dropdown,
+.topbar-hover-menu:focus-within .topbar-hover-dropdown {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+/* Bridge the visual gap so moving the pointer into a menu keeps it open. */
+.topbar-hover-dropdown::before { content: ""; position: absolute; inset: -9px 0 auto; height: 9px; }
+.topbar-menu-chevron { transition: transform 200ms ease; }
+.topbar-menu-trigger[data-state="open"] .topbar-menu-chevron,
+.topbar-hover-menu:hover .topbar-menu-chevron,
+.topbar-hover-menu:focus-within .topbar-menu-chevron { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .topbar-dropdown, .topbar-dropdown-persistent, .topbar-hover-dropdown, .topbar-menu-chevron {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Dialog content animates without moving its fixed-position anchor. */
+@keyframes console-dialog-in { from { opacity: 0; scale: .97; } to { opacity: 1; scale: 1; } }
+.admin-dialog[data-state="open"] { animation: console-dialog-in 180ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .admin-dialog[data-state="open"] { animation: none; } }

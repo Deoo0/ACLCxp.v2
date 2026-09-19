@@ -1,39 +1,348 @@
-import { useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
-import { ArrowUpRight, CalendarDays, Clock3, Image, MapPin, Sparkles, Users, X } from "lucide-react";
-import { mockEvents } from "../../mocks/data";
-
-type Status = "ongoing" | "scheduled";
-type Event = (typeof mockEvents)[number] & { status: Status; description: string; requirements: string[]; posterImage?: string };
-
-const descriptions = ["Join fellow students for an engaging campus activity, meet new people, and earn participation merit points.", "A student-focused event designed to build skills, celebrate participation, and strengthen house spirit.", "Take part in this campus experience and contribute to your personal merit record and house standing."];
-const events: Event[] = [...mockEvents].sort((a, b) => +new Date(a.startAt) - +new Date(b.startAt)).map((event, index) => ({ ...event, status: index === 0 ? "ongoing" : "scheduled", description: descriptions[index % descriptions.length], requirements: ["Bring your student ID", "Show your student QR code", "Arrive 10 minutes before start time"] }));
-const badge = { ongoing: "bg-emerald-400/10 text-emerald-300 ring-emerald-400/20", scheduled: "bg-sky-400/10 text-sky-300 ring-sky-400/20" };
-
-function Poster({ event, modal = false }: { event: Event; modal?: boolean }) {
-  const size = modal ? "h-48 sm:h-60" : "h-36";
-  if (event.posterImage) return <div className={`relative overflow-hidden ${size}`}><img src={event.posterImage} alt="" className="h-full w-full object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-neutral-900/70 to-transparent" /></div>;
-  return <div className={`relative overflow-hidden bg-gradient-to-br from-neutral-800 via-neutral-900 to-[#111827] ${size}`}>
-    <div className="absolute -right-10 -top-12 h-40 w-40 rounded-full bg-amber-400/15 blur-2xl" /><div className="absolute -bottom-14 -left-10 h-40 w-40 rounded-full bg-sky-400/10 blur-2xl" />
-    <div className="absolute inset-0 flex flex-col items-center justify-center text-center"><Image className="h-6 w-6 text-neutral-500" /><p className="mt-2 text-[11px] font-medium uppercase tracking-widest text-neutral-500">Event poster</p><p className="mt-1 text-[11px] text-neutral-600">Organizer image placeholder</p></div>
-  </div>;
-}
-
-function Detail({ icon: Icon, label, value }: { icon: typeof CalendarDays; label: string; value: string }) {
-  return <div className="flex min-w-0 gap-3 rounded-2xl border border-white/[.07] bg-white/[.03] p-3.5"><Icon className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" /><div className="min-w-0"><dt className="text-[11px] font-medium uppercase tracking-wider text-neutral-500">{label}</dt><dd className="mt-1 text-sm font-medium leading-5 text-neutral-200">{value}</dd></div></div>;
-}
-
-function EventModal({ event, onDismiss }: { event: Event; onDismiss: () => void }) {
-  const [closing, setClosing] = useState(false);
-  const requestClose = () => { if (!closing) { setClosing(true); window.setTimeout(onDismiss, 240); } };
-  useEffect(() => { const escape = (keyboardEvent: KeyboardEvent) => { if (keyboardEvent.key === "Escape") requestClose(); }; document.addEventListener("keydown", escape); document.body.style.overflow = "hidden"; return () => { document.removeEventListener("keydown", escape); document.body.style.overflow = ""; }; });
-  return <div className={`event-modal-backdrop fixed inset-0 flex items-end bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6 ${closing ? "event-modal-closing" : ""}`} style={{ zIndex: 2147483647 }} role="dialog" aria-modal="true" aria-labelledby="event-title"><button type="button" className="absolute inset-0" onClick={requestClose} aria-label="Close event details" /><article className="event-modal-panel relative max-h-[92dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border border-white/10 bg-neutral-900 shadow-2xl shadow-black/60 sm:rounded-3xl"><header className="sticky top-0 z-10 flex items-center justify-between border-b border-white/[.08] bg-neutral-900/95 px-5 py-4 backdrop-blur sm:px-7"><p className="text-sm font-semibold text-neutral-100">Event details</p><button type="button" onClick={requestClose} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[.04] text-neutral-300 transition hover:bg-white/[.09]" aria-label="Close event details"><X className="h-5 w-5" /></button></header><Poster event={event} modal /><div className="p-5 sm:p-7"><div className="flex flex-wrap gap-2"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${badge[event.status]}`}>{event.status === "ongoing" ? "Happening now" : "Scheduled"}</span>{event.badge && <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs font-medium text-amber-300">{event.badge}</span>}</div><h2 id="event-title" className="mt-4 text-2xl font-semibold tracking-tight text-neutral-50 sm:text-3xl">{event.title}</h2><p className="mt-3 text-sm leading-6 text-neutral-400">{event.description}</p><dl className="mt-6 grid gap-3 sm:grid-cols-2"><Detail icon={CalendarDays} label="Date" value={format(new Date(event.startAt), "EEEE, MMMM d, yyyy")} /><Detail icon={Clock3} label="Schedule" value={`${format(new Date(event.startAt), "h:mm a")} – ${format(new Date(event.endAt), "h:mm a")}`} /><Detail icon={MapPin} label="Venue" value={event.location || "Venue to be announced"} /><Detail icon={Users} label="Attendance" value={`${event.attendees} students interested`} /></dl><section className="mt-6 rounded-2xl border border-white/[.08] bg-neutral-950/45 p-4"><h3 className="text-sm font-semibold text-neutral-100">Before you go</h3><ul className="mt-3 space-y-2">{event.requirements.map((requirement) => <li key={requirement} className="flex gap-2 text-sm text-neutral-400"><Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />{requirement}</li>)}</ul></section><p className="mt-5 text-xs leading-5 text-neutral-500">Use your student QR code to check in when you arrive. Attendance updates merit points automatically.</p></div></article></div>;
-}
-
+import { useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import {
+  CalendarDays,
+  MapPin,
+  Users,
+  ArrowUpRight,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { useApi, useWrite } from "../../services/queries";
+import type { PageData, Row } from "../../services/queries";
+import { StudentFrame } from "../../components/dashboard/LivePortal";
+import {
+  Panel,
+  Notice,
+  Loading,
+  button,
+  primary,
+  Badge,
+  input,
+  Records,
+} from "../../components/admin/ConsoleUI";
 export default function EventsPage() {
-  const [filter, setFilter] = useState<"all" | Status>("all");
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const shown = useMemo(() => events.filter((event) => filter === "all" || event.status === filter), [filter]);
-  const counts = { ongoing: events.filter((event) => event.status === "ongoing").length, scheduled: events.filter((event) => event.status === "scheduled").length };
-  return <div className="min-h-[calc(100vh-80px)] bg-neutral-950 text-neutral-200"><main className="mx-auto w-full max-w-7xl space-y-5 px-4 py-6 sm:space-y-6 sm:px-6 sm:py-8 lg:px-8"><header className="rounded-3xl border border-white/[.08] bg-neutral-900/60 p-5 sm:p-7"><p className="flex items-center gap-2 text-sm font-medium text-amber-400"><Sparkles className="h-4 w-4" /> Campus activities</p><h1 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-50 sm:text-3xl">Find your next event</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-400">Browse activities, view their event poster, and open any card for the full schedule, venue, and check-in details.</p></header><div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">{(["all", "ongoing", "scheduled"] as const).map((option) => <button key={option} type="button" onClick={() => setFilter(option)} className={`min-h-10 shrink-0 rounded-xl px-3.5 text-sm font-medium capitalize transition ${filter === option ? "bg-amber-400 text-neutral-950" : "border border-white/10 bg-white/[.03] text-neutral-400 hover:bg-white/[.07] hover:text-neutral-200"}`}>{option === "all" ? `All events (${events.length})` : `${option} (${counts[option]})`}</button>)}</div><section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{shown.map((event) => <button key={event.id} type="button" onClick={() => setSelectedEvent(event)} className="group min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60 text-left transition hover:-translate-y-0.5 hover:border-amber-400/30 hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"><Poster event={event} /><div className="p-4 sm:p-5"><div className="flex items-start justify-between gap-3"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${badge[event.status]}`}>{event.status === "ongoing" ? "Happening now" : "Scheduled"}</span><ArrowUpRight className="h-5 w-5 shrink-0 text-neutral-600 transition group-hover:text-amber-400" /></div><h2 className="mt-4 text-lg font-semibold leading-6 text-neutral-100">{event.title}</h2><p className="mt-2 line-clamp-2 text-sm leading-5 text-neutral-500">{event.description}</p><div className="mt-5 space-y-2 border-t border-white/[.07] pt-4 text-xs text-neutral-400"><p className="flex gap-2"><CalendarDays className="h-4 w-4 shrink-0 text-amber-400" />{format(new Date(event.startAt), "MMM d · h:mm a")}</p><p className="flex gap-2"><MapPin className="h-4 w-4 shrink-0 text-amber-400" />{event.location || "Venue to be announced"}</p></div><div className="mt-5 flex items-center justify-between text-xs"><span className="text-neutral-500">{event.attendees} interested</span><span className="font-medium text-amber-400">View details</span></div></div></button>)}</section>{shown.length === 0 && <div className="rounded-2xl border border-dashed border-white/10 px-5 py-14 text-center"><CalendarDays className="mx-auto h-7 w-7 text-neutral-600" /><p className="mt-3 text-sm font-medium text-neutral-300">No {filter} events found</p></div>}</main>{selectedEvent && <EventModal event={selectedEvent} onDismiss={() => setSelectedEvent(null)} />}</div>;
+  const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Row | null>(null);
+  const [error, setError] = useState<unknown>(null);
+  const [message, setMessage] = useState("");
+  const query = useApi<PageData>(
+    `/events/?page=${page}&status=${status}&search=${encodeURIComponent(search)}`,
+  );
+  const detail = useApi<Row>(`/events/${selected?.id}/`, !!selected);
+  const write = useWrite();
+  const event = detail.data || selected;
+  const act = async (cancel: boolean) => {
+    if (!event) return;
+    setError(null);
+    try {
+      const response = await write.mutateAsync({
+        path: `/events/${event.id}/${cancel ? "cancel-registration" : "register"}/`,
+        body: cancel ? { reason: "Cancelled by student" } : {},
+      });
+      setMessage(
+        cancel
+          ? "Your registration has been cancelled."
+          : response.data.status === "WAITLISTED"
+            ? "You joined the waitlist. Your registration updates when a place becomes available."
+            : "Your registration is confirmed. Bring your event pass when you arrive.",
+      );
+    } catch (e) {
+      setError(e);
+    }
+  };
+  return (
+    <StudentFrame>
+      <header>
+        <p className="text-sm text-amber-300">Campus activities</p>
+        <h1 className="mt-2 text-3xl font-semibold text-white">
+          Find your next event
+        </h1>
+        <p className="mt-2 text-sm text-neutral-400">
+          Browse eligible events, reserve a place and follow your registrations.
+        </p>
+      </header>
+      <div className="flex flex-wrap gap-3">
+        <input
+          className={`${input} sm:max-w-xs`}
+          aria-label="Search events"
+          placeholder="Search events..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
+        <select
+          className={`${input} sm:max-w-xs`}
+          aria-label="Filter event status"
+          value={status}
+          onChange={(e) => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">All events</option>
+          <option value="PUBLISHED">Upcoming</option>
+          <option value="ONGOING">Happening now</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
+      </div>
+      {query.isPending ? (
+        <Loading />
+      ) : query.isError ? (
+        <Notice error={query.error} retry={() => void query.refetch()} />
+      ) : (
+        <>
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {query.data.data.map((row) => (
+              <button
+                className="group overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60 text-left transition hover:-translate-y-0.5 hover:border-amber-400/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                key={row.id}
+                onClick={() => {
+                  setSelected(row);
+                  setMessage("");
+                  setError(null);
+                }}
+              >
+                {row.poster_image ? (
+                  <img
+                    src={String(row.poster_image)}
+                    alt=""
+                    className="h-40 w-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="flex h-32 items-center justify-center bg-gradient-to-br from-amber-400/10 via-neutral-900 to-neutral-800">
+                    <CalendarDays className="h-9 w-9 text-amber-400/50" />
+                  </div>
+                )}
+                <div className="p-5">
+                  <div className="flex items-center justify-between">
+                    <Badge value={row.status} />
+                    <ArrowUpRight className="h-4 w-4 text-neutral-500" />
+                  </div>
+                  <h2 className="mt-4 text-lg font-semibold text-white">
+                    {String(row.title)}
+                  </h2>
+                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-neutral-500">
+                    {String(row.description)}
+                  </p>
+                  <div className="mt-5 space-y-2 text-xs text-neutral-400">
+                    <p className="flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-amber-400" />
+                      {String(row.event_date)} /{" "}
+                      {String(row.start_time).slice(0, 5)} UTC
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-amber-400" />
+                      {String(row.venue)}
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-amber-400" />
+                      {String(row.available_slots)} places available
+                    </p>
+                  </div>
+                  {Boolean(row.registration_status) && (
+                    <div className="mt-4">
+                      <Badge value={row.registration_status} />
+                    </div>
+                  )}
+                </div>
+              </button>
+            ))}
+          </section>
+          {!query.data.data.length && (
+            <Panel>
+              <p className="py-8 text-center text-sm text-neutral-500">
+                No events match your search. Published activities will appear
+                here.
+              </p>
+            </Panel>
+          )}
+          <div className="flex items-center justify-between text-xs text-neutral-500">
+            <span>
+              {query.data.count} events / Page {page}
+            </span>
+            <div className="flex gap-2">
+              <button
+                className={button}
+                disabled={!query.data.previous}
+                onClick={() => setPage(page - 1)}
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                className={button}
+                disabled={!query.data.next}
+                onClick={() => setPage(page + 1)}
+                aria-label="Next page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-white">
+          My registrations
+        </h2>
+        <Records
+          endpoint="/events/my-registrations/"
+          columns={[
+            { key: "event_title", label: "Event" },
+            {
+              key: "status",
+              label: "Status",
+              render: (r) => <Badge value={r.status} />,
+            },
+            { key: "waitlist_position", label: "Queue order" },
+            {
+              key: "registered_at",
+              label: "Registered",
+              render: (r) =>
+                new Date(String(r.registered_at)).toLocaleDateString(),
+            },
+          ]}
+          actions={(r) => (
+            <button
+              className={button}
+              onClick={() => {
+                setSelected({ id: Number(r.event) });
+                setMessage("");
+                setError(null);
+              }}
+            >
+              View event
+            </button>
+          )}
+        />
+      </section>
+      <Dialog.Root
+        open={!!selected}
+        onOpenChange={(open) => {
+          if (!open && !write.isPending) setSelected(null);
+        }}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[80] bg-black/70 backdrop-blur" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-[81] max-h-[90dvh] w-[calc(100%-24px)] max-w-xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/10 bg-neutral-900 p-6 text-neutral-200">
+            <div className="flex justify-between gap-4">
+              <Dialog.Title className="text-xl font-semibold text-white">
+                {String(event?.title || "Event details")}
+              </Dialog.Title>
+              <Dialog.Close
+                disabled={write.isPending}
+                className={button}
+                aria-label="Close event details"
+              >
+                <X className="h-4 w-4" />
+              </Dialog.Close>
+            </div>
+            <Dialog.Description className="mt-3 whitespace-pre-wrap text-sm leading-6 text-neutral-400">
+              {String(event?.description || "Loading event details...")}
+            </Dialog.Description>
+            {detail.isError ? (
+              <Notice
+                error={detail.error}
+                retry={() => void detail.refetch()}
+              />
+            ) : detail.isPending ? (
+              <Loading />
+            ) : (
+              event && (
+                <>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <Badge value={event.status} />
+                    {Boolean(event.registration_status) && (
+                      <Badge value={event.registration_status} />
+                    )}
+                  </div>
+                  <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
+                    {[
+                      ["Date", event.event_date],
+                      ["Venue", event.venue],
+                      ["Starts (UTC)", event.start_time],
+                      ["Ends (UTC)", event.end_time],
+                      ["Available places", event.available_slots],
+                      ["Participation points", event.participation_points],
+                    ].map(([label, value]) => (
+                      <div key={String(label)}>
+                        <dt className="text-xs text-neutral-500">
+                          {String(label)}
+                        </dt>
+                        <dd className="mt-1 text-neutral-200">
+                          {String(value ?? "-")}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {["requirements", "rules", "prizes"].map((key) =>
+                    event[key] ? (
+                      <section key={key} className="mt-5">
+                        <h3 className="text-sm font-semibold capitalize text-neutral-200">
+                          {key}
+                        </h3>
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-neutral-400">
+                          {String(event[key])}
+                        </p>
+                      </section>
+                    ) : null,
+                  )}
+                  {error != null && (
+                    <div className="mt-4">
+                      <Notice error={error} />
+                    </div>
+                  )}
+                  {message && (
+                    <p
+                      role="status"
+                      className="mt-4 rounded-xl bg-emerald-400/10 p-3 text-sm text-emerald-200"
+                    >
+                      {message}
+                    </p>
+                  )}
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {event.status === "PUBLISHED" &&
+                      (!event.registration_status ||
+                        event.registration_status === "CANCELLED") && (
+                        <button
+                          className={primary}
+                          disabled={write.isPending}
+                          onClick={() => void act(false)}
+                        >
+                          {Number(event.available_slots) > 0
+                            ? "Register for event"
+                            : event.allow_waitlist
+                              ? "Join waitlist"
+                              : "Event full"}
+                        </button>
+                      )}
+                    {["REGISTERED", "WAITLISTED"].includes(
+                      String(event.registration_status),
+                    ) &&
+                      event.status === "PUBLISHED" && (
+                        <button
+                          className={button}
+                          disabled={write.isPending}
+                          onClick={() => void act(true)}
+                        >
+                          Cancel registration
+                        </button>
+                      )}
+                  </div>
+                </>
+              )
+            )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </StudentFrame>
+  );
 }

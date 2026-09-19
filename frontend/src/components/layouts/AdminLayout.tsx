@@ -1,160 +1,137 @@
-// frontend/src/pages/admin/AdminLayout.tsx
 import { useState } from "react";
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import * as Dialog from "@radix-ui/react-dialog";
+import {
+  LayoutDashboard,
+  Users,
+  CalendarDays,
+  Shield,
+  ScanLine,
+  Trophy,
+  Settings,
+  ScrollText,
+  Menu,
+  X,
+  LogOut,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import PageTransition from "../feedback/PageTransition";
+import { button } from "../admin/ConsoleUI";
 
-const AdminLayout = () => {
+const links = [
+  { label: "Overview", path: "/admin", icon: LayoutDashboard },
+  { label: "Students & access", path: "/admin/users", icon: Users },
+  { label: "Events", path: "/admin/events", icon: CalendarDays },
+  { label: "Houses", path: "/admin/houses", icon: Shield },
+  { label: "Attendance", path: "/admin/attendance", icon: ScanLine },
+  { label: "Points & results", path: "/admin/points", icon: Trophy },
+  { label: "Portal settings", path: "/admin/settings", icon: Settings },
+  { label: "Audit trail", path: "/admin/audit-logs", icon: ScrollText },
+];
+export default function AdminLayout() {
+  const [open, setOpen] = useState(false);
+  const { user, logout } = useAuth();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const { user, logout, isLoading } = useAuth();
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
-  if (isLoading || !user) return null;
-
-  const navItems = [
-    {label: "Dashboard", path: "/admin" },
-    {label: "Users", path: "/admin/users" },
-    {label: "Events", path: "/admin/events" },
-    {label: "Houses", path: "/admin/houses" },
-    {label: "Attendance", path: "/admin/attendance" },
-    {label: "Points", path: "/admin/points" },
-    {label: "Settings", path: "/admin/settings" },
-    {label: "Audit Logs", path: "/admin/audit-logs" },
-  ];
-
-  return (
-    <div className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-slate-950">
-      {/* Sidebar */}
-      <aside
-        className={`fixed top-0 left-0 z-40 h-screen transition-transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} w-64`}
-      >
-        <div className="h-full px-3 py-4 overflow-y-auto bg-slate-900/95 backdrop-blur-xl border-r border-white/10">
-          {/* Logo */}
-          <div className="flex items-center gap-3 px-3 mb-8">
-            <img
-              src="/aclcxp-logo.png"
-              alt="ACLCxp Logo" 
-              className="w-10 h-10 object-contain"  
-            />
-            <div>
-              <h1 className="text-lg font-bold text-white">ACLCxp</h1>
-              <p className="text-xs text-slate-400">Admin Panel</p>
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="space-y-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === "/admin"}
-                className={({ isActive }) => {
-                  const active =
-                    item.path === "/admin"
-                      ? location.pathname === "/admin" ||
-                        location.pathname === "/admin/dashboard"
-                      : isActive;
-
-                  return `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
-                    active
-                      ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-                      : "text-slate-400 hover:text-white hover:bg-white/5"
-                  }`;
-                }}
-              >
-                {/* <span className="text-xl">{item.icon}</span> */}
-                <span className="text-sm font-medium">{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-
-          {/* User Profile */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                <span className="text-sm font-bold text-white">
-                  {user?.first_name?.[0]}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
-                  {user?.first_name} {user?.last_name}
-                </p>
-                <p className="text-xs text-slate-400">{user?.role}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="w-full px-3 py-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
-            >
-              Logout
-            </button>
-          </div>
+  const navigation = (
+    <>
+      <div className="flex items-center gap-3 px-3 py-6">
+        <img
+          src="/aclcxp-logo.png"
+          className="h-11 w-11 object-contain"
+          alt=""
+        />
+        <div>
+          <p className="text-lg font-bold text-white">
+            ACLC<span className="text-amber-400">xp</span>
+          </p>
+          <p className="text-[10px] uppercase tracking-[.18em] text-neutral-500">
+            Admin console
+          </p>
         </div>
+      </div>
+      <nav aria-label="Admin navigation" className="flex-1 space-y-1">
+        {links.map(({ label, path, icon: Icon }) => (
+          <NavLink
+            key={path}
+            to={path}
+            end={path === "/admin"}
+            onClick={() => setOpen(false)}
+            className={({ isActive }) =>
+              `flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-amber-400 ${isActive || (path === "/admin" && location.pathname === "/admin/dashboard") ? "border border-amber-400/15 bg-amber-400/10 text-amber-300" : "border border-transparent text-neutral-400 hover:bg-white/5 hover:text-white"}`
+            }
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+      <div className="mt-8 border-t border-white/10 p-3">
+        <p className="truncate text-sm font-medium text-white">
+          {user?.full_name || user?.first_name}
+        </p>
+        <p className="mt-1 text-xs text-neutral-500">School administrator</p>
+        <button
+          className={`${button} mt-4 w-full`}
+          onClick={() =>
+            void logout()
+              .catch(() => {})
+              .finally(() => navigate("/login", { replace: true }))
+          }
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </button>
+      </div>
+    </>
+  );
+  return (
+    <div className="min-h-screen bg-neutral-950 text-neutral-200">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col overflow-y-auto border-r border-white/10 bg-neutral-900/50 px-3 lg:flex">
+        {navigation}
       </aside>
-
-      {/* Main Content */}
-      <div className={`transition-all ${sidebarOpen ? "ml-64" : "ml-0"}`}>
-        {/* Top Header */}
-        <header className="sticky top-0 z-30 bg-slate-900/80 backdrop-blur-xl border-b border-white/10">
-          <div className="px-4 py-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+      <div className="lg:pl-64">
+        <header className="sticky top-0 z-30 flex h-[74px] items-center justify-between gap-4 border-b border-white/10 bg-neutral-950/90 px-4 backdrop-blur-xl sm:px-8">
+          <div className="flex items-center gap-3">
+            <Dialog.Root open={open} onOpenChange={setOpen}>
+              <Dialog.Trigger
+                className={`${button} lg:hidden`}
+                aria-label="Open admin navigation"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-
-              <div className="flex items-center gap-4">
-                {/* Notifications */}
-                <button className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                <Menu className="h-5 w-5" />
+              </Dialog.Trigger>
+              <Dialog.Portal>
+                <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70 lg:hidden" />
+                <Dialog.Content className="fixed inset-y-0 left-0 z-[51] flex w-72 max-w-[90vw] flex-col overflow-y-auto bg-neutral-900 px-3 lg:hidden">
+                  <Dialog.Title className="sr-only">
+                    Admin navigation
+                  </Dialog.Title>
+                  <Dialog.Description className="sr-only">
+                    Navigate campus management screens.
+                  </Dialog.Description>
+                  <Dialog.Close
+                    aria-label="Close navigation"
+                    className={`${button} absolute right-3 top-3`}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                    />
-                  </svg>
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
-              </div>
-            </div>
+                    <X className="h-4 w-4" />
+                  </Dialog.Close>
+                  {navigation}
+                </Dialog.Content>
+              </Dialog.Portal>
+            </Dialog.Root>
+            <span className="text-sm font-medium text-neutral-300">
+              Campus management
+            </span>
           </div>
+          <span className="flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
+            <Shield className="h-3.5 w-3.5" />
+            Administrator
+          </span>
         </header>
-
-        {/* Page Content */}
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="mx-auto max-w-[1500px] p-4 sm:p-8">
           <PageTransition />
         </main>
       </div>
     </div>
   );
-};
-
-export default AdminLayout;
+}

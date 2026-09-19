@@ -1,38 +1,64 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
+const origin = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 const api = axios.create({
-  baseURL: `${API_URL}/api`,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true,
+  baseURL: `${origin}/api`,
+  timeout: 20000,
+  headers: { "Content-Type": "application/json" },
 });
-
-// Attach JWT access token to every request automatically
+let refresh: Promise<string> | null = null;
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  const token = localStorage.getItem("access_token");
+  const publicAuth =
+    config.url?.startsWith("/auth/") &&
+    !["/auth/me/", "/auth/logout/"].includes(config.url);
+  if (token && !publicAuth) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
-
-// Add response interceptor for debugging
 api.interceptors.response.use(
-  (response) => {
-    console.log('✅ API Response:', response.data);
-    return response;
-  },
-  (error) => {
-    console.error('❌ API Error:', error.message);
-    if (error.response) {
-      console.error('Response data:', error.response.data);
-      console.error('Response status:', error.response.status);
+  (response) => response,
+  async (error) => {
+    const config = error.config;
+    if (
+      error.response?.status !== 401 ||
+      !config ||
+      config._retried ||
+      ["/auth/login/", "/auth/token/refresh/"].includes(config.url)
+    )
+      return Promise.reject(error);
+    const token = localStorage.getItem("refresh_token");
+    if (!token) return Promise.reject(error);
+    config._retried = true;
+    try {
+      refresh ??= axios
+        .post(
+          `${origin}/api/auth/token/refresh/`,
+          { refresh: token },
+          { timeout: 15000 },
+        )
+        .then(({ data }) => {
+          const access: string = data.data.access;
+          if (localStorage.getItem("refresh_token") !== token)
+            throw new Error("Session changed");
+          localStorage.setItem("access_token", access);
+          if (data.data.refresh)
+            localStorage.setItem("refresh_token", data.data.refresh);
+          return access;
+        })
+        .finally(() => {
+          refresh = null;
+        });
+      const access = await refresh;
+      config.headers.Authorization = `Bearer ${access}`;
+      return api(config);
+    } catch {
+      if (localStorage.getItem("refresh_token") === token) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        window.dispatchEvent(new Event("auth:expired"));
+      }
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
+  },
 );
-
 export default api;

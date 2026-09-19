@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FiMenu, FiSearch, FiBell, FiSun, FiMoon } from 'react-icons/fi';
 import { useTheme } from './ThemeProvider';
 import { Button } from './Button';
