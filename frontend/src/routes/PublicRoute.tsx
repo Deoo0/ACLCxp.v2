@@ -1,47 +1,25 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import Modal from "../components/ui/Modal";
+import LoadingScreen from "../components/feedback/LoadingScreen";
+import { Navigate } from "react-router-dom";
 
 export default function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [showModal, setShowModal] = useState(false);
-  const navigate = useNavigate();
-
-  const debounceRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      debounceRef.current = setTimeout(() => setShowModal(true), 150);
-    } else {
-      setShowModal(false);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    }
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [isLoading, isAuthenticated]);
-
+  const { isAuthenticated, isLoading, user } = useAuth();
+;
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading...
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
-  if (isAuthenticated) return (
-    <>
-      {showModal && (
-        <Modal
-          title="Already logged in"
-          message="You are already logged in."
-          actionLabel="Go to Dashboard"
-          actionTo="/dashboard"
-          onClose={() => navigate("/dashboard", { replace: true })}
-        />
-      )}
-    </>
-  );
+  if (isAuthenticated) {
+  if (user?.role === "ADMIN") {
+    return <Navigate to="/admin" replace />;
+  } else {
+    // Auth state is set before LoginPage's navigate call completes. Sending a
+    // signed-in student to the public landing page mounted its white surface
+    // and overrode the intended dashboard redirect.
+    return <Navigate to="/dashboard" replace />;
+  }
+
+}
 
   return <>{children}</>;
 }

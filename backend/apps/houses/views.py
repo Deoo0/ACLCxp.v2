@@ -1,11 +1,13 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import AllowAny
+from apps.core.permissions import IsSchoolAdmin
 from rest_framework.response import Response
 from rest_framework import status
 from .models import House
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def list_houses(request):
     """
     Public endpoint — anyone can see the list of houses.
@@ -27,7 +29,7 @@ def list_houses(request):
 
 
 @api_view(["POST"])
-# @permission_classes([IsAdminUser])  # Only admins can create houses
+@permission_classes([IsSchoolAdmin])
 def add_house(request):
     """
     Admin only: Create a new house.
@@ -74,8 +76,8 @@ def add_house(request):
             status=status.HTTP_201_CREATED,
         )
 
-    except Exception as e:
+    except Exception:
         return Response(
-            {"status": "error", "message": str(e)},
+            {"status": "error", "message": "Unable to create house."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

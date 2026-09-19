@@ -1,480 +1,81 @@
-import { useNavigate, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
-import { useAuth } from "../../context/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { FaCamera, FaKeyboard, FaArrowLeft } from "react-icons/fa";
+import { Html5Qrcode } from "html5-qrcode";
 import api from "../../services/api";
 import SupportChat from "../../components/ui/SupportChat";
 
-interface House {
-    id: number;
-    name: string;
-    color_code: string;
-}
+const ticketPattern = /^(\d{6}|\d{12})$/;
 
 export default function RegisterPage() {
-    const navigate = useNavigate();
-    const { login } = useAuth();
-    const [houses, setHouses] = useState<House[]>([]);
-    const [loadingHouses, setLoadingHouses] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-
-    const [formData, setFormData] = useState({
-        studentId: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        firstName: "",
-        lastName: "",
-        middleName: "",
-        program: "BSIT",
-        yearLevel: "1",
-        houseId: "",
-    });
-
-    // Fetch houses on mount
-    useEffect(() => {
-        const fetchHouses = async () => {
-            try {
-                setLoadingHouses(true);
-                const response = await api.get("/houses/");
-                
-                // Handle different response structures
-                let houseList: House[] = [];
-                if (Array.isArray(response.data)) {
-                    houseList = response.data;
-                } else if (Array.isArray(response.data?.results)) {
-                    houseList = response.data.results;
-                } else if (Array.isArray(response.data?.data)) {
-                    houseList = response.data.data;
-                }
-                
-                setHouses(houseList);
-                if (houseList.length > 0) {
-                    setFormData((prev) => ({
-                        ...prev,
-                        houseId: String(houseList[0].id),
-                    }));
-                }
-            } catch (err) {
-                console.error("Failed to fetch houses:", err);
-                setError("Failed to load houses. Please refresh the page.");
-            } finally {
-                setLoadingHouses(false);
-            }
-        };
-        fetchHouses();
-    }, []);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
+  const navigate = useNavigate(); const scannerRef = useRef<Html5Qrcode | null>(null); const scanningRef = useRef(false);
+  const [step, setStep] = useState<"ticket" | "student" | "account" | "complete">("ticket"); const [mode, setMode] = useState<"choose" | "manual" | "scanner">("choose");
+  const [ticketNumber, setTicketNumber] = useState(""); const [studentNumber, setStudentNumber] = useState(""); const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [confirmPassword, setConfirmPassword] = useState("");
+  const [ticketToken, setTicketToken] = useState(""); const [activationToken, setActivationToken] = useState(""); const [error, setError] = useState(""); const [loading, setLoading] = useState(false); const [cameraError, setCameraError] = useState("");
+  const stopCamera = () => { scanningRef.current = false; const scanner = scannerRef.current; scannerRef.current = null; if (scanner?.isScanning) void scanner.stop().catch(() => undefined); };
+  useEffect(() => () => stopCamera(), []);
+  useEffect(() => {
+    if (mode !== "scanner") return;
+    let cancelled = false;
+    const openCamera = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) { setCameraError("Camera access is not supported in this browser. Please enter your ticket number manually."); return; }
+      try {
+        // This effect runs only after React has mounted #ticket-qr-reader.
+        const scanner = new Html5Qrcode("ticket-qr-reader", { verbose: false });
+        scannerRef.current = scanner;
+        scanningRef.current = true;
+        const reader = document.getElementById("ticket-qr-reader");
+        // Keep decoder crop and the visible guide in sync at 72% of the viewport.
+        // This leaves enough live camera context around the code on phones and laptops.
+        const scanSize = Math.max(180, Math.floor((reader?.clientWidth || 360) * 0.72));
+        await scanner.start(
+          // html5-qrcode accepts a facing-mode string (or { exact: ... }), not { ideal: ... }.
+          // "environment" selects the rear camera on mobile and the available camera on desktop.
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: scanSize, height: scanSize }, aspectRatio: 1 },
+          async (decodedText) => {
+            if (cancelled || !scanningRef.current) return;
+            scanningRef.current = false;
+            await verifyTicket(decodedText.trim(), "qr_token");
+          },
+          () => undefined,
+        );
+        if (cancelled) await scanner.stop().catch(() => undefined);
+      } catch (err: any) {
+        if (!cancelled) {
+          console.error("Unable to start ticket QR scanner", err);
+          stopCamera();
+          const message = err?.name === "NotAllowedError" || err?.name === "PermissionDeniedError"
+            ? "Camera permission was denied. Allow camera access in your browser settings or enter your ticket number manually."
+            : err?.name === "NotFoundError"
+              ? "No camera was found on this computer. Connect or enable a camera, or enter your ticket number manually."
+              : err?.name === "NotReadableError"
+                ? "The camera is already in use by another app or browser tab. Close it, then try again."
+                : `We could not start the camera${err?.message ? `: ${err.message}` : ". Please try again or enter your ticket number manually."}`;
+          setCameraError(message);
+        }
+      }
     };
-
-    const handleStudentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value.replace(/\D/g, "");
-        setFormData((prev) => ({
-            ...prev,
-            studentId: val,
-        }));
-    };
-
-    const [acceptTerms, setAcceptTerms] = useState(false);
-    const [acceptPrivacy, setAcceptPrivacy] = useState(false);
-
-    const validate = (): string | null => {
-        const { studentId, email, password, confirmPassword, firstName, lastName, program, yearLevel, houseId } = formData;
-
-        if (!studentId || !email || !password || !confirmPassword || !firstName || !lastName || !program || !yearLevel || !houseId) {
-            return "Please fill out all required fields.";
-        }
-
-        if (!/^\d+$/.test(studentId)) {
-            return "Student ID must contain numbers only.";
-        }
-
-        if (!email.toLowerCase().endsWith("@gmail.com")) {
-            return "Email must be a @gmail.com address.";
-        }
-
-        if (password.length < 8) {
-            return "Password must be at least 8 characters long.";
-        }
-
-        if (password !== confirmPassword) {
-            return "Passwords do not match.";
-        }
-
-        if (firstName.trim().length < 2) {
-            return "First name must be at least 2 characters.";
-        }
-
-        if (lastName.trim().length < 2) {
-            return "Last name must be at least 2 characters.";
-        }
-
-        const yearLevelNum = parseInt(yearLevel);
-        if (yearLevelNum < 1 || yearLevelNum > 4) {
-            return "Year level must be between 1 and 4.";
-        }
-
-        if (!acceptTerms) {
-            return "You must accept the Terms and Conditions.";
-        }
-
-        if (!acceptPrivacy) {
-            return "You must accept the Privacy Policy.";
-        }
-
-        return null;
-    };
-
-    const handleRegister = async () => {
-        const validationError = validate();
-        if (validationError) {
-            setError(validationError);
-            return;
-        }
-
-        try {
-            setLoading(true);
-            setError("");
-
-            await api.post("/users/register/", {
-                student_id: formData.studentId,
-                email: formData.email.toLowerCase(),
-                password: formData.password,
-                first_name: formData.firstName.trim(),
-                last_name: formData.lastName.trim(),
-                middle_name: formData.middleName.trim() || null,
-                program: formData.program,
-                year_level: parseInt(formData.yearLevel),
-                house_id: parseInt(formData.houseId),
-            });
-
-            // Auto-login after successful registration
-            await login({
-                student_id: formData.studentId,
-                password: formData.password,
-            });
-
-            navigate("/dashboard");
-        } catch (err: any) {
-            const message = err?.response?.data?.message || err?.response?.data?.detail || "Registration failed. Please try again.";
-            setError(message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") handleRegister();
-    };
-
-    return (
-        <>
-        <SupportChat />
-        <section className="relative min-h-screen overflow-hidden">
-            {/* Background */}
-            <img
-                src="/aclcxp-bg.png"
-                alt="Background"
-                className="absolute inset-0 w-full h-full object-cover"
-            />
-
-            {/* Dark Overlay */}
-            <div className="absolute inset-0 bg-black/60" />
-
-            {/* Content */}
-            <div className="relative z-10 flex flex-col min-h-screen px-5 py-8 text-white">
-                {/* Back Button */}
-                <button
-                    onClick={() => navigate("/")}
-                    className="text-3xl w-fit hover:text-gray-300 transition-colors"
-                    aria-label="Go back"
-                >
-                    <FaArrowLeft />
-                </button>
-
-                {/* Center Content */}
-                <div className="flex flex-1 items-center justify-center py-4">
-                    <div className="
-                        w-full
-                        max-w-2xl
-                        mx-auto
-                        bg-transparent
-                        md:bg-white/10
-                        md:backdrop-blur-md
-                        md:border md:border-white/10
-                        md:rounded-3xl
-                        p-8
-                        md:shadow-2xl
-                    ">
-
-                        {/* Logo */}
-                        <img
-                            src="/aclcxp-logo.png"
-                            alt="ACLCxp Logo"
-                            className="w-20 mx-auto mb-6"
-                        />
-
-                        {/* Title */}
-                        <h1 className="text-3xl font-bold text-center mb-6">Create Account</h1>
-
-                        {/* Error Message */}
-                        {error && (
-                            <div className="mb-4 rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3">
-                                <p className="text-red-300 text-sm text-center">{error}</p>
-                            </div>
-                        )}
-
-                        {/* Loading Houses */}
-                        {loadingHouses && (
-                            <div className="mb-4 rounded-xl bg-blue-500/10 border border-blue-500/30 px-4 py-3">
-                                <p className="text-blue-300 text-sm text-center">Loading houses...</p>
-                            </div>
-                        )}
-
-                        {/* Stacked Layout */}
-                        <div className="space-y-4 mb-4">
-                            {/* Student ID */}
-                            <div>
-                                <label className="text-xs text-white/70 mb-1 block">Student ID *</label>
-                                <input
-                                    type="text"
-                                    name="studentId"
-                                    inputMode="numeric"
-                                    placeholder="Enter student ID"
-                                    value={formData.studentId}
-                                    onChange={handleStudentIdChange}
-                                    onKeyDown={handleKeyDown}
-                                    maxLength={20}
-                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
-                                />
-                            </div>
-
-                            {/* Email */}
-                            <div>
-                                <label className="text-xs text-white/70 mb-1 block">Email *</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    placeholder="your.email@gmail.com"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    onKeyDown={handleKeyDown}
-                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
-                                />
-                            </div>
-
-                            {/* Full Name */}
-                            <div>
-                                <label className="text-xs text-white/70 mb-1 block">Full Name *</label>
-                                {/* First Name */}
-                                <input
-                                    type="text"
-                                    name="firstName"
-                                    placeholder="First name"
-                                    value={formData.firstName}
-                                    onChange={handleChange}
-                                    onKeyDown={handleKeyDown}
-                                    className="w-full px-4 py-2 mb-1 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
-                                />
-                            
-                                {/* Middle Name */}
-                                <input
-                                    type="text"
-                                    name="middleName"
-                                    placeholder="Middle name (optional)"
-                                    value={formData.middleName}
-                                    onChange={handleChange}
-                                    onKeyDown={handleKeyDown}
-                                    className="w-full px-4 py-2 mb-1 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
-                                />
-
-                                {/* Last Name */}
-                                <input
-                                    type="text"
-                                    name="lastName"
-                                    placeholder="Last name"
-                                    value={formData.lastName}
-                                    onChange={handleChange}
-                                    onKeyDown={handleKeyDown}
-                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
-                                />
-                            </div>
-
-                            {/* Program */}
-                            <div>
-                                <label className="text-xs text-white/70 mb-1 block">Program *</label>
-                                <select
-                                    name="program"
-                                    value={formData.program}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
-                                >
-                                    <option value="BSIT">BSIT</option>
-                                    <option value="BSCS">BSCS</option>
-                                    <option value="BSHM">BSHM</option>
-                                </select>
-                            </div>
-
-                            {/* Year Level */}
-                            <div>
-                                <label className="text-xs text-white/70 mb-1 block">Year Level *</label>
-                                <select
-                                    name="yearLevel"
-                                    value={formData.yearLevel}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
-                                >
-                                    <option value="1">1st Year</option>
-                                    <option value="2">2nd Year</option>
-                                    <option value="3">3rd Year</option>
-                                    <option value="4">4th Year</option>
-                                </select>
-                            </div>
-
-                            {/* House */}
-                            <div>
-                                <label className="text-xs text-white/70 mb-1 block">House *</label>
-                                <select
-                                    name="houseId"
-                                    value={formData.houseId}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
-                                    disabled={loadingHouses || houses.length === 0}
-                                >
-                                    <option value="">Select your house</option>
-                                    {houses.map((house) => (
-                                        <option key={house.id} value={String(house.id)}>
-                                            {house.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Password */}
-                        <div className="mb-4">
-                            <label className="text-xs text-white/70 mb-1 block">Password (min 8 chars) *</label>
-                            <div className="relative">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    name="password"
-                                    placeholder="Enter password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    onKeyDown={handleKeyDown}
-                                    maxLength={50}
-                                    className="w-full px-4 py-2 pr-12 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
-                                >
-                                    {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Confirm Password */}
-                        <div className="mb-6">
-                            <label className="text-xs text-white/70 mb-1 block">Confirm Password *</label>
-                            <div className="relative">
-                                <input
-                                    type={showConfirmPassword ? "text" : "password"}
-                                    name="confirmPassword"
-                                    placeholder="Confirm password"
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    onKeyDown={handleKeyDown}
-                                    maxLength={50}
-                                    className="w-full px-4 py-2 pr-12 rounded-xl bg-white text-black outline-none focus:ring-2 focus:ring-[#2E308E]"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
-                                >
-                                    {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="space-y-2 mb-6 text-sm">
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={acceptTerms}
-                                    onChange={(e) => setAcceptTerms(e.target.checked)}
-                                    className="accent-[#2E308E]"
-                                />
-
-                                <span>
-                                    I Accept the{" "}
-                                    <a
-                                        href="/terms"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-[#D91B22] underline"
-                                    >
-                                        Terms and Conditions
-                                    </a>
-                                </span>
-                            </label>
-
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={acceptPrivacy}
-                                    onChange={(e) => setAcceptPrivacy(e.target.checked)}
-                                    className="accent-[#2E308E]"
-                                />
-
-                                <span>
-                                    I Accept the{" "}
-                                    <a
-                                        href="/privacy"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-[#D91B22] underline"
-                                    >
-                                        Privacy Policy
-                                    </a>
-                                </span>
-                            </label>
-                        </div>
-
-                        {/* Register Button */}
-                        <button
-                            onClick={handleRegister}
-                            disabled={loading || loadingHouses}
-                            className="w-full py-3 rounded-full bg-[#2E308E] text-white font-bold hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {loading ? "Creating Account..." : "SIGN UP"}
-                        </button>
-
-                        {/* Login Link */}
-                        <p className="text-center mt-8 text-sm text-white/80">
-                            Already have an account?{" "}
-                            <Link
-                                to="/login"
-                                className="text-[#D91B22] font-semibold hover:text-red-400"
-                            >
-                                Log In
-                            </Link>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-        </>
-    );
+    // React Strict Mode runs effects twice locally. Deferring one tick means
+    // the development-only test effect cleans up before camera access begins.
+    const timer = window.setTimeout(() => { void openCamera(); }, 0);
+    return () => { window.clearTimeout(timer); cancelled = true; stopCamera(); };
+  // The scanner is deliberately created only when this view is mounted.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+  const messageFrom = (err: any) => err?.response?.data?.message || "We could not complete that request. Please try again.";
+  const verifyTicket = async (value: string, field: "ticket_number" | "qr_token") => { setLoading(true); setError(""); stopCamera(); try { const response = await api.post("/auth/registration/verify-ticket/", { [field]: value }); setTicketToken(response.data.data.verification_token); setStep("student"); setMode("choose"); } catch (err) { setError(messageFrom(err)); } finally { setLoading(false); } };
+  const submitManual = () => { if (!ticketPattern.test(ticketNumber)) { setError("Enter a 6-digit or 12-digit ticket number."); return; } verifyTicket(ticketNumber, "ticket_number"); };
+  const startScanner = () => { setCameraError(""); setError(""); setMode("scanner"); };
+  const verifyStudent = async () => { if (!studentNumber.trim()) { setError("Enter your Student Number."); return; } setLoading(true); setError(""); try { const response = await api.post("/auth/registration/verify-student/", { student_number: studentNumber.trim().toUpperCase(), ticket_verification_token: ticketToken }); setActivationToken(response.data.data.activation_token); setStep("account"); } catch (err) { setError(messageFrom(err)); } finally { setLoading(false); } };
+  const activate = async () => { if (!email || !password) { setError("Email and password are required."); return; } if (password !== confirmPassword) { setError("Passwords do not match."); return; } setLoading(true); setError(""); try { await api.post("/auth/registration/activate/", { activation_token: activationToken, email, password }); setStep("complete"); } catch (err) { setError(messageFrom(err)); } finally { setLoading(false); } };
+  const resetTicket = () => { stopCamera(); setMode("choose"); setError(""); setCameraError(""); }; const stage = step === "ticket" ? 1 : step === "student" ? 2 : 3;
+  return <><SupportChat /><section className="relative min-h-screen overflow-hidden text-white"><img src="/aclcxp-bg.png" alt="" className="absolute inset-0 h-full w-full object-cover" /><div className="absolute inset-0 bg-black/70" /><main className="relative z-10 mx-auto flex min-h-screen w-full max-w-xl items-center px-4 py-6 sm:px-5 sm:py-10"><div className="auth-panel-enter w-full rounded-3xl border border-white/15 bg-slate-950/80 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-7 md:p-9">
+    <button onClick={() => step === "ticket" ? navigate("/") : setStep(step === "account" ? "student" : "ticket")} className="mb-5 flex items-center gap-2 text-sm text-white/80"><FaArrowLeft /> Back</button><img src="/aclcxp-logo.png" alt="ACLCxp" className="mx-auto mb-6 w-20" />
+    <div className="mb-7 flex items-center justify-between text-xs font-semibold text-white/70"><span className={stage >= 1 ? "text-yellow-300" : ""}>1. Verify Ticket</span><span className={stage >= 2 ? "text-yellow-300" : ""}>2. Verify Student</span><span className={stage >= 3 ? "text-yellow-300" : ""}>3. Activate</span></div>{error && <div role="alert" className="mb-5 rounded-xl border border-red-400/40 bg-red-500/15 p-3 text-center text-sm text-red-100">{error}</div>}
+    {step === "ticket" && <><h1 className="text-center text-2xl font-bold">Verify Your Intramurals Ticket</h1><p className="mt-2 text-center text-sm text-white/70">Use the official ticket QR code or ticket number to begin.</p>{mode === "choose" && <div className="mt-7 grid gap-3 sm:grid-cols-2"><button onClick={startScanner} className="rounded-xl border border-yellow-300 bg-yellow-300 p-5 font-semibold text-black"><FaCamera className="mx-auto mb-2 text-2xl" />Scan Ticket QR Code</button><button onClick={() => setMode("manual")} className="rounded-xl border border-white/25 p-5 font-semibold"><FaKeyboard className="mx-auto mb-2 text-2xl" />Enter Ticket Number</button></div>}{mode === "manual" && <div className="mt-7 space-y-4"><label className="block text-sm">Ticket Number<input autoFocus inputMode="numeric" maxLength={12} value={ticketNumber} onChange={(e) => setTicketNumber(e.target.value.replace(/\D/g, ""))} placeholder="6 or 12 digits" className="mt-2 w-full rounded-xl bg-white px-4 py-3 text-black" /></label><button disabled={loading} onClick={submitManual} className="w-full rounded-xl bg-yellow-300 py-3 font-bold text-black disabled:opacity-60">{loading ? "Verifying…" : "Verify Ticket"}</button><button onClick={resetTicket} className="w-full text-sm underline">Choose another method</button></div>}{mode === "scanner" && <div className="mt-6 text-center"><div className="relative aspect-square overflow-hidden rounded-2xl border-2 border-yellow-300 bg-black shadow-[0_0_30px_rgba(253,224,71,0.2)]"><div id="ticket-qr-reader" className="h-full w-full [&_video]:h-full [&_video]:w-full [&_video]:object-cover" /><div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-xl border-2 border-yellow-300 shadow-[0_0_0_999px_rgba(0,0,0,0.38)]"><span className="absolute -left-1 -top-1 h-7 w-7 rounded-tl-lg border-l-4 border-t-4 border-white" /><span className="absolute -right-1 -top-1 h-7 w-7 rounded-tr-lg border-r-4 border-t-4 border-white" /><span className="absolute -bottom-1 -left-1 h-7 w-7 rounded-bl-lg border-b-4 border-l-4 border-white" /><span className="absolute -bottom-1 -right-1 h-7 w-7 rounded-br-lg border-b-4 border-r-4 border-white" /></div></div><p className="mt-3 text-sm text-white/80">Align the entire QR code inside the yellow frame. Hold steady until it scans automatically.</p>{cameraError && <p role="alert" className="mt-3 text-sm text-red-200">{cameraError}</p>}<button onClick={resetTicket} className="mt-4 rounded-lg border border-white/30 px-4 py-2 text-sm">Cancel / enter manually</button></div>}</>}
+    {step === "student" && <><h1 className="text-center text-2xl font-bold">Verify Student Identity</h1><p className="mt-2 text-center text-sm text-white/70">Enter the Student Number assigned by the school.</p><div className="mt-7 space-y-4"><input autoFocus value={studentNumber} onChange={(e) => setStudentNumber(e.target.value.toUpperCase())} placeholder="e.g. 2026-12345" className="w-full rounded-xl bg-white px-4 py-3 text-black" /><button disabled={loading} onClick={verifyStudent} className="w-full rounded-xl bg-yellow-300 py-3 font-bold text-black disabled:opacity-60">{loading ? "Verifying…" : "Verify Student"}</button></div></>}
+    {step === "account" && <><h1 className="text-center text-2xl font-bold">Activate Account</h1><p className="mt-2 text-center text-sm text-white/70">Your school record will be used for your profile.</p><div className="mt-7 space-y-4"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Gmail address" className="w-full rounded-xl bg-white px-4 py-3 text-black" /><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (8+ characters)" className="w-full rounded-xl bg-white px-4 py-3 text-black" /><input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="w-full rounded-xl bg-white px-4 py-3 text-black" /><button disabled={loading} onClick={activate} className="w-full rounded-xl bg-yellow-300 py-3 font-bold text-black disabled:opacity-60">{loading ? "Activating…" : "Activate Account"}</button></div></>}
+    {step === "complete" && <div className="py-8 text-center"><div className="text-5xl text-green-300">✓</div><h1 className="mt-4 text-2xl font-bold">Account Activated Successfully</h1><p className="mt-3 text-sm text-white/75">Your student account has been verified and activated.</p><Link to="/login" className="mt-7 inline-block rounded-xl bg-yellow-300 px-6 py-3 font-bold text-black">Proceed to Login</Link></div>}{step !== "complete" && <p className="mt-7 text-center text-sm text-white/70">Already activated? <Link to="/login" className="font-semibold text-yellow-300 underline">Log in</Link></p>}
+  </div></main></section></>;
 }

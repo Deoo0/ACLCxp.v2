@@ -27,6 +27,7 @@ class EventResult(BaseModel):
         max_length=20, choices=RESULT_TYPE_CHOICES, default="INDIVIDUAL"
     )
     team_name = models.CharField(max_length=100, blank=True)
+    house = models.ForeignKey(House, on_delete=models.PROTECT, null=True, blank=True, related_name="event_results")
 
     # Performance
     rank = models.IntegerField(null=True, blank=True, db_index=True)
@@ -55,6 +56,7 @@ class EventResult(BaseModel):
     posted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        constraints = [models.UniqueConstraint(fields=["event", "user"], condition=models.Q(result_type="INDIVIDUAL"), name="one_individual_result_per_event")]
         db_table = "event_results"
         ordering = ["event", "rank"]
         indexes = [
@@ -95,6 +97,7 @@ class PointsTransaction(BaseModel):
     )
 
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES)
+    source_key = models.CharField(max_length=100, unique=True, null=True, blank=True)
     points = models.IntegerField()  # Can be negative
 
     # Source

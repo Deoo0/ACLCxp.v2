@@ -1,6 +1,5 @@
 // import { useNavigate } from "react-router-dom";
-import Header from "../../components/navigation/PublicHeader";
-import Footer from "../../components/layouts/Footer";
+import Header from "../../components/navigation/PublicNavBar";
 import SupportChat from "../../components/ui/SupportChat";
 
 export default function AboutPage() {
@@ -155,8 +154,6 @@ export default function AboutPage() {
                     </p>
                 </section>
             </main>
-
-            <Footer />
         </div>
         </>
     );

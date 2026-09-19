@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import dj_database_url
 from decouple import config
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,14 +33,22 @@ CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", default="").split(",")
 CORS_ALLOW_CREDENTIALS = True
 
 REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "apps.core.exceptions.api_exception_handler",
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",
+        "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
+    "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/hour",
+        "ticket_verification": "15/minute",
+        "student_verification": "15/minute",
+        "account_activation": "8/hour",
+    },
 }
 
 # Application definition
@@ -68,7 +77,7 @@ LOCAL_APPS = [
     "apps.results",
     "apps.analytics",
     "apps.notifications",
-    "apps.ai",
+    "apps.ai",  # Migration-only: retain until AI table removal is deployed everywhere.
 ]
 
 INSTALLED_APPS = [
@@ -87,6 +96,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.analytics.audit.AuditMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -158,3 +168,11 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "CHECK_REVOKE_TOKEN": True,
+}
