@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ArchiveFilters } from "../../components/admin/Filters";
 import {
   ResourcePage,
   Editor,
@@ -12,6 +13,9 @@ import type { Field } from "../../components/admin/ConsoleUI";
 import { useApi } from "../../services/queries";
 import type { PageData, Row } from "../../services/queries";
 export default function EventsPage() {
+  const [archive, setArchive] = useState("active");
+  const [year, setYear] = useState("");
+  const [archiving, setArchiving] = useState<Row | "year" | null>(null);
   const [tab, setTab] = useState("events");
   const [status, setStatus] = useState<Row | null>(null);
   const [roster, setRoster] = useState<Row | null>(null);
@@ -163,54 +167,94 @@ export default function EventsPage() {
         </button>
       </div>
       {tab === "events" ? (
-        <ResourcePage
-          title="Events"
-          description="Create drafts, publish activities and manage their lifecycle. Published events appear on eligible students' event pages."
-          endpoint="/events/"
-          fields={fields}
-          defaults={{
-            capacity: 100,
-            allow_waitlist: true,
-            visibility: "PUBLIC",
-            participation_points: 5,
-            first_place_points: 50,
-            second_place_points: 40,
-            third_place_points: 30,
-          }}
-          canCreate
-          canEdit
-          canDelete
-          columns={[
-            { key: "title", label: "Event" },
-            { key: "event_date", label: "Date" },
-            { key: "venue", label: "Venue" },
-            {
-              key: "status",
-              label: "Status",
-              render: (r) => <Badge value={r.status} />,
-            },
-            {
-              key: "current_registered",
-              label: "Seats",
-              render: (r) => `${r.current_registered} / ${r.capacity}`,
-            },
-          ]}
-          extraActions={(r) => (
-            <>
-              {(next[String(r.status)] || []).length > 0 && (
-                <button className={button} onClick={() => setStatus(r)}>
-                  Change status
-                </button>
-              )}
+        <div className="space-y-5">
+          <Panel>
+            <ArchiveFilters
+              archive={archive}
+              year={year}
+              onChange={(a, y) => {
+                setArchive(a);
+                setYear(y);
+                setRoster(null);
+              }}
+            />
+            <div className="mt-4 flex flex-wrap items-center gap-3">
               <button
                 className={button}
-                onClick={() => setRoster(roster?.id === r.id ? null : r)}
+                disabled={!year || archive === "archived"}
+                onClick={() => setArchiving("year")}
               >
-                Registrations
+                Archive completed events for {year || "a year"}
               </button>
-            </>
-          )}
-        />
+              <p className="text-xs text-neutral-500">
+                History and points stay intact. Select a year to organize past
+                events.
+              </p>
+            </div>
+          </Panel>
+          <ResourcePage
+            title="Events"
+            description="Create drafts, publish activities and manage their lifecycle. Published events appear on eligible students' event pages."
+            endpoint="/events/"
+            listEndpoint={`/events/?archive=${archive}&year=${year}`}
+            fields={fields}
+            defaults={{
+              capacity: 100,
+              allow_waitlist: true,
+              visibility: "PUBLIC",
+              participation_points: 5,
+              first_place_points: 50,
+              second_place_points: 40,
+              third_place_points: 30,
+            }}
+            canCreate
+            canEdit
+            canDelete
+            columns={[
+              { key: "title", label: "Event" },
+              { key: "event_date", label: "Date" },
+              {
+                key: "archived_at",
+                label: "Workspace",
+                render: (r) => (
+                  <Badge value={r.archived_at ? "ARCHIVED" : "CURRENT"} />
+                ),
+              },
+              { key: "venue", label: "Venue" },
+              {
+                key: "status",
+                label: "Status",
+                render: (r) => <Badge value={r.status} />,
+              },
+              {
+                key: "current_registered",
+                label: "Seats",
+                render: (r) => `${r.current_registered} / ${r.capacity}`,
+              },
+            ]}
+            extraActions={(r) => (
+              <>
+                {(r.archived_at ||
+                  ["COMPLETED", "CANCELLED"].includes(String(r.status))) && (
+                  <button className={button} onClick={() => setArchiving(r)}>
+                    {r.archived_at ? "Restore" : "Archive"}
+                  </button>
+                )}
+                {(next[String(r.status)] || []).length > 0 && (
+                  <button className={button} onClick={() => setStatus(r)}>
+                    Change status
+                  </button>
+                )}
+                <button
+                  className={button}
+                  onClick={() => setRoster(roster?.id === r.id ? null : r)}
+                >
+                  Registrations
+                </button>
+              </>
+            )}
+          />
+        </div>
       ) : (
         <ResourcePage
           title="Event categories"
@@ -280,6 +324,32 @@ export default function EventsPage() {
             },
           ]}
           onClose={() => setStatus(null)}
+        />
+      )}
+      {archiving && (
+        <Editor
+          title={
+            archiving === "year"
+              ? `Archive closed events from ${year}?`
+              : `${archiving.archived_at ? "Restore" : "Archive"} ${archiving.title}?`
+          }
+          description={
+            archiving === "year"
+              ? "Completed and cancelled events from this calendar year move to the archive. Draft, published and ongoing events remain in the current workspace. Attendance, registrations and points are preserved."
+              : "This changes where the event and its attendance reports appear. No history or points are deleted. You can restore archived events at any time."
+          }
+          fields={[]}
+          path={
+            archiving === "year"
+              ? "/events/archive-year/"
+              : `/events/${archiving.id}/archive/`
+          }
+          transform={() =>
+            archiving === "year"
+              ? { year: Number(year) }
+              : { archived: !archiving.archived_at }
+          }
+          onClose={() => setArchiving(null)}
         />
       )}
     </div>

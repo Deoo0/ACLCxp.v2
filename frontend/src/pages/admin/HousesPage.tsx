@@ -7,6 +7,8 @@ export default function HousesPage() {
       endpoint="/admin/houses/"
       canCreate
       canEdit
+      canDelete
+      deleteDescription="Permanently delete this house. Reassign its students and remove event audience restrictions first. Houses with points, results, or standings history must be deactivated instead."
       defaults={{ is_active: true, color_code: "#fbbf24" }}
       fields={[
         { name: "name", label: "House name", required: true },

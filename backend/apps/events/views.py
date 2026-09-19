@@ -3,7 +3,8 @@ from django.db.models.deletion import ProtectedError
 from django.db.models import OuterRef, Subquery
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework import viewsets
+from rest_framework import viewsets, serializers
+from .filters import filter_event_period
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -40,6 +41,8 @@ class EventViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == "create":
             return [IsEventCreator()]
+        if self.action in ("archive", "archive_year", "filter_options"):
+            return [IsSchoolAdmin()]
         return [AllowAny()] if self.action in ("list", "retrieve") else [IsAuthenticated()]
 
     def get_queryset(self):
@@ -47,6 +50,7 @@ class EventViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             queryset = queryset.annotate(registration_status=Subquery(EventRegistration.objects.filter(event=OuterRef("pk"), user=self.request.user).values("status")[:1]))
         if self.action == "list":
+            queryset = filter_event_period(queryset, self.request.query_params)
             search = self.request.query_params.get("search", "")
             if search:
                 queryset = queryset.filter(title__icontains=search)
@@ -59,6 +63,30 @@ class EventViewSet(viewsets.ModelViewSet):
                         raise ValidationError({"status": "Unknown event status."})
                     queryset = queryset.filter(**{field: value})
         return queryset.order_by("event_date", "start_time", "pk")
+
+    @action(detail=False, methods=["get"], url_path="filter-options")
+    def filter_options(self, request):
+        return Response({"years": [date.year for date in Event.objects.dates("event_date", "year", order="DESC")]})
+
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def archive(self, request, pk=None):
+        event = get_object_or_404(Event.objects.select_for_update(), pk=pk)
+        archived = serializers.BooleanField().run_validation(request.data.get("archived"))
+        if archived and event.status not in ("COMPLETED", "CANCELLED"):
+            raise Conflict("Complete or cancel the event before archiving it.")
+        event.archived_at = (event.archived_at or timezone.now()) if archived else None
+        event.save(update_fields=["archived_at", "updated_at"])
+        return Response(self.get_serializer(event).data)
+
+    @action(detail=False, methods=["post"], url_path="archive-year")
+    @transaction.atomic
+    def archive_year(self, request):
+        year = serializers.IntegerField(min_value=1900, max_value=9999).run_validation(request.data.get("year"))
+        events = list(Event.objects.select_for_update().filter(event_date__year=year, archived_at__isnull=True).order_by("pk"))
+        ids = [event.pk for event in events if event.status in ("COMPLETED", "CANCELLED")]
+        Event.objects.filter(pk__in=ids).update(archived_at=timezone.now(), updated_at=timezone.now())
+        return Response({"archived": len(ids), "kept_active": len(events) - len(ids)})
 
     def perform_create(self, serializer):
         if not is_admin(self.request.user) and self.request.user.role != "ORGANIZER":

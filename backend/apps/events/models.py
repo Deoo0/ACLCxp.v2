@@ -104,6 +104,7 @@ class Event(BaseModel):
     # Timestamps
     published_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    archived_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     class Meta:
         constraints = [

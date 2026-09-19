@@ -12,6 +12,21 @@ class EventCategorySerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
+    def _lock_audience_houses(self, ids):
+        ids = set(ids or [])
+        found = list(House.objects.select_for_update().filter(pk__in=ids, is_active=True).order_by("pk").values_list("pk", flat=True))
+        if set(found) != ids:
+            raise serializers.ValidationError({"allowed_houses": "A selected house is no longer available. Refresh and choose active houses."})
+
+    def create(self, validated_data):
+        self._lock_audience_houses(validated_data.get("allowed_houses"))
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if "allowed_houses" in validated_data:
+            self._lock_audience_houses(validated_data["allowed_houses"])
+        return super().update(instance, validated_data)
+
     registration_status = serializers.CharField(read_only=True, allow_null=True)
     category_name = serializers.CharField(source="category.name", read_only=True)
     available_slots = serializers.IntegerField(read_only=True)
@@ -27,8 +42,8 @@ class EventSerializer(serializers.ModelSerializer):
                   "visibility", "allowed_programs", "allowed_houses", "allowed_year_levels",
                   "participation_points", "first_place_points", "second_place_points", "third_place_points",
                   "banner_image", "poster_image", "status", "is_featured", "tags", "requirements",
-                  "rules", "prizes", "total_attended", "published_at", "completed_at", "created_at", "updated_at"]
-        read_only_fields = ["organizer", "current_registered", "total_attended", "published_at", "completed_at", "created_at", "updated_at"]
+                  "rules", "prizes", "total_attended", "published_at", "completed_at", "archived_at", "created_at", "updated_at"]
+        read_only_fields = ["organizer", "current_registered", "total_attended", "published_at", "completed_at", "archived_at", "created_at", "updated_at"]
 
     def validate(self, attrs):
         def value(name, default=None):
