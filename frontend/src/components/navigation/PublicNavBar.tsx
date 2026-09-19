@@ -1,3 +1,4 @@
+import MobileTopBar from "./MobileTopBar";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { PublicNavItems } from "./NavItems";        
 import { HiChevronDown, HiExternalLink } from "react-icons/hi";
@@ -16,9 +17,10 @@ export default function Header() {
     
     return (
         <header
-            className={`fixed top-0 w-full z-50 bg-[#1E1E1E] border-white/10 px-8 py-2 transition-transform duration-300`}
+            className={`fixed inset-x-0 top-0 z-50 bg-neutral-950/95 backdrop-blur-xl lg:bg-[#1E1E1E] lg:px-8 lg:py-2 transition-transform duration-300`}
         >
-            <div className="flex items-center justify-between mx-auto">
+            <MobileTopBar />
+            <div className="hidden lg:flex items-center justify-between mx-auto">
 
                 {/* Left Side Div */}
                 <div className="flex items-center gap-8">
@@ -28,7 +30,7 @@ export default function Header() {
                         className="flex items-center gap-1 cursor-pointer"
                     >
                         <img
-                            src="aclcxp-logo.png"
+                            src="/aclcxp-logo.png"
                             alt="ACLCxp Logo"
                             className="w-14 h-14 object-contain"
                             />
@@ -50,15 +52,15 @@ export default function Header() {
                                 return (
                                 <div
                                     key={item.label}
-                                    className="relative group"
+                                    className="topbar-hover-menu relative group"
                                 >
                                     <button className="text-white hover:text-[#D91B22] hover:bg-white/25 px-2 rounded-md transition-colors flex items-center gap-1">
                                     {item.label}
-                                    <HiChevronDown/>
+                                    <HiChevronDown className="topbar-menu-chevron" />
                                     </button>
 
                                     <div
-                                    className="absolute top-full left-0 mt-2 w-50 rounded-md bg-[#1E1E1E] border border-white/20 invisible group-hover:opacity-100 group-hover:visible transition-all"
+                                    className="topbar-hover-dropdown absolute top-full left-0 mt-2 w-50 rounded-md bg-[#1E1E1E] border border-white/20"
                                     >
                                     {item.children.map((child) => (
                                         <a

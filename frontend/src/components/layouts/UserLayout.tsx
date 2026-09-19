@@ -149,8 +149,8 @@ function QRModal({ name, studentId, photo, initials, houseColor, houseName, onCl
           className={`pointer-events-none fixed inset-0 z-[55] bg-neutral-950 transition-opacity duration-300 ${isEntering ? "opacity-100" : "opacity-0"}`}
           aria-hidden="true"
         />
-        <div className="h-20">
-          <UserNavBar onQrCode={() => setQrOpen(true)} />
+        <div className="h-[74px] lg:h-20">
+          <UserNavBar />
         </div>
 
         <main className="w-full px-0 pt-0 pb-28 lg:pb-0">

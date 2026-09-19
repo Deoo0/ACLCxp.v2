@@ -76,7 +76,7 @@ LOCAL_APPS = [
     "apps.results",
     "apps.analytics",
     "apps.notifications",
-    "apps.ai",
+    "apps.ai",  # Migration-only: retain until AI table removal is deployed everywhere.
 ]
 
 INSTALLED_APPS = [
