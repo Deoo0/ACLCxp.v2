@@ -12,6 +12,21 @@ class EventCategorySerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
+    def _lock_audience_houses(self, ids):
+        ids = set(ids or [])
+        found = list(House.objects.select_for_update().filter(pk__in=ids, is_active=True).order_by("pk").values_list("pk", flat=True))
+        if set(found) != ids:
+            raise serializers.ValidationError({"allowed_houses": "A selected house is no longer available. Refresh and choose active houses."})
+
+    def create(self, validated_data):
+        self._lock_audience_houses(validated_data.get("allowed_houses"))
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if "allowed_houses" in validated_data:
+            self._lock_audience_houses(validated_data["allowed_houses"])
+        return super().update(instance, validated_data)
+
     registration_status = serializers.CharField(read_only=True, allow_null=True)
     category_name = serializers.CharField(source="category.name", read_only=True)
     available_slots = serializers.IntegerField(read_only=True)

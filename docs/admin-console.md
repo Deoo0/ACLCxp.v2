@@ -21,6 +21,9 @@ Admin mutations invalidate cached views. Other active sessions refresh on focus 
 
 ## API and integrity
 
+- Admins can permanently delete unused student accounts and houses through their row's Delete action and confirmation dialog (`DELETE /api/admin/users/{id}/` or `/api/admin/houses/{id}/`). Student deletion is blocked for self/non-student/superuser accounts and accounts with registrations, attendance, scan logs, points, results, or organized events. A linked roster identity stays ineligible and redeemed tickets remain redeemed. Disable accounts with history instead.
+- House deletion requires no assigned accounts (including disabled users), points, results, standings snapshots, or event audience references. Reassign students or clear their House field first; deactivate houses with historical records. Deletion checks and mutations are transactional, and event audience writes lock their referenced houses to coordinate with deletion.
+
 - Admin routes live under `/api/admin/`: `dashboard`, `users`, `roster`, `tickets`, `houses`, `attendance`, `points`, `results`, `settings`, and `audit`.
 - Student routes live under `/api/portal/`: `summary`, `merit`, `attendance`, and `event-pass`. Event routes are documented separately.
 - Lists use `{status, count, next, previous, data}` with bounded pagination and server search. Student ledger/history queries are scoped to the authenticated user.

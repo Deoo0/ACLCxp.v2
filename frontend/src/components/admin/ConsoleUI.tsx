@@ -564,6 +564,7 @@ export function ResourcePage({
   canCreate = false,
   canEdit = false,
   canDelete = false,
+  deleteDescription = "This cannot be undone. Records with protected history cannot be deleted.",
   extraActions,
   children,
 }: {
@@ -575,7 +576,8 @@ export function ResourcePage({
   defaults?: Record<string, unknown>;
   canCreate?: boolean;
   canEdit?: boolean;
-  canDelete?: boolean;
+  canDelete?: boolean | ((row: Row) => boolean);
+  deleteDescription?: string;
   extraActions?: (row: Row) => ReactNode;
   children?: ReactNode;
 }) {
@@ -604,7 +606,7 @@ export function ResourcePage({
                       Edit
                     </button>
                   )}
-                  {canDelete && (
+                  {(typeof canDelete === "function" ? canDelete(row) : canDelete) && (
                     <button className={button} onClick={() => setRemove(row)}>
                       Delete
                     </button>
@@ -631,8 +633,8 @@ export function ResourcePage({
       )}
       {remove && (
         <Editor
-          title="Delete record?"
-          description="This cannot be undone. Records with protected history cannot be deleted."
+          title={`Delete ${String(remove.full_name || remove.name || remove.student_number || "record")}?`}
+          description={deleteDescription}
           fields={[]}
           method="delete"
           path={`${endpoint}${remove.id}/`}

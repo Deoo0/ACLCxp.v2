@@ -145,6 +145,8 @@ export default function UsersPage() {
           title="Students & access"
           description="Manage verified accounts, house assignments and administrative access. Students activate through the school roster."
           endpoint="/admin/users/"
+          canDelete={(row) => row.role === "STUDENT"}
+          deleteDescription="Permanently delete this student account and revoke access. Students with event, attendance, or points history must be disabled instead. Any linked roster identity is retained as ineligible, and redeemed tickets remain used."
           columns={[
             { key: "student_id", label: "Student number" },
             { key: "full_name", label: "Name" },
@@ -297,10 +299,6 @@ export default function UsersPage() {
           fields={userFields}
           initial={{ ...edit, house_id: edit.house }}
           onClose={() => setEdit(null)}
-          transform={(data) => {
-            if (!data.house_id) delete data.house_id;
-            return data;
-          }}
         />
       )}
       {toggle && (
