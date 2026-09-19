@@ -17,6 +17,7 @@ from apps.core.pagination import ApiPagination
 from apps.core.permissions import IsSchoolAdmin
 from apps.events.models import Event, EventRegistration
 from apps.events.services import Conflict
+from apps.events.filters import filter_event_period
 from apps.users.models import User, StudentRoster, IntramuralsTicket
 from apps.houses.models import House
 from apps.attendance.models import Attendance, ScanLog
@@ -72,7 +73,28 @@ class UsersViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, AdminBase):
         if search:
             qs = qs.filter(Q(student_id__icontains=search) | Q(first_name__icontains=search) | Q(last_name__icontains=search) | Q(email__icontains=search))
         role = self.request.query_params.get("role")
-        return qs.filter(role=role) if role else qs
+        if role:
+            role = serializers.ChoiceField(choices=User.ROLE_CHOICES).run_validation(role)
+            qs = qs.filter(role=role)
+        for key in ("house", "year_level"):
+            value = self.request.query_params.get(key)
+            if value:
+                if key == "house" and value == "unassigned":
+                    qs = qs.filter(house__isnull=True)
+                else:
+                    qs = qs.filter(**{key: serializers.IntegerField(min_value=1).run_validation(value)})
+        if self.request.query_params.get("program"):
+            qs = qs.filter(program=self.request.query_params["program"])
+        if self.request.query_params.get("is_active"):
+            qs = qs.filter(is_active=serializers.BooleanField().run_validation(self.request.query_params["is_active"]))
+        return qs
+
+    @action(detail=False, methods=["get"], url_path="filter-options")
+    def filter_options(self, request):
+        return Response({"programs": list(User.objects.exclude(program="").order_by("program").values_list("program", flat=True).distinct()),
+            "year_levels": list(User.objects.order_by("year_level").values_list("year_level", flat=True).distinct()),
+            "houses": list(House.objects.order_by("name").values("id", "name")),
+            "roles": [{"value": value, "label": label, "count": User.objects.filter(role=value).count()} for value, label in User.ROLE_CHOICES]})
 
     @transaction.atomic
     def partial_update(self, request, pk=None):
@@ -188,14 +210,23 @@ class AttendanceViewSet(mixins.ListModelMixin, AdminBase):
     serializer_class = AttendanceSerializer
 
     def get_queryset(self):
-        qs = Attendance.objects.select_related("event", "user").order_by("-scanned_at", "-pk")
+        qs = Attendance.objects.select_related("event", "user", "user__house").order_by("-scanned_at", "-pk")
+        qs = filter_event_period(qs, self.request.query_params, "event__")
+        for key in ("house", "year_level"):
+            value = self.request.query_params.get(key)
+            if value:
+                qs = qs.filter(**{f"user__{key}": serializers.IntegerField(min_value=1).run_validation(value)})
+        if self.request.query_params.get("program"):
+            qs = qs.filter(user__program=self.request.query_params["program"])
+        if self.request.query_params.get("is_valid"):
+            qs = qs.filter(is_valid=serializers.BooleanField().run_validation(self.request.query_params["is_valid"]))
         event = self.request.query_params.get("event")
         if event:
             event = serializers.IntegerField(min_value=1).run_validation(event)
             qs = qs.filter(event_id=event)
         search = self.request.query_params.get("search", "")
         if search:
-            qs = qs.filter(Q(user__student_id__icontains=search) | Q(user__last_name__icontains=search))
+            qs = qs.filter(Q(user__student_id__icontains=search) | Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search) | Q(event__title__icontains=search))
         return qs
 
     @action(detail=False, methods=["post"])
@@ -228,9 +259,9 @@ class AttendanceViewSet(mixins.ListModelMixin, AdminBase):
             text = str(value)
             return "'" + text if text.lstrip().startswith(("=", "+", "-", "@", "\t", "\r")) else text
         def rows():
-            yield writer.writerow(["Event", "Student number", "Student name", "Scanned at", "Method", "Valid"])
+            yield writer.writerow(["Event", "Event date", "Archived", "Student number", "Student name", "House (current)", "Program (current)", "Year level (current)", "Scanned at", "Method", "Valid"])
             for row in self.get_queryset().iterator(chunk_size=1000):
-                yield writer.writerow([safe(row.event.title), safe(row.user.student_id), safe(row.user.get_full_name()), row.scanned_at.isoformat(), row.scan_method, row.is_valid])
+                yield writer.writerow([safe(row.event.title), row.event.event_date.isoformat(), bool(row.event.archived_at), safe(row.user.student_id), safe(row.user.get_full_name()), safe(row.user.house.name if row.user.house else ""), safe(row.user.program), row.user.year_level, row.scanned_at.isoformat(), row.scan_method, row.is_valid])
         response = StreamingHttpResponse(rows(), content_type="text/csv; charset=utf-8")
         response["Content-Disposition"] = 'attachment; filename="attendance.csv"'
         return response

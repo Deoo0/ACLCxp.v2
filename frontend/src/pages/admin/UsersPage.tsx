@@ -11,7 +11,9 @@ import {
   Badge,
 } from "../../components/admin/ConsoleUI";
 import type { Field } from "../../components/admin/ConsoleUI";
-import { useWrite } from "../../services/queries";
+import { useApi, useWrite } from "../../services/queries";
+import { AccountFilters } from "../../components/admin/Filters";
+import type { Filters, AccountOptions } from "../../components/admin/Filters";
 import type { Row } from "../../services/queries";
 import { downloadCsv } from "../../services/download";
 
@@ -68,6 +70,8 @@ const userFields: Field[] = [
   },
 ];
 export default function UsersPage() {
+  const [filters, setFilters] = useState<Filters>({});
+  const options = useApi<AccountOptions>("/admin/users/filter-options/");
   const [tab, setTab] = useState("users");
   const [edit, setEdit] = useState<Row | null>(null);
   const [toggle, setToggle] = useState<Row | null>(null);
@@ -141,30 +145,59 @@ export default function UsersPage() {
         </p>
       )}
       {tab === "users" && (
-        <ResourcePage
-          title="Students & access"
-          description="Manage verified accounts, house assignments and administrative access. Students activate through the school roster."
-          endpoint="/admin/users/"
-          canDelete={(row) => row.role === "STUDENT"}
-          deleteDescription="Permanently delete this student account and revoke access. Students with event, attendance, or points history must be disabled instead. Any linked roster identity is retained as ineligible, and redeemed tickets remain used."
-          columns={[
-            { key: "student_id", label: "Student number" },
-            { key: "full_name", label: "Name" },
-            { key: "program", label: "Program" },
-            { key: "house_name", label: "House" },
-            {
-              key: "role",
-              label: "Role",
-              render: (r) => <Badge value={r.role} />,
-            },
-            { key: "is_active", label: "Enabled" },
-          ]}
-          extraActions={(r) => (
-            <button className={button} onClick={() => setEdit(r)}>
-              Manage account
-            </button>
-          )}
-        />
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {options.data?.roles.map((role) => (
+              <button
+                key={role.value}
+                aria-pressed={filters.role === role.value}
+                className={`rounded-2xl border p-4 text-left transition ${filters.role === role.value ? "border-amber-400/40 bg-amber-400/10" : "border-white/10 bg-neutral-900/60 hover:border-white/25"}`}
+                onClick={() =>
+                  setFilters({
+                    ...filters,
+                    role: filters.role === role.value ? "" : role.value,
+                  })
+                }
+              >
+                <span className="block text-xs text-neutral-400">
+                  {role.label}
+                </span>
+                <span className="mt-2 block text-2xl font-semibold text-white">
+                  {role.count}
+                </span>
+              </button>
+            ))}
+          </div>
+          <Panel>
+            <AccountFilters values={filters} onChange={setFilters} />
+          </Panel>
+          <ResourcePage
+            title="Students & access"
+            description="Manage verified accounts, house assignments and administrative access. Students activate through the school roster."
+            endpoint="/admin/users/"
+            listEndpoint={`/admin/users/?${new URLSearchParams(filters)}`}
+            canDelete={(row) => row.role === "STUDENT"}
+            deleteDescription="Permanently delete this student account and revoke access. Students with event, attendance, or points history must be disabled instead. Any linked roster identity is retained as ineligible, and redeemed tickets remain used."
+            columns={[
+              { key: "student_id", label: "Student number" },
+              { key: "full_name", label: "Name" },
+              { key: "program", label: "Program" },
+              { key: "year_level", label: "Year level" },
+              { key: "house_name", label: "House" },
+              {
+                key: "role",
+                label: "Role",
+                render: (r) => <Badge value={r.role} />,
+              },
+              { key: "is_active", label: "Enabled" },
+            ]}
+            extraActions={(r) => (
+              <button className={button} onClick={() => setEdit(r)}>
+                Manage account
+              </button>
+            )}
+          />
+        </div>
       )}
       {tab === "roster" && (
         <ResourcePage

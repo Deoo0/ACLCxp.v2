@@ -42,8 +42,8 @@ class EventSerializer(serializers.ModelSerializer):
                   "visibility", "allowed_programs", "allowed_houses", "allowed_year_levels",
                   "participation_points", "first_place_points", "second_place_points", "third_place_points",
                   "banner_image", "poster_image", "status", "is_featured", "tags", "requirements",
-                  "rules", "prizes", "total_attended", "published_at", "completed_at", "created_at", "updated_at"]
-        read_only_fields = ["organizer", "current_registered", "total_attended", "published_at", "completed_at", "created_at", "updated_at"]
+                  "rules", "prizes", "total_attended", "published_at", "completed_at", "archived_at", "created_at", "updated_at"]
+        read_only_fields = ["organizer", "current_registered", "total_attended", "published_at", "completed_at", "archived_at", "created_at", "updated_at"]
 
     def validate(self, attrs):
         def value(name, default=None):

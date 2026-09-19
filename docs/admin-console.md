@@ -21,6 +21,18 @@ Admin mutations invalidate cached views. Other active sessions refresh on focus 
 
 ## API and integrity
 
+### Account filters and annual archives
+
+Accounts support combined `role`, `house` (numeric ID or `unassigned`), `program`, `year_level`, `is_active`, and `search` parameters. Role cards show overall counts and toggle the role filter. Filter options come from `/api/admin/users/filter-options/`, across all records rather than the current page.
+
+Events and admin attendance reports accept `archive=active|archived|all` (default `active`) and `year` (calendar year of the event). Attendance also accepts `event`, `house`, `program`, `year_level`, `is_valid`, and `search`. Its CSV export uses exactly the same filters across all pages. Academic and house filters describe current student profiles, not historical snapshots.
+
+Admins can `POST {"archived": true}` or `{"archived": false}` to `/api/events/{id}/archive/`. Only completed/cancelled events may be archived; restoration does not reopen the event or change its status. `POST {"year": 2025}` to `/api/events/archive-year/` archives closed events in that year and reports `archived` and `kept_active` counts. Draft/published/ongoing events stay current. Repeated archive requests are safe.
+
+Archive is an organizational view: attendance, registrations, results, student history, and lifetime points remain intact. It does not reset leaderboards or remove old accounts. Students keep their personal history; archived events leave the default event browsing list. Use **Archived events** or **All records** in admin Events/Attendance to retrieve or export past records. Archive and restore writes are audited.
+
+Apply migration `events/0003_event_archived_at.py` before deploying these screens. Existing events start unarchived. No existing events are automatically archived by the migration.
+
 - Admins can permanently delete unused student accounts and houses through their row's Delete action and confirmation dialog (`DELETE /api/admin/users/{id}/` or `/api/admin/houses/{id}/`). Student deletion is blocked for self/non-student/superuser accounts and accounts with registrations, attendance, scan logs, points, results, or organized events. A linked roster identity stays ineligible and redeemed tickets remain redeemed. Disable accounts with history instead.
 - House deletion requires no assigned accounts (including disabled users), points, results, standings snapshots, or event audience references. Reassign students or clear their House field first; deactivate houses with historical records. Deletion checks and mutations are transactional, and event audience writes lock their referenced houses to coordinate with deletion.
 
