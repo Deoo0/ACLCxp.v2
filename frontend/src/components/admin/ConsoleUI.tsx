@@ -425,16 +425,20 @@ export function Records({
   columns,
   actions,
   refreshKey = 0,
+  searchValue,
+  onSearchChange,
 }: {
   endpoint: string;
   columns: Column[];
   actions?: (row: Row) => ReactNode;
   refreshKey?: number;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const query = useApi<PageData>(
-    `${endpoint}${endpoint.includes("?") ? "&" : "?"}page=${page}&search=${encodeURIComponent(search)}&refresh=${refreshKey}`,
+    `${endpoint}${endpoint.includes("?") ? "&" : "?"}page=${page}&search=${encodeURIComponent(searchValue ?? search)}&refresh=${refreshKey}`,
   );
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60">
@@ -445,9 +449,10 @@ export function Records({
             className={`${input} !pl-10`}
             aria-label="Search records"
             placeholder="Search records..."
-            value={search}
+            value={searchValue ?? search}
             onChange={(e) => {
               setSearch(e.target.value);
+              onSearchChange?.(e.target.value);
               setPage(1);
             }}
           />
@@ -558,24 +563,28 @@ export function ResourcePage({
   title,
   description,
   endpoint,
+  listEndpoint,
   columns,
   fields = [],
   defaults = {},
   canCreate = false,
   canEdit = false,
   canDelete = false,
+  deleteDescription = "This cannot be undone. Records with protected history cannot be deleted.",
   extraActions,
   children,
 }: {
   title: string;
   description: string;
   endpoint: string;
+  listEndpoint?: string;
   columns: Column[];
   fields?: Field[];
   defaults?: Record<string, unknown>;
   canCreate?: boolean;
   canEdit?: boolean;
-  canDelete?: boolean;
+  canDelete?: boolean | ((row: Row) => boolean);
+  deleteDescription?: string;
   extraActions?: (row: Row) => ReactNode;
   children?: ReactNode;
 }) {
@@ -593,7 +602,8 @@ export function ResourcePage({
       </PageHeading>
       {children}
       <Records
-        endpoint={endpoint}
+        key={listEndpoint || endpoint}
+        endpoint={listEndpoint || endpoint}
         columns={columns}
         actions={
           canEdit || canDelete || extraActions
@@ -604,7 +614,9 @@ export function ResourcePage({
                       Edit
                     </button>
                   )}
-                  {canDelete && (
+                  {(typeof canDelete === "function"
+                    ? canDelete(row)
+                    : canDelete) && (
                     <button className={button} onClick={() => setRemove(row)}>
                       Delete
                     </button>
@@ -631,8 +643,8 @@ export function ResourcePage({
       )}
       {remove && (
         <Editor
-          title="Delete record?"
-          description="This cannot be undone. Records with protected history cannot be deleted."
+          title={`Delete ${String(remove.full_name || remove.name || remove.student_number || "record")}?`}
+          description={deleteDescription}
           fields={[]}
           method="delete"
           path={`${endpoint}${remove.id}/`}

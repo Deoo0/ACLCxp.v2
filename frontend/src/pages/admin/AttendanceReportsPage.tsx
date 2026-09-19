@@ -16,7 +16,13 @@ import { useApi, useWrite } from "../../services/queries";
 import type { Row, PageData } from "../../services/queries";
 import api from "../../services/api";
 import { downloadBlob } from "../../services/download";
+import { AccountFilters, ArchiveFilters } from "../../components/admin/Filters";
+import type { Filters } from "../../components/admin/Filters";
 export default function AttendanceReportsPage() {
+  const [archive, setArchive] = useState("active");
+  const [year, setYear] = useState("");
+  const [filters, setFilters] = useState<Filters>({});
+  const [recordSearch, setRecordSearch] = useState("");
   const [event, setEvent] = useState("");
   const [search, setSearch] = useState("");
   const [student, setStudent] = useState("");
@@ -26,8 +32,19 @@ export default function AttendanceReportsPage() {
   const [message, setMessage] = useState("");
   const [exporting, setExporting] = useState(false);
   const events = useApi<PageData>(
-    `/events/?page_size=100&search=${encodeURIComponent(search)}`,
+    `/events/?page_size=100&search=${encodeURIComponent(search)}&archive=${archive}&year=${year}`,
   );
+  const reportParams = new URLSearchParams({
+    ...filters,
+    archive,
+    year,
+    event,
+  });
+  const selectedEvent = events.data?.data.find(
+    (row) => String(row.id) === event,
+  );
+  const canCheckIn =
+    selectedEvent?.status === "ONGOING" && !selectedEvent?.archived_at;
   const write = useWrite();
   const mutateAsync = write.mutateAsync;
   const submit = useCallback(
@@ -63,10 +80,13 @@ export default function AttendanceReportsPage() {
     setError(null);
     try {
       const response = await api.get(
-        `/admin/attendance/export/${event ? `?event=${event}` : ""}`,
+        `/admin/attendance/export/?${reportParams}&search=${encodeURIComponent(recordSearch)}`,
         { responseType: "blob", timeout: 120000 },
       );
-      downloadBlob(response.data, "attendance.csv");
+      downloadBlob(
+        response.data,
+        `attendance-${archive}-${year || "all-years"}.csv`,
+      );
     } catch (e) {
       setError(e);
     } finally {
@@ -80,6 +100,24 @@ export default function AttendanceReportsPage() {
         description="Record confirmed students at ongoing events. Scans award participation points once; corrections update the student merit record."
       />
       <Panel>
+        <div className="mb-5 space-y-4">
+          <ArchiveFilters
+            archive={archive}
+            year={year}
+            onChange={(a, y) => {
+              setArchive(a);
+              setYear(y);
+              setEvent("");
+              setScanner(false);
+            }}
+          />
+          <AccountFilters values={filters} onChange={setFilters} attendance />
+          <p className="text-xs text-neutral-500">
+            Export includes every matching row, across all pages. Archive events
+            from the Events page to keep past attendance out of the current
+            workspace.
+          </p>
+        </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="space-y-3">
             <label className="block space-y-2 text-sm text-neutral-400">
@@ -117,8 +155,8 @@ export default function AttendanceReportsPage() {
               {exporting
                 ? "Exporting..."
                 : event
-                  ? "Export selected event"
-                  : "Export all attendance"}
+                  ? "Export filtered event attendance"
+                  : "Export filtered attendance"}
             </button>
           </div>
           <form
@@ -139,13 +177,16 @@ export default function AttendanceReportsPage() {
               />
             </label>
             <div className="flex flex-wrap gap-2">
-              <button className={primary} disabled={!event || write.isPending}>
+              <button
+                className={primary}
+                disabled={!canCheckIn || write.isPending}
+              >
                 Record attendance
               </button>
               <button
                 type="button"
                 className={button}
-                disabled={!event || write.isPending}
+                disabled={!canCheckIn || write.isPending}
                 onClick={() => setScanner(!scanner)}
               >
                 <ScanLine className="h-4 w-4" />
@@ -170,8 +211,10 @@ export default function AttendanceReportsPage() {
         </p>
       )}
       <Records
-        key={event}
-        endpoint={`/admin/attendance/${event ? `?event=${event}` : ""}`}
+        key={reportParams.toString()}
+        endpoint={`/admin/attendance/?${reportParams}`}
+        searchValue={recordSearch}
+        onSearchChange={setRecordSearch}
         columns={[
           { key: "event_title", label: "Event" },
           { key: "student_id", label: "Student number" },
