@@ -22,6 +22,7 @@ export default function EventDetails({ event, loading, loadError, retry, pending
 }) {
   const status = text(event?.status);
   const registration = text(event?.registration_status);
+  const registrationRequired = event?.registration_required !== false;
   const slots = Math.max(0, Number(event?.available_slots) || 0);
   const capacity = Math.max(0, Number(event?.capacity) || 0);
   const registered = Math.max(0, Number(event?.current_registered) || 0);
@@ -36,8 +37,8 @@ export default function EventDetails({ event, loading, loadError, retry, pending
   }, []);
   const windowClosed = start <= now || (closes !== null && closes <= now);
   const windowNotOpen = opens !== null && opens > now;
-  const canRegister = status === "PUBLISHED" && (!registration || registration === "CANCELLED");
-  const canCancel = status === "PUBLISHED" && ["REGISTERED", "WAITLISTED"].includes(registration);
+  const canRegister = registrationRequired && status === "PUBLISHED" && (!registration || registration === "CANCELLED");
+  const canCancel = registrationRequired && status === "PUBLISHED" && ["REGISTERED", "WAITLISTED"].includes(registration);
   const unavailable = windowClosed || windowNotOpen || (!slots && !event?.allow_waitlist);
 
   return <Dialog.Content className="fixed left-1/2 top-1/2 z-[81] flex max-h-[92dvh] w-[calc(100%-24px)] max-w-5xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-3xl border border-white/15 bg-[#111214] text-neutral-200 shadow-2xl">
@@ -77,16 +78,18 @@ export default function EventDetails({ event, loading, loadError, retry, pending
               </dl>
             </section>
             <section className="rounded-2xl border border-amber-300/20 bg-amber-300/[.04] p-5">
-              <div className="flex items-center gap-3"><Trophy className="h-5 w-5 text-amber-300" /><div><h3 className="text-sm font-semibold text-amber-200">Make it count</h3><p className="mt-1 text-xs text-neutral-400">Earn <span className="font-semibold text-white">{text(event.participation_points)} points</span> for participation</p></div></div>
+              <div className="flex items-center gap-3"><Trophy className="h-5 w-5 text-amber-300" /><div><h3 className="text-sm font-semibold text-amber-200">Attendance</h3>{event.attendance_mode === "NONE" ? <p className="mt-1 text-xs text-neutral-400">No attendance required. This event does not award attendance points or count as an absence.</p> : <p className="mt-1 text-xs text-neutral-400">Earn <span className="font-semibold text-white">{text(event.participation_points)} points</span> for verified attendance. {event.attendance_mode === "DAILY" ? "One staff-approved QR scan covers eligible daily-approval events that day." : "Check in at this event."}</p>}</div></div>
             </section>
             <section className="rounded-2xl border border-white/10 bg-neutral-950/50 p-5">
-              <div className="flex items-center justify-between gap-3"><h3 className="flex items-center gap-2 text-sm font-semibold text-white"><Users className="h-4 w-4 text-amber-300" />Your place at the event</h3></div>
+              <div className="flex items-center justify-between gap-3"><h3 className="flex items-center gap-2 text-sm font-semibold text-white"><Users className="h-4 w-4 text-amber-300" />Attending this event</h3></div>
               {registration && <p className="mt-4 flex items-center gap-2 rounded-lg bg-white/5 p-3 text-xs text-amber-200"><CheckCircle2 className="h-4 w-4 shrink-0" />{registrationLabels[registration] || registration}</p>}
-              <p className="mt-4 text-sm text-neutral-400"><span className="text-2xl font-bold tracking-tight text-white">{slots}</span> {slots === 1 ? 'place' : 'places'} available{capacity > 0 ? ` / ${capacity}` : ''}</p>
+              {registrationRequired && <><p className="mt-4 text-sm text-neutral-400"><span className="text-2xl font-bold tracking-tight text-white">{slots}</span> {slots === 1 ? 'place' : 'places'} available{capacity > 0 ? ` / ${capacity}` : ''}</p>
               {capacity > 0 && <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10" aria-hidden="true"><div className="h-full rounded-full bg-amber-300" style={{ width: `${Math.min(100, registered / capacity * 100)}%` }} /></div>}
-              {canRegister && <button className={`${primary} mt-5 w-full`} disabled={pending || unavailable} onClick={() => onAction(false)}><Ticket className="h-4 w-4" />{pending ? 'Saving…' : windowNotOpen ? 'Registration opens soon' : windowClosed ? 'Registration closed' : slots ? 'Register for event' : event.allow_waitlist ? 'Join waitlist' : 'Event full'}</button>}
+              <p className="mt-3 text-xs leading-5 text-neutral-400">Registration reserves your place as an attendee. Player and contestant sign-ups are handled separately by the organizer.</p></>}
+              {!registrationRequired && <div className="mt-4 rounded-xl border border-emerald-300/20 bg-emerald-300/5 p-4"><p className="text-sm font-semibold text-emerald-200">Open attendance · No registration needed</p><p className="mt-2 text-xs leading-6 text-neutral-400">{event.attendance_mode === "NONE" ? "No attendance scan is needed for this event." : event.attendance_mode === "DAILY" ? "Ask staff for daily approval using your student QR pass. Your redeemed season ticket will be checked and eligible events recorded in one scan." : "Bring your student QR pass. Staff will scan it to verify your redeemed season ticket and record your attendance and points in your account."} Event audience rules still apply. Player and contestant sign-ups are handled separately by the organizer.</p></div>}
+              {canRegister && <button className={`${primary} mt-5 w-full`} disabled={pending || unavailable} onClick={() => onAction(false)}><Ticket className="h-4 w-4" />{pending ? 'Saving…' : windowNotOpen ? 'Registration opens soon' : windowClosed ? 'Registration closed' : slots ? 'Register to attend' : event.allow_waitlist ? 'Join attendance waitlist' : 'Event full'}</button>}
               {canCancel && <button className={`${button} mt-5 w-full`} disabled={pending} onClick={() => onAction(true)}>{pending ? 'Saving…' : 'Cancel registration'}</button>}
-              {!canRegister && !canCancel && <p className="mt-4 text-xs leading-5 text-neutral-500">{status === 'CANCELLED' ? 'This event has been cancelled.' : status === 'COMPLETED' ? 'This event has ended. Thank you for being part of campus life.' : 'Registration is not available for this event.'}</p>}
+              {registrationRequired && !canRegister && !canCancel && <p className="mt-4 text-xs leading-5 text-neutral-500">{status === 'CANCELLED' ? 'This event has been cancelled.' : status === 'COMPLETED' ? 'This event has ended. Thank you for being part of campus life.' : 'Registration is not available for this event.'}</p>}
               {error != null && <div className="mt-4"><Notice error={error} /></div>}
               {message && <p role="status" className="mt-4 rounded-xl bg-emerald-400/10 p-3 text-sm leading-6 text-emerald-200">{message}</p>}
             </section>

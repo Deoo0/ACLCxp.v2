@@ -36,10 +36,10 @@ class SeasonMiddleware:
             if user and user.is_authenticated and user.role == "STUDENT" and not allowed:
                 if season.status != "ACTIVE" or not SeasonMembership.objects.filter(season=season, user=user).exists():
                     return JsonResponse({"detail": "Season access is locked. Activate a ticket for the current season.", "code": "SEASON_ACCESS_REQUIRED"}, status=403)
-            operational = request.path.startswith(("/api/events/", "/api/admin/matchups/", "/api/admin/results/", "/api/admin/attendance/", "/api/admin/points/", "/api/admin/tickets/"))
+            operational = request.path.startswith(("/api/events/", "/api/admin/matchups/", "/api/admin/results/", "/api/admin/attendance/", "/api/attendance/daily/", "/api/admin/points/", "/api/admin/tickets/"))
             if operational and request.method not in ("GET", "HEAD", "OPTIONS"):
                 if season.status == "CLOSED":
                     return JsonResponse({"detail": "This season is closed. Export its records or open a new season."}, status=409)
-                if season.status != "ACTIVE" and request.path.startswith(("/api/admin/results/", "/api/admin/attendance/", "/api/admin/points/")):
+                if season.status != "ACTIVE" and request.path.startswith(("/api/admin/results/", "/api/admin/attendance/", "/api/attendance/daily/", "/api/admin/points/")):
                     return JsonResponse({"detail": "Start the season before recording attendance, results, or points."}, status=409)
             return self.get_response(request)

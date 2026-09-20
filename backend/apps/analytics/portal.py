@@ -63,6 +63,56 @@ def attendance(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+def attendance_overview(request):
+    from apps.seasons.scope import current_season
+    registrations = {r.event_id: r for r in EventRegistration.objects.filter(
+        user=request.user).select_related("event", "event__category")}
+    scans = {a.event_id: a for a in Attendance.objects.filter(user=request.user).select_related(
+        "event", "event__category", "scanned_by")}
+    records = []
+    for event_id in registrations.keys() | scans.keys():
+        registration, scan = registrations.get(event_id), scans.get(event_id)
+        event = scan.event if scan else registration.event
+        if scan and scan.is_valid:
+            status, detail = "ATTENDED", "Verified attendance"
+        elif event.status == "CANCELLED" or (registration and registration.status == "CANCELLED"):
+            status, detail = "CANCELLED", "Event cancelled" if event.status == "CANCELLED" else "Registration cancelled"
+        elif scan and not scan.is_valid:
+            status, detail = "INVALID", "Attendance invalidated"
+        elif registration and registration.status == "WAITLISTED":
+            status, detail = "WAITLISTED", "Awaiting a place"
+        elif event.attendance_mode == "NONE":
+            status, detail = "NOT_REQUIRED", "Attendance is not required"
+        elif event.status == "COMPLETED":
+            status, detail = "ABSENT", "Registered · no verified check-in"
+        else:
+            status, detail = "PENDING", "Event ongoing" if event.status == "ONGOING" else "Upcoming event"
+        records.append({"id": event_id, "event_title": event.title, "category": event.category.name,
+            "event_date": event.event_date, "start_time": event.start_time,
+            "status": status, "detail": detail,
+            "signed_by": scan.scanned_by.get_full_name() if scan and scan.is_valid and scan.scanned_by else None,
+            "scanned_at": scan.scanned_at if scan else None,
+            "validation_notes": scan.validation_notes if scan else ""})
+    records.sort(key=lambda row: (row["event_date"], row["start_time"], row["id"]), reverse=True)
+    counts = {status.lower(): sum(r["status"] == status for r in records)
+              for status in ("ATTENDED", "ABSENT", "PENDING", "INVALID", "CANCELLED", "WAITLISTED")}
+    total = counts["attended"] + counts["absent"] + counts["pending"] + counts["invalid"]
+    season = current_season()
+    search = request.query_params.get("search", "").strip().casefold()
+    status = request.query_params.get("status", "")
+    filtered = [r for r in records if (not status or r["status"] == status)
+                and search in r["event_title"].casefold()]
+    page = ApiPagination()
+    response = page.get_paginated_response(page.paginate_queryset(filtered, request))
+    response.data["summary"] = {**counts, "total": total,
+        "rate": round(counts["attended"] / total * 100, 1) if total else 0,
+        "season": season.name if season else "All records",
+        "points": effective_points().filter(user=request.user).aggregate(total=Sum("points"))["total"] or 0}
+    return response
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def event_pass(request):
     token = signing.dumps({"student_id": request.user.student_id}, salt="student-event-pass")
     svg = qrcode.make(token, image_factory=qrcode.image.svg.SvgPathImage, box_size=6, border=4).to_string()

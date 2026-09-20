@@ -113,6 +113,7 @@ export function Panel({
   );
 }
 export interface Field {
+  showWhen?: (values: Record<string, string>) => boolean;
   aspectRatio?: number;
   name: string;
   label: string;
@@ -261,6 +262,7 @@ export function Editor({
     try {
       const data: Record<string, unknown> = {};
       for (const field of fields) {
+        if (field.showWhen && !field.showWhen(values)) continue;
         const value = values[field.name];
         if (field.type === "image" && value === String(initial[field.name] ?? "")) continue;
         if (field.type === "password" && !value) continue;
@@ -304,6 +306,7 @@ export function Editor({
     }
   }
   function renderField(field: Field) {
+    if (field.showWhen && !field.showWhen(values)) return null;
     const fieldId = `${id}-${field.name}`;
     const wide = ["textarea", "json", "image", "multi", "checkbox", "password"].includes(field.type || "") || ["description", "title", "reason", "notes", "value"].includes(field.name);
     const common = { id: fieldId, "aria-describedby": `${fieldId}-help`, "aria-invalid": !!fieldErrors[field.name], required: field.required, className: `${input} ${fieldErrors[field.name] ? '!border-rose-400/60' : ''}` };

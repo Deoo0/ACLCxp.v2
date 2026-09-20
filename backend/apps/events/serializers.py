@@ -13,6 +13,7 @@ class EventCategorySerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
+    capacity = serializers.IntegerField(required=False, min_value=1)
     banner_image = EventImageField(required=False, allow_null=True)
     poster_image = EventImageField(required=False, allow_null=True)
 
@@ -42,7 +43,7 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ["id", "registration_status", "title", "slug", "description", "category", "category_name", "organizer",
                   "event_date", "start_time", "end_time", "venue", "capacity", "current_registered",
-                  "available_slots", "allow_waitlist", "registration_opens_at", "registration_closes_at",
+                  "available_slots", "attendance_mode", "registration_required", "allow_waitlist", "registration_opens_at", "registration_closes_at",
                   "visibility", "allowed_programs", "allowed_houses", "allowed_year_levels",
                   "participation_points", "first_place_points", "second_place_points", "third_place_points",
                   "banner_image", "poster_image", "status", "is_featured", "tags", "requirements",
@@ -50,6 +51,9 @@ class EventSerializer(serializers.ModelSerializer):
         read_only_fields = ["organizer", "current_registered", "total_attended", "published_at", "completed_at", "archived_at", "created_at", "updated_at"]
 
     def validate(self, attrs):
+        if not attrs.get("registration_required", getattr(self.instance, "registration_required", True)):
+            attrs.update(capacity=max(1, getattr(self.instance, "current_registered", 0)),
+                         allow_waitlist=False, registration_opens_at=None, registration_closes_at=None)
         def value(name, default=None):
             return attrs.get(name, getattr(self.instance, name, default))
         if value("capacity", 0) < 1 or value("capacity", 0) < value("current_registered", 0):

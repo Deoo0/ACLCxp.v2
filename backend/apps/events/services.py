@@ -64,7 +64,7 @@ def event_start(event):
 
 
 def registration_open(event, now):
-    return (event.status == "PUBLISHED" and now < event_start(event)
+    return (event.registration_required and event.status == "PUBLISHED" and now < event_start(event)
             and (event.registration_opens_at is None or now >= event.registration_opens_at)
             and (event.registration_closes_at is None or now < event.registration_closes_at))
 
@@ -91,6 +91,8 @@ def promote_waitlist(event, now):
 
 def register_locked(event, user):
     """Caller must hold the event row lock inside transaction.atomic."""
+    if not event.registration_required:
+        raise Conflict("No attendance registration is needed. Present your student QR pass at the event for check-in.")
     if user.role != "STUDENT" or not user.is_active or not eligible(event, user):
         from rest_framework.exceptions import PermissionDenied
         raise PermissionDenied("You are not eligible to register for this event.")
@@ -154,6 +156,11 @@ def update_locked(event, serializer):
         raise Conflict("This event status transition is not allowed.")
     if old_status in ("COMPLETED", "CANCELLED"):
         raise Conflict("Finalized events cannot be edited.")
+    if serializer.validated_data.get("registration_required", event.registration_required) != event.registration_required:
+        if event.registrations.exclude(status="CANCELLED").exists() or event.attendance_records.exists():
+            raise Conflict("Attendance mode cannot change after active registrations or check-ins exist.")
+    if serializer.validated_data.get("attendance_mode", event.attendance_mode) != event.attendance_mode and event.attendance_records.exists():
+        raise Conflict("Attendance mode cannot change after check-ins exist.")
     audience_fields = {"visibility", "allowed_programs", "allowed_houses", "allowed_year_levels"}
     if event.registrations.exclude(status="CANCELLED").exists() and any(
             key in serializer.validated_data and serializer.validated_data[key] != getattr(event, key)

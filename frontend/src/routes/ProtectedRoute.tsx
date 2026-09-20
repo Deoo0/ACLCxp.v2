@@ -65,7 +65,7 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
     const redirectPath =
       user?.role === "ADMIN"
         ? "/admin"
-        : "/dashboard";
+        : user && ["STAFF", "ORGANIZER"].includes(user.role) ? "/staff/attendance" : "/dashboard";
 
     return (
       <>

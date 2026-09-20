@@ -16,7 +16,7 @@ export function editorSections(path: string, fields: Field[]) {
   else if (path.startsWith('/events/')) layout = [
     section('Event overview', 'Introduce the event and help students understand what to expect.', 'title slug category description'),
     section('When & where', 'Set the event date, time, and venue.', 'event_date start_time end_time venue'),
-    section('Registration', 'Manage available places and the registration window.', 'capacity allow_waitlist registration_opens_at registration_closes_at'),
+    section('Attendance registration', 'Choose attendance reservations or open attendance with ticket verification at check-in.', 'attendance_mode registration_required capacity allow_waitlist registration_opens_at registration_closes_at'),
     section('Audience', 'Choose who can access and register for this event.', 'visibility allowed_programs allowed_houses allowed_year_levels'),
     section('Points & rewards', 'Configure participation and final placement awards.', 'participation_points first_place_points second_place_points third_place_points prizes'),
     section('Event artwork', 'Upload a background and poster. Preview and crop before saving.', 'banner_image poster_image'),
