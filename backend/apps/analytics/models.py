@@ -1,9 +1,14 @@
+from apps.seasons.scope import SeasonManager, current_season_id
 from django.db import models
 from apps.core.models import BaseModel
 from apps.users.models import User
 
 
 class AuditLog(models.Model):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season = models.ForeignKey("seasons.Season", on_delete=models.PROTECT, null=True, blank=True, default=current_season_id)
     """Security audit trail for privileged actions"""
 
     STATUS_CHOICES = [

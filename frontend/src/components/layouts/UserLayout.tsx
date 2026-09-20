@@ -1,3 +1,4 @@
+import StudentSeasonGate from "./StudentSeasonGate";
 import { useEffect, useState } from "react";
 import UserNavBar from "../navigation/UserNavBar";
 import BottomNavigation from "../navigation/BottomNavigation";
@@ -18,7 +19,7 @@ export default function UserLayout() {
     return () => window.removeEventListener("aclcxp:open-student-qr", open);
   }, []);
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <StudentSeasonGate><div className="min-h-screen bg-neutral-950">
       <div className="h-[74px] lg:h-20">
         <UserNavBar />
       </div>
@@ -39,6 +40,6 @@ export default function UserLayout() {
         }}
       />
       <StudentPass open={qrOpen} onClose={() => setQrOpen(false)} />
-    </div>
+    </div></StudentSeasonGate>
   );
 }

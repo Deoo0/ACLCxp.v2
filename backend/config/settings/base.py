@@ -75,6 +75,7 @@ LOCAL_APPS = [
     "apps.attendance",
     "apps.authentication",
     "apps.results",
+    "apps.seasons",
     "apps.analytics",
     "apps.notifications",
     "apps.ai",  # Migration-only: retain until AI table removal is deployed everywhere.
@@ -96,6 +97,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.seasons.middleware.SeasonMiddleware",
     "apps.analytics.audit.AuditMiddleware",
 ]
 

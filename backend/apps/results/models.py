@@ -1,3 +1,4 @@
+from apps.seasons.scope import SeasonManager, current_season_id
 from django.db import models
 from apps.core.models import BaseModel
 from apps.users.models import User
@@ -6,6 +7,10 @@ from apps.houses.models import House
 
 
 class MatchAnnouncement(BaseModel):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season_lookup = "event__season_id"
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="matches")
     label = models.CharField(max_length=100, default="Match 1")
     house_one = models.ForeignKey(House, on_delete=models.PROTECT, null=True, blank=True, related_name="matches_as_one")
@@ -66,6 +71,10 @@ class MatchAnnouncement(BaseModel):
 
 
 class EventResult(BaseModel):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season_lookup = "event__season_id"
     """Competition results and rankings"""
 
     RESULT_TYPE_CHOICES = [
@@ -131,6 +140,10 @@ class EventResult(BaseModel):
 
 
 class PointsTransaction(BaseModel):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season = models.ForeignKey("seasons.Season", on_delete=models.PROTECT, null=True, blank=True, default=current_season_id)
     """Complete audit trail of all points awarded/deducted"""
 
     TRANSACTION_TYPE_CHOICES = [

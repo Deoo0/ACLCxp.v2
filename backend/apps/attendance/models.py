@@ -1,3 +1,4 @@
+from apps.seasons.scope import SeasonManager, current_season_id
 from django.db import models
 from apps.core.models import BaseModel
 from apps.users.models import User
@@ -5,6 +6,10 @@ from apps.events.models import Event
 
 
 class Attendance(BaseModel):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season_lookup = "event__season_id"
     """QR scan records - Digital merit sheet"""
 
     SCAN_METHOD_CHOICES = [
@@ -61,6 +66,10 @@ class Attendance(BaseModel):
 
 
 class ScanLog(models.Model):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season = models.ForeignKey("seasons.Season", on_delete=models.PROTECT, null=True, blank=True, default=current_season_id)
     """Audit trail for all QR scan attempts (including failures)"""
 
     event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True, blank=True)

@@ -23,6 +23,7 @@ const ProfilePage = lazy(() => import("../pages/student/ProfilePage"));
 const StatsPage = lazy(() => import("../pages/student/StatsPage"));
 const EventsPage = lazy(() => import("../pages/student/EventsPage"));
 
+const SeasonsPage = lazy(() => import("../pages/admin/SeasonsPage"));
 const AdminDashboard = lazy(() => import("../pages/admin/DashboardPage"));
 const MatchupsManagement = lazy(() => import("../pages/admin/MatchupsPage"));
 const UsersManagement = lazy(() => import("../pages/admin/UsersPage"));
@@ -115,6 +116,7 @@ export default function AppRoutes() {
           <Route path="attendance" element={<AttendanceReports />} />
           <Route path="points" element={<PointsManagement />} />
           <Route path="settings" element={<SystemSettings />} />
+          <Route path="seasons" element={<SeasonsPage />} />
           <Route path="audit-logs" element={<AuditLogs />} />
         </Route>
       </Routes>

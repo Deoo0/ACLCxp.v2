@@ -264,6 +264,7 @@ export function Editor({
         const value = values[field.name];
         if (field.type === "image" && value === String(initial[field.name] ?? "")) continue;
         if (field.type === "password" && !value) continue;
+        if (field.type === "date" && !field.required && !value) { data[field.name] = null; continue; }
         data[field.name] =
           field.type === "json" || field.type === "multi"
             ? JSON.parse(value || "[]")
@@ -311,7 +312,7 @@ export function Editor({
       {field.type !== "checkbox" && <div className="flex items-start justify-between gap-3">{label}{!field.required && <span className="pt-0.5 text-[10px] text-neutral-500">Optional</span>}</div>}
       {field.type === "image" ? <ImageUpload id={fieldId} label={field.label} aspectRatio={field.aspectRatio} value={values[field.name]} onChange={value => change(field.name, value)} />
       : field.type === "lookup" ? <Lookup id={fieldId} invalid={!!fieldErrors[field.name]} field={field} value={values[field.name]} onChange={value => change(field.name, value)} />
-      : field.type === "checkbox" ? <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/10 bg-neutral-950/40 p-4" htmlFor={fieldId}><span><span className="block text-sm font-medium text-neutral-200">{field.label}</span><span className="mt-1 block text-xs text-neutral-500">{values[field.name] === 'true' ? 'Enabled' : 'Disabled'}</span></span><input id={fieldId} type="checkbox" checked={values[field.name] === 'true'} onChange={e => change(field.name, String(e.target.checked))} className="h-5 w-5 shrink-0 accent-amber-400" /></label>
+      : field.type === "checkbox" ? <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/10 bg-neutral-950/40 p-4" htmlFor={fieldId}><span><span className="block text-sm font-medium text-neutral-200">{field.label}</span><span className="mt-1 block text-xs text-neutral-500">{values[field.name] === 'true' ? 'Enabled' : 'Disabled'}</span></span><input id={fieldId} required={field.required} type="checkbox" checked={values[field.name] === 'true'} onChange={e => change(field.name, String(e.target.checked))} className="h-5 w-5 shrink-0 accent-amber-400" /></label>
       : field.type === "multi" ? <fieldset id={fieldId} aria-label={field.label} className="grid gap-2 rounded-xl border border-white/10 bg-neutral-950/40 p-3 sm:grid-cols-2">{field.options?.map(option => {
           const selected: (string | number)[] = JSON.parse(values[field.name] || '[]');
           const checked = selected.includes(option.value);

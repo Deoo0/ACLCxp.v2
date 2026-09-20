@@ -34,8 +34,13 @@ def effective_points():
 
 
 def houses_with_totals():
+    from apps.seasons.scope import current_season
+    season = current_season()
+    member_filter = Q(members__is_active=True, members__role="STUDENT")
+    if season:
+        member_filter &= Q(members__season_memberships__season=season)
     points = effective_points().filter(house=OuterRef("pk")).values("house").annotate(total=Sum("points")).values("total")
-    return House.objects.annotate(actual_members=Count("members", filter=Q(members__is_active=True, members__role="STUDENT")),
+    return House.objects.annotate(actual_members=Count("members", filter=member_filter, distinct=True),
         actual_points=Coalesce(Subquery(points, output_field=IntegerField()), Value(0))).order_by("-actual_points", "name")
 
 
@@ -53,17 +58,19 @@ class UsersViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, AdminBase):
         user = get_object_or_404(User.objects.select_for_update(), pk=pk)
         if user.pk == request.user.pk or user.role != "STUDENT" or user.is_superuser:
             raise Conflict("Only student accounts can be deleted. You cannot delete your own account.")
-        if (EventRegistration.objects.filter(user=user).exists()
-                or Attendance.objects.filter(user=user).exists()
-                or PointsTransaction.objects.filter(user=user).exists()
-                or EventResult.objects.filter(user=user).exists()
-                or Event.objects.filter(organizer=user).exists()
-                or ScanLog.objects.filter(user=user).exists()):
+        if (EventRegistration.all_objects.filter(user=user).exists()
+                or Attendance.all_objects.filter(user=user).exists()
+                or PointsTransaction.all_objects.filter(user=user).exists()
+                or EventResult.all_objects.filter(user=user).exists()
+                or Event.all_objects.filter(organizer=user).exists()
+                or ScanLog.all_objects.filter(user=user).exists()):
             raise Conflict("This student has event, attendance, or points history. Disable the account instead to preserve those records.")
         # Preserve ticket redemption history and prevent accidental reactivation.
         StudentRoster.objects.filter(account=user).update(is_eligible=False)
         if user.house_id:
             House.objects.filter(pk=user.house_id).update(member_count=Greatest(F("member_count") - 1, 0))
+        if user.season_memberships.exists():
+            raise Conflict("This student has season participation records. Disable the account instead, or purge its closed seasons first.")
         user.delete()
         return Response(status=204)
 
@@ -170,7 +177,7 @@ class TicketsViewSet(mixins.ListModelMixin, AdminBase):
         for _ in range(count):
             while True:
                 number = str(secrets.randbelow(900000000000) + 100000000000)
-                if not IntramuralsTicket.objects.filter(ticket_number=number).exists():
+                if not IntramuralsTicket.all_objects.filter(ticket_number=number).exists():
                     break
             rows.append(IntramuralsTicket.objects.create(ticket_number=number, qr_token=secrets.token_urlsafe(32), issued_at=timezone.now()))
         return Response(TicketSerializer(rows, many=True).data, status=201)
@@ -194,11 +201,11 @@ class HousesViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Updat
         house = get_object_or_404(House.objects.select_for_update(), pk=pk)
         if house.members.exists():
             raise Conflict("Reassign or remove all students from this house before deleting it, including disabled accounts.")
-        if (PointsTransaction.objects.filter(house=house).exists()
-                or EventResult.objects.filter(house=house).exists() or house.standings.exists()):
+        if (PointsTransaction.all_objects.filter(house=house).exists()
+                or EventResult.all_objects.filter(house=house).exists() or house.standings.exists()):
             raise Conflict("This house has points, results, or standings history. Deactivate it instead to preserve those records.")
         if any(house.pk in (ids or []) or str(house.pk) in (ids or [])
-               for ids in Event.objects.values_list("allowed_houses", flat=True)):
+               for ids in Event.all_objects.values_list("allowed_houses", flat=True)):
             raise Conflict("Remove this house from event audience restrictions before deleting it.")
         house.delete()
         return Response(status=204)
@@ -395,7 +402,12 @@ class SettingsViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, AdminBase)
 @api_view(["GET"])
 @permission_classes([IsSchoolAdmin])
 def dashboard(request):
-    return Response({"students": User.objects.filter(role="STUDENT", is_active=True).count(),
+    from apps.seasons.scope import current_season
+    season = current_season()
+    students = User.objects.filter(role="STUDENT", is_active=True)
+    if season:
+        students = students.filter(season_memberships__season=season)
+    return Response({"students": students.count(),
         "events": Event.objects.count(), "ongoing": Event.objects.filter(status="ONGOING").count(),
         "registrations": EventRegistration.objects.exclude(status="CANCELLED").count(),
         "attendance": Attendance.objects.filter(is_valid=True).count(),

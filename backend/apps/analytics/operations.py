@@ -13,6 +13,8 @@ from apps.results.models import PointsTransaction
 
 
 def post_points(*, user=None, house=None, points, source_key, actor, reason, kind, event=None, result=None):
+    from apps.seasons.scope import require_membership
+    require_membership(user)
     house = house or (user.house if user else None)
     entry, created = PointsTransaction.objects.get_or_create(source_key=source_key, defaults=dict(
         user=user, house=house, points=points, reason=reason, transaction_type=kind,
@@ -49,6 +51,8 @@ def check_in(actor, event_id, student_id=None, token=None):
         except (signing.BadSignature, KeyError, TypeError):
             raise ValidationError("Invalid or expired QR code. Ask the student to refresh their pass.")
     user = get_object_or_404(User.objects.select_related("house"), student_id=student_id, role="STUDENT", is_active=True)
+    from apps.seasons.scope import require_membership
+    require_membership(user)
     existing = Attendance.objects.filter(event=event, user=user).first()
     if existing:
         if not existing.is_valid:

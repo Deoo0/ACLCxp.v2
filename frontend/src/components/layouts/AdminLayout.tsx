@@ -20,6 +20,7 @@ import PageTransition from "../feedback/PageTransition";
 import { button } from "../admin/ConsoleUI";
 
 const links = [
+  { label: "Seasons", path: "/admin/seasons", icon: CalendarDays },
   { label: "Overview", path: "/admin", icon: LayoutDashboard },
   { label: "Students & access", path: "/admin/users", icon: Users },
   { label: "Events", path: "/admin/events", icon: CalendarDays },
