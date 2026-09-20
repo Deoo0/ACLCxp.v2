@@ -8,8 +8,10 @@ from apps.houses.models import House
 class MatchAnnouncement(BaseModel):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="matches")
     label = models.CharField(max_length=100, default="Match 1")
-    team_one = models.CharField(max_length=100)
-    team_two = models.CharField(max_length=100)
+    house_one = models.ForeignKey(House, on_delete=models.PROTECT, null=True, blank=True, related_name="matches_as_one")
+    house_two = models.ForeignKey(House, on_delete=models.PROTECT, null=True, blank=True, related_name="matches_as_two")
+    team_one = models.CharField(max_length=100, blank=True)
+    team_two = models.CharField(max_length=100, blank=True)
     scheduled_at = models.DateTimeField()
     is_published = models.BooleanField(default=False)
 
@@ -18,7 +20,9 @@ class MatchAnnouncement(BaseModel):
 
     def clean(self):
         from django.core.exceptions import ValidationError
-        if self.team_one.strip().casefold() == self.team_two.strip().casefold():
+        if self.house_one_id and self.house_one_id == self.house_two_id:
+            raise ValidationError({"house_two": "Choose two different houses."})
+        if not self.house_one_id and not self.house_two_id and self.team_one.strip().casefold() == self.team_two.strip().casefold():
             raise ValidationError({"team_two": "Choose two different teams."})
 
     def __str__(self):

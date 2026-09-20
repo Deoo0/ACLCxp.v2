@@ -400,5 +400,5 @@ def dashboard(request):
         "registrations": EventRegistration.objects.exclude(status="CANCELLED").count(),
         "attendance": Attendance.objects.filter(is_valid=True).count(),
         "points": effective_points().aggregate(total=Sum("points"))["total"] or 0,
-        "houses": HouseSerializer(houses_with_totals(), many=True).data,
+        "houses": HouseSerializer(houses_with_totals(), many=True, context={"request": request}).data,
         "recent": AuditSerializer(AuditLog.objects.order_by("-created_at")[:8], many=True).data})

@@ -15,7 +15,9 @@ class ResultSerializer(serializers.ModelSerializer):
     participant = serializers.SerializerMethodField()
 
     def get_participant(self, obj):
-        return obj.team_name or (obj.house.name if obj.house else "Individual participant")
+        if obj.house:
+            return f"{obj.house.name} · {obj.team_name}" if obj.team_name else obj.house.name
+        return obj.team_name or "Individual participant"
 
     class Meta:
         model = EventResult
@@ -23,6 +25,18 @@ class ResultSerializer(serializers.ModelSerializer):
 
 
 class MatchSerializer(serializers.ModelSerializer):
+    team_one = serializers.SerializerMethodField()
+    team_two = serializers.SerializerMethodField()
+
+    def get_team_one(self, obj):
+        return self.side(obj.house_one, obj.team_one)
+
+    def get_team_two(self, obj):
+        return self.side(obj.house_two, obj.team_two)
+
+    def side(self, house, team):
+        return f"{house.name} · {team}" if house and team else (house.name if house else team)
+
     class Meta:
         model = MatchAnnouncement
         fields = ["id", "label", "team_one", "team_two", "scheduled_at"]
@@ -48,7 +62,7 @@ class CompetitionFeed(ListAPIView):
         # This is a public feed, including when viewed by a signed-in manager.
         events = visible_events(Event.objects.all(), AnonymousUser()).filter(archived_at__isnull=True)
         results = EventResult.objects.filter(is_verified=True).select_related("house").order_by("rank", "pk")
-        matches = MatchAnnouncement.objects.filter(is_published=True, scheduled_at__gte=timezone.now())
+        matches = MatchAnnouncement.objects.filter(is_published=True, scheduled_at__gte=timezone.now()).select_related("house_one", "house_two")
         if self.request.query_params.get("tab") == "matches":
             events = events.filter(status__in=["PUBLISHED", "ONGOING"], matches__in=matches).order_by("event_date", "start_time", "pk")
         else:

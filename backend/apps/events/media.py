@@ -2,9 +2,9 @@ from django.core.files.storage import default_storage
 from django.http import FileResponse, Http404
 
 
-def event_image(request, filename):
+def event_image(request, filename, folder="events"):
     try:
-        photo = default_storage.open(f"events/{filename}", "rb")
+        photo = default_storage.open(f"{folder}/{filename}", "rb")
     except FileNotFoundError:
         raise Http404
     response = FileResponse(photo, content_type="image/png" if filename.endswith(".png") else "image/jpeg")

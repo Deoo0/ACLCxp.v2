@@ -4,7 +4,7 @@ from .models import EventResult, MatchAnnouncement
 
 @admin.register(MatchAnnouncement)
 class MatchAnnouncementAdmin(admin.ModelAdmin):
-    list_display = ["event", "label", "team_one", "team_two", "scheduled_at", "is_published"]
+    list_display = ["event", "label", "house_one", "team_one", "house_two", "team_two", "scheduled_at", "is_published"]
     list_filter = ["is_published", "event"]
     search_fields = ["team_one", "team_two", "event__title"]
 

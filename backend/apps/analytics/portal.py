@@ -31,7 +31,7 @@ def summary(request):
     return Response({"points": points, "rank": students.filter(total__gt=points).count() + 1,
         "attendance": Attendance.objects.filter(user=request.user, is_valid=True).count(),
         "registered": EventRegistration.objects.filter(user=request.user).exclude(status="CANCELLED").count(),
-        "houses": HouseSerializer(houses_with_totals().filter(is_active=True), many=True).data,
+        "houses": HouseSerializer(houses_with_totals().filter(is_active=True), many=True, context={"request": request}).data,
         "settings": public_settings()})
 
 

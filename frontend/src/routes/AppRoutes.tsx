@@ -24,6 +24,7 @@ const StatsPage = lazy(() => import("../pages/student/StatsPage"));
 const EventsPage = lazy(() => import("../pages/student/EventsPage"));
 
 const AdminDashboard = lazy(() => import("../pages/admin/DashboardPage"));
+const MatchupsManagement = lazy(() => import("../pages/admin/MatchupsPage"));
 const UsersManagement = lazy(() => import("../pages/admin/UsersPage"));
 const EventsManagement = lazy(() => import("../pages/admin/EventsPage"));
 const HousesManagement = lazy(() => import("../pages/admin/HousesPage"));
@@ -110,6 +111,7 @@ export default function AppRoutes() {
           <Route path="users" element={<UsersManagement />} />
           <Route path="events" element={<EventsManagement />} />
           <Route path="houses" element={<HousesManagement />} />
+          <Route path="matchups" element={<MatchupsManagement />} />
           <Route path="attendance" element={<AttendanceReports />} />
           <Route path="points" element={<PointsManagement />} />
           <Route path="settings" element={<SystemSettings />} />

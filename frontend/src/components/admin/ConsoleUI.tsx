@@ -107,6 +107,7 @@ export function Panel({
   );
 }
 export interface Field {
+  aspectRatio?: number;
   name: string;
   label: string;
   type?:
@@ -295,7 +296,7 @@ export function Editor({
             {fields.map((field) => field.type === "image" ? (
               <div key={field.name} className="space-y-2 text-sm text-neutral-300">
                 <p>{field.label}</p>
-                <ImageUpload label={field.label} value={values[field.name]} onChange={value => setValues(old => ({ ...old, [field.name]: value }))} />
+                <ImageUpload label={field.label} aspectRatio={field.aspectRatio} value={values[field.name]} onChange={value => setValues(old => ({ ...old, [field.name]: value }))} />
               </div>
             ) : (
               <label

@@ -1,4 +1,5 @@
 import { ResourcePage } from "../../components/admin/ConsoleUI";
+import HouseLogo from "../../components/ui/HouseLogo";
 export default function HousesPage() {
   return (
     <ResourcePage
@@ -20,7 +21,7 @@ export default function HousesPage() {
         },
         { name: "motto", label: "Motto" },
         { name: "description", label: "Description", type: "textarea" },
-        { name: "logo_url", label: "Logo URL" },
+        { name: "logo_url", label: "House logo", type: "image", aspectRatio: 1 },
         { name: "is_active", label: "House active", type: "checkbox" },
       ]}
       columns={[
@@ -29,10 +30,7 @@ export default function HousesPage() {
           label: "House",
           render: (r) => (
             <span className="flex items-center gap-2">
-              <span
-                className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: String(r.color_code) }}
-              />
+              <HouseLogo name={String(r.name)} src={String(r.logo_url || "")} color={String(r.color_code)} />
               {String(r.name)}
             </span>
           ),
