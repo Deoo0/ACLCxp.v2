@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 
 const control = "rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10 disabled:opacity-40";
 
-export default function ImageUpload({ label, value, onChange, aspectRatio = 16 / 9 }: {
-  label: string; value: string; aspectRatio?: number; onChange: (value: string) => void;
+export default function ImageUpload({ label, value, onChange, aspectRatio = 16 / 9, id }: {
+  label: string; value: string; aspectRatio?: number; id?: string; onChange: (value: string) => void;
 }) {
   const ratioLabel = aspectRatio === 1 ? "1:1 square" : "16:9";
   const [source, setSource] = useState("");
@@ -38,7 +38,7 @@ export default function ImageUpload({ label, value, onChange, aspectRatio = 16 /
   }, [source, cropping, zoom, x, y, aspectRatio]);
 
   return <div className="space-y-3 rounded-xl border border-white/10 p-3">
-    <input type="file" aria-label={label} accept="image/jpeg,image/png,.jpg,.jpeg,.png" className="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-amber-300 file:px-3 file:py-2 file:text-black" onChange={async event => {
+    <input id={id} type="file" aria-label={label} accept="image/jpeg,image/png,.jpg,.jpeg,.png" className="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-amber-300 file:px-3 file:py-2 file:text-black" onChange={async event => {
       const file = event.target.files?.[0];
       event.target.value = "";
       if (!file) return;
