@@ -26,8 +26,14 @@ def public_settings():
 @permission_classes([IsAuthenticated])
 def summary(request):
     points = effective_points().filter(user=request.user).aggregate(total=Sum("points"))["total"] or 0
-    students = User.objects.filter(role="STUDENT", is_active=True).annotate(
-        total=Sum("points_transactions__points", filter=Q(points_transactions__is_approved=True, points_transactions__is_reversed=False), default=0))
+    from apps.seasons.scope import current_season
+    season = current_season()
+    students = User.objects.filter(role="STUDENT", is_active=True)
+    point_filter = Q(points_transactions__is_approved=True, points_transactions__is_reversed=False)
+    if season:
+        students = students.filter(season_memberships__season=season)
+        point_filter &= Q(points_transactions__season=season)
+    students = students.annotate(total=Sum("points_transactions__points", filter=point_filter, default=0))
     return Response({"points": points, "rank": students.filter(total__gt=points).count() + 1,
         "attendance": Attendance.objects.filter(user=request.user, is_valid=True).count(),
         "registered": EventRegistration.objects.filter(user=request.user).exclude(status="CANCELLED").count(),

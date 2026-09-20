@@ -1,3 +1,4 @@
+from apps.seasons.scope import SeasonManager, current_season_id
 from django.contrib.auth.models import (
     AbstractBaseUser,
     PermissionsMixin,
@@ -149,6 +150,10 @@ class StudentRoster(BaseModel):
 
 
 class IntramuralsTicket(BaseModel):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season = models.ForeignKey("seasons.Season", on_delete=models.PROTECT, null=True, blank=True, default=current_season_id)
     """An opaque, school-issued ticket that may activate exactly one roster record."""
 
     AVAILABLE = "AVAILABLE"
@@ -161,8 +166,8 @@ class IntramuralsTicket(BaseModel):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=AVAILABLE, db_index=True)
     issued_at = models.DateTimeField(null=True, blank=True)
     redeemed_at = models.DateTimeField(null=True, blank=True)
-    redeemed_by = models.OneToOneField(
-        StudentRoster, null=True, blank=True, on_delete=models.PROTECT, related_name="redeemed_ticket"
+    redeemed_by = models.ForeignKey(
+        StudentRoster, null=True, blank=True, on_delete=models.PROTECT, related_name="redeemed_tickets"
     )
 
     class Meta:

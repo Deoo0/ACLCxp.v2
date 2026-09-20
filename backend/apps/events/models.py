@@ -1,3 +1,4 @@
+from apps.seasons.scope import SeasonManager, current_season_id
 from django.db import models
 from apps.core.models import BaseModel
 from apps.users.models import User
@@ -32,6 +33,10 @@ class EventCategory(BaseModel):
 
 
 class Event(BaseModel):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season = models.ForeignKey("seasons.Season", on_delete=models.PROTECT, null=True, blank=True, default=current_season_id)
     """Main events table"""
 
     VISIBILITY_CHOICES = [
@@ -51,7 +56,7 @@ class Event(BaseModel):
 
     # Basic Info
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=250, unique=True, db_index=True)
+    slug = models.SlugField(max_length=250, db_index=True)
     description = models.TextField()
 
     # Relationships
@@ -116,6 +121,8 @@ class Event(BaseModel):
 
     class Meta:
         constraints = [
+            models.UniqueConstraint(fields=["season", "slug"], name="event_slug_per_season"),
+            models.UniqueConstraint(fields=["slug"], condition=models.Q(season__isnull=True), name="legacy_event_slug_unique"),
             models.CheckConstraint(condition=models.Q(capacity__gte=1), name="event_capacity_positive"),
             models.CheckConstraint(condition=models.Q(current_registered__gte=0) & models.Q(current_registered__lte=models.F("capacity")), name="event_registration_bounds"),
             models.CheckConstraint(condition=models.Q(end_time__gt=models.F("start_time")), name="event_time_order"),
@@ -144,6 +151,10 @@ class Event(BaseModel):
 
 
 class EventRegistration(BaseModel):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season_lookup = "event__season_id"
     """Student event registrations"""
 
     STATUS_CHOICES = [
