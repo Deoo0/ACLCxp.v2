@@ -4,6 +4,7 @@ import PublicRoute from "./PublicRoute";
 import ProtectedRoute from "./ProtectedRoute";
 
 const LandingPage = lazy(() => import("../pages/public/LandingPage"));
+const CompetitionResults = lazy(() => import("../components/landing/CompetitionResults"));
 const ConnectivityTestPage = lazy(
   () => import("../pages/public/ConnectivityTestPage"),
 );
@@ -53,6 +54,7 @@ export default function AppRoutes() {
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/results" element={<div className="min-h-screen bg-neutral-950 pt-24"><CompetitionResults /></div>} />
           <Route path="/connectivity" element={<ConnectivityTestPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />

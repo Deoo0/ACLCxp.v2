@@ -1,6 +1,14 @@
 from django.db import models
 from apps.core.models import BaseModel
 from apps.users.models import User
+from uuid import uuid4
+from pathlib import Path
+from django.core.validators import FileExtensionValidator
+
+
+def event_photo_path(instance, filename):
+    extension = Path(filename).suffix.lower()
+    return f"events/{uuid4().hex}{'.jpg' if extension == '.jpeg' else extension}"
 
 
 class EventCategory(BaseModel):
@@ -82,8 +90,8 @@ class Event(BaseModel):
     third_place_points = models.IntegerField(default=30)
 
     # Media
-    banner_image = models.URLField(max_length=500, blank=True)
-    poster_image = models.URLField(max_length=500, blank=True)
+    banner_image = models.ImageField(upload_to=event_photo_path, max_length=500, blank=True, validators=[FileExtensionValidator(["jpg", "jpeg", "png"])])
+    poster_image = models.ImageField(upload_to=event_photo_path, max_length=500, blank=True, validators=[FileExtensionValidator(["jpg", "jpeg", "png"])])
 
     # Status
     status = models.CharField(

@@ -5,6 +5,26 @@ from apps.events.models import Event
 from apps.houses.models import House
 
 
+class MatchAnnouncement(BaseModel):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="matches")
+    label = models.CharField(max_length=100, default="Match 1")
+    team_one = models.CharField(max_length=100)
+    team_two = models.CharField(max_length=100)
+    scheduled_at = models.DateTimeField()
+    is_published = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["scheduled_at", "pk"]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.team_one.strip().casefold() == self.team_two.strip().casefold():
+            raise ValidationError({"team_two": "Choose two different teams."})
+
+    def __str__(self):
+        return f"{self.event.title}: {self.team_one} vs {self.team_two}"
+
+
 class EventResult(BaseModel):
     """Competition results and rankings"""
 

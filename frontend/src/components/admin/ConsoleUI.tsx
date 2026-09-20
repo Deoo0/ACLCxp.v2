@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ImageUpload from "./ImageUpload";
 import type { ReactNode, FormEvent } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
@@ -109,6 +110,7 @@ export interface Field {
   name: string;
   label: string;
   type?:
+    | "image"
     | "text"
     | "textarea"
     | "number"
@@ -230,6 +232,7 @@ export function Editor({
       const data: Record<string, unknown> = {};
       for (const field of fields) {
         const value = values[field.name];
+        if (field.type === "image" && value === String(initial[field.name] ?? "")) continue;
         if (field.type === "password" && !value) continue;
         data[field.name] =
           field.type === "json" || field.type === "multi"
@@ -289,7 +292,12 @@ export function Editor({
             </Dialog.Close>
           </div>
           <form onSubmit={submit} className="mt-6 space-y-4">
-            {fields.map((field) => (
+            {fields.map((field) => field.type === "image" ? (
+              <div key={field.name} className="space-y-2 text-sm text-neutral-300">
+                <p>{field.label}</p>
+                <ImageUpload label={field.label} value={values[field.name]} onChange={value => setValues(old => ({ ...old, [field.name]: value }))} />
+              </div>
+            ) : (
               <label
                 key={field.name}
                 className="block space-y-2 text-sm text-neutral-300"

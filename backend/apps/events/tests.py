@@ -283,3 +283,60 @@ class RegistrationConcurrencyTests(TransactionTestCase):
         self.assertEqual(EventRegistration.objects.count(), 1)
         self.event.refresh_from_db()
         self.assertEqual(self.event.current_registered, 1)
+
+class EventImageUploadTests(TestCase):
+    def setUp(self):
+        import tempfile
+        from django.test import override_settings
+        self.media = tempfile.TemporaryDirectory()
+        self.addCleanup(self.media.cleanup)
+        self.override = override_settings(MEDIA_ROOT=self.media.name)
+        self.override.enable()
+        self.addCleanup(self.override.disable)
+        self.client = APIClient()
+        self.admin = make_user("image-admin", "ADMIN")
+        self.client.force_authenticate(self.admin)
+        self.category = EventCategory.objects.create(name="Photo events", slug="photo-events")
+
+    def photo(self, format="PNG"):
+        import base64
+        from io import BytesIO
+        from PIL import Image
+        buffer = BytesIO()
+        Image.new("RGB", (160, 90), "blue").save(buffer, format=format)
+        mime = "jpeg" if format == "JPEG" else format.lower()
+        return f"data:image/{mime};base64," + base64.b64encode(buffer.getvalue()).decode()
+
+    def test_upload_read_replace_remove_and_preserve(self):
+        data = event_data(self.category)
+        data["banner_image"] = self.photo()
+        response = self.client.post("/api/events/", data, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        path = f'/api/events/{response.data["id"]}/'
+        image_url = response.data["banner_image"]
+        self.assertIn("/media/events/", image_url)
+        photo = self.client.get(image_url)
+        self.assertEqual(photo.status_code, 200)
+        self.assertEqual(photo["Content-Type"], "image/png")
+        photo.close()
+        response = self.client.patch(path, {"venue": "New hall"}, format="json")
+        self.assertEqual(response.data["banner_image"], image_url)
+        response = self.client.patch(path, {"banner_image": self.photo("JPEG")}, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertTrue(response.data["banner_image"].endswith(".jpg"))
+        response = self.client.patch(path, {"banner_image": ""}, format="json")
+        self.assertEqual(response.data["banner_image"], "")
+
+    def test_rejects_urls_corrupt_and_non_image_content(self):
+        for image in ["https://example.com/photo.jpg", "data:image/png;base64,aGVsbG8=", self.photo("GIF"), 123]:
+            data = {**event_data(self.category), "banner_image": image}
+            response = self.client.post("/api/events/", data, format="json")
+            self.assertEqual(response.status_code, 400, response.data)
+            self.assertIn("banner_image", response.data)
+
+    def test_existing_url_remains_readable(self):
+        data = event_data(self.category)
+        data.pop("category")
+        event = Event.objects.create(**data, category=self.category, organizer=self.admin, banner_image="https://example.com/old.jpg")
+        response = self.client.get(f"/api/events/{event.pk}/")
+        self.assertEqual(response.data["banner_image"], "https://example.com/old.jpg")

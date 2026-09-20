@@ -6,6 +6,7 @@ export interface NavItem {
 }
 
 export const PublicNavItems = [
+  { label: "Results", path: "/results" },
   {
     label: "Socials",
     children: [

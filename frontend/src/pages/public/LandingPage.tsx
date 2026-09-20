@@ -1,6 +1,7 @@
 import Hero from '../../components/landing/Hero.tsx'
 import OngoingEvents from '../../components/landing/OngoingEvents.tsx'
 import CTA from '../../components/landing/CTA.tsx'
+import CompetitionResults from '../../components/landing/CompetitionResults.tsx'
 import SupportChat from "../../components/ui/SupportChat.tsx";
 
 export default function LandingPage() {
@@ -10,6 +11,7 @@ export default function LandingPage() {
         <div className="min-h-screen bg-slate-950 flex flex-col pt-16">
             <Hero />
             <OngoingEvents />
+            <CompetitionResults />
             <CTA />
         </div>
         </>
