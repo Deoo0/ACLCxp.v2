@@ -1,9 +1,13 @@
 import axios from "axios";
 
 const origin = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const configuredTimeout = Number(import.meta.env.VITE_API_TIMEOUT_MS);
+const timeout = Number.isFinite(configuredTimeout) && configuredTimeout >= 1000
+  ? Math.min(configuredTimeout, 120000)
+  : 20000;
 const api = axios.create({
   baseURL: `${origin}/api`,
-  timeout: 20000,
+  timeout,
   headers: { "Content-Type": "application/json" },
 });
 let refresh: Promise<string> | null = null;
@@ -34,7 +38,7 @@ api.interceptors.response.use(
         .post(
           `${origin}/api/auth/token/refresh/`,
           { refresh: token },
-          { timeout: 15000 },
+          { timeout },
         )
         .then(({ data }) => {
           const access: string = data.data.access;

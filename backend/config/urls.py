@@ -16,9 +16,13 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from apps.events.media import event_image
 
 urlpatterns = [
+    re_path(r"^media/houses/(?P<filename>[a-f0-9]{32}\.(?:jpg|png))$", event_image, {"folder": "houses"}),
+    re_path(r"^media/events/(?P<filename>[a-f0-9]{32}\.(?:jpg|png))$", event_image),
+    path("api/competitions/", include("apps.results.urls")),
     path("admin/", admin.site.urls),
     path("api/events/", include("apps.events.urls")),
     path("api/", include("apps.analytics.urls")),

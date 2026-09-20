@@ -3,6 +3,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from apps.houses.models import House
 from .models import Event, EventCategory, EventRegistration
+from .images import EventImageField
 
 
 class EventCategorySerializer(serializers.ModelSerializer):
@@ -12,6 +13,9 @@ class EventCategorySerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
+    banner_image = EventImageField(required=False, allow_null=True)
+    poster_image = EventImageField(required=False, allow_null=True)
+
     def _lock_audience_houses(self, ids):
         ids = set(ids or [])
         found = list(House.objects.select_for_update().filter(pk__in=ids, is_active=True).order_by("pk").values_list("pk", flat=True))

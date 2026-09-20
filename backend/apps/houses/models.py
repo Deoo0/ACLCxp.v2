@@ -1,5 +1,13 @@
 from django.db import models
 from apps.core.models import BaseModel
+from django.core.validators import FileExtensionValidator
+from uuid import uuid4
+from pathlib import Path
+
+
+def house_logo_path(instance, filename):
+    extension = Path(filename).suffix.lower()
+    return f"houses/{uuid4().hex}{'.jpg' if extension == '.jpeg' else extension}"
 
 
 class House(BaseModel):
@@ -8,7 +16,7 @@ class House(BaseModel):
     name = models.CharField(max_length=50, unique=True, db_index=True)
     description = models.TextField(blank=True)
     color_code = models.CharField(max_length=7)  # Hex color: #FF4500
-    logo_url = models.URLField(max_length=500, blank=True)
+    logo_url = models.ImageField(upload_to=house_logo_path, max_length=500, blank=True, validators=[FileExtensionValidator(["jpg", "jpeg", "png"])])
     motto = models.CharField(max_length=255, blank=True)
 
     # Points & Ranking

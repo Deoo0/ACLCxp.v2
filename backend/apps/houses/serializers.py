@@ -1,9 +1,11 @@
 from rest_framework import serializers
 from .models import House
+from apps.events.images import EventImageField
 
 
 class HouseSerializer(serializers.ModelSerializer):
     """Full house details — used for admin views"""
+    logo_url = EventImageField(required=False, allow_null=True)
 
     class Meta:
         model = House

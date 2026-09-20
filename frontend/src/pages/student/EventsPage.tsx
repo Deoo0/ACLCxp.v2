@@ -5,19 +5,18 @@ import {
   MapPin,
   Users,
   ArrowUpRight,
-  X,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { useApi, useWrite } from "../../services/queries";
 import type { PageData, Row } from "../../services/queries";
+import EventDetails from "../../components/dashboard/EventDetails";
 import { StudentFrame } from "../../components/dashboard/LivePortal";
 import {
   Panel,
   Notice,
   Loading,
   button,
-  primary,
   Badge,
   input,
   Records,
@@ -232,115 +231,16 @@ export default function EventsPage() {
       >
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-[80] bg-black/70 backdrop-blur" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-[81] max-h-[90dvh] w-[calc(100%-24px)] max-w-xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/10 bg-neutral-900 p-6 text-neutral-200">
-            <div className="flex justify-between gap-4">
-              <Dialog.Title className="text-xl font-semibold text-white">
-                {String(event?.title || "Event details")}
-              </Dialog.Title>
-              <Dialog.Close
-                disabled={write.isPending}
-                className={button}
-                aria-label="Close event details"
-              >
-                <X className="h-4 w-4" />
-              </Dialog.Close>
-            </div>
-            <Dialog.Description className="mt-3 whitespace-pre-wrap text-sm leading-6 text-neutral-400">
-              {String(event?.description || "Loading event details...")}
-            </Dialog.Description>
-            {detail.isError ? (
-              <Notice
-                error={detail.error}
-                retry={() => void detail.refetch()}
-              />
-            ) : detail.isPending ? (
-              <Loading />
-            ) : (
-              event && (
-                <>
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    <Badge value={event.status} />
-                    {Boolean(event.registration_status) && (
-                      <Badge value={event.registration_status} />
-                    )}
-                  </div>
-                  <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
-                    {[
-                      ["Date", event.event_date],
-                      ["Venue", event.venue],
-                      ["Starts (UTC)", event.start_time],
-                      ["Ends (UTC)", event.end_time],
-                      ["Available places", event.available_slots],
-                      ["Participation points", event.participation_points],
-                    ].map(([label, value]) => (
-                      <div key={String(label)}>
-                        <dt className="text-xs text-neutral-500">
-                          {String(label)}
-                        </dt>
-                        <dd className="mt-1 text-neutral-200">
-                          {String(value ?? "-")}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                  {["requirements", "rules", "prizes"].map((key) =>
-                    event[key] ? (
-                      <section key={key} className="mt-5">
-                        <h3 className="text-sm font-semibold capitalize text-neutral-200">
-                          {key}
-                        </h3>
-                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-neutral-400">
-                          {String(event[key])}
-                        </p>
-                      </section>
-                    ) : null,
-                  )}
-                  {error != null && (
-                    <div className="mt-4">
-                      <Notice error={error} />
-                    </div>
-                  )}
-                  {message && (
-                    <p
-                      role="status"
-                      className="mt-4 rounded-xl bg-emerald-400/10 p-3 text-sm text-emerald-200"
-                    >
-                      {message}
-                    </p>
-                  )}
-                  <div className="mt-6 flex flex-wrap gap-2">
-                    {event.status === "PUBLISHED" &&
-                      (!event.registration_status ||
-                        event.registration_status === "CANCELLED") && (
-                        <button
-                          className={primary}
-                          disabled={write.isPending}
-                          onClick={() => void act(false)}
-                        >
-                          {Number(event.available_slots) > 0
-                            ? "Register for event"
-                            : event.allow_waitlist
-                              ? "Join waitlist"
-                              : "Event full"}
-                        </button>
-                      )}
-                    {["REGISTERED", "WAITLISTED"].includes(
-                      String(event.registration_status),
-                    ) &&
-                      event.status === "PUBLISHED" && (
-                        <button
-                          className={button}
-                          disabled={write.isPending}
-                          onClick={() => void act(true)}
-                        >
-                          Cancel registration
-                        </button>
-                      )}
-                  </div>
-                </>
-              )
-            )}
-          </Dialog.Content>
+          <EventDetails
+            event={event}
+            loading={detail.isPending}
+            loadError={detail.isError ? detail.error : null}
+            retry={() => void detail.refetch()}
+            pending={write.isPending}
+            error={error}
+            message={message}
+            onAction={(cancel) => void act(cancel)}
+          />
         </Dialog.Portal>
       </Dialog.Root>
     </StudentFrame>
