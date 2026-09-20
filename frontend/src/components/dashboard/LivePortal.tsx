@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Trophy } from "lucide-react";
 import { Panel } from "../admin/ConsoleUI";
+import HouseLogo from "../ui/HouseLogo";
 import type { Row } from "../../services/queries";
 export interface StudentSummary {
   points: number;
@@ -38,10 +39,7 @@ export function HouseStandings({ houses }: { houses: Row[] }) {
             <span className="w-6 font-mono text-sm text-neutral-500">
               {index + 1}
             </span>
-            <div
-              className="h-9 w-9 shrink-0 rounded-xl border border-white/10"
-              style={{ backgroundColor: String(house.color_code) }}
-            />
+            <HouseLogo name={String(house.name)} src={String(house.logo_url || "")} color={String(house.color_code)} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-neutral-200">
                 {String(house.name)}

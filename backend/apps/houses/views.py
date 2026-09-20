@@ -4,6 +4,7 @@ from apps.core.permissions import IsSchoolAdmin
 from rest_framework.response import Response
 from rest_framework import status
 from .models import House
+from .serializers import HouseSerializer
 
 
 @api_view(["GET"])
@@ -13,16 +14,7 @@ def list_houses(request):
     Public endpoint — anyone can see the list of houses.
     Used during registration so students can pick their assigned house.
     """
-    houses = House.objects.filter(is_active=True).values(
-        "id",
-        "name",
-        "description",
-        "color_code",
-        "motto",
-        "total_points",
-        "current_rank",
-        "member_count",
-    )
+    houses = HouseSerializer(House.objects.filter(is_active=True), many=True, context={"request": request}).data
     return Response(
         {"status": "success", "data": list(houses)}, status=status.HTTP_200_OK
     )
@@ -55,14 +47,10 @@ def add_house(request):
         )
 
     try:
-        house = House.objects.create(
-            name=data["name"],
-            description=data.get("description", ""),
-            color_code=data["color_code"],
-            motto=data.get("motto", ""),
-            logo_url=data.get("logo_url", ""),
-            is_active=data.get("is_active", True),
-        )
+        serializer = HouseSerializer(data={key: value for key, value in data.items() if key in ["name", "description", "color_code", "motto", "logo_url", "is_active"]}, context={"request": request})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        house = serializer.save()
         return Response(
             {
                 "status": "success",

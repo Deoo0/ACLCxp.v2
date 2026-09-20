@@ -5,6 +5,7 @@ from apps.houses.models import House
 from apps.attendance.models import Attendance
 from apps.results.models import PointsTransaction, EventResult
 from .models import AuditLog, SystemSetting
+from apps.events.images import EventImageField
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
@@ -44,6 +45,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
 
 class HouseSerializer(serializers.ModelSerializer):
+    logo_url = EventImageField(required=False, allow_null=True)
     member_count = serializers.IntegerField(source="actual_members", read_only=True)
     total_points = serializers.IntegerField(source="actual_points", read_only=True)
     class Meta:

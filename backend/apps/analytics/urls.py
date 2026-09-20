@@ -1,8 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import console, portal
+from apps.results.management import MatchAdminViewSet
 
 router = DefaultRouter()
+router.register("matchups", MatchAdminViewSet, basename="console-matchups")
 for prefix, view in [("users", console.UsersViewSet), ("roster", console.RosterViewSet),
     ("tickets", console.TicketsViewSet), ("houses", console.HousesViewSet),
     ("attendance", console.AttendanceViewSet), ("points", console.PointsViewSet),
