@@ -74,6 +74,9 @@ class Event(BaseModel):
     venue = models.CharField(max_length=200)
 
     # Registration
+    attendance_mode = models.CharField(max_length=12, default="PER_EVENT", choices=[
+        ("PER_EVENT", "Per-event check-in"), ("DAILY", "Daily approval"), ("NONE", "No attendance required")])
+    registration_required = models.BooleanField(default=True)
     capacity = models.IntegerField()
     current_registered = models.IntegerField(default=0)
     allow_waitlist = models.BooleanField(default=True)

@@ -15,6 +15,26 @@ from .models import Season, SeasonMembership
 
 
 class SeasonLifecycleTests(TestCase):
+    def test_open_attendance_requires_redeemed_current_season_ticket(self):
+        self.adopt()
+        self.event.refresh_from_db()
+        self.event.registration_required = False
+        self.event.status = "ONGOING"
+        self.event.save()
+        url = "/api/admin/attendance/check_in/"
+        payload = {"event": self.event.pk, "student_id": self.student.student_id}
+        old_season = Season.objects.create(name="Previous season", status="CLOSED")
+        ticket = IntramuralsTicket.all_objects.create(ticket_number="555555555555", qr_token="open-current",
+            season=old_season, status="REDEEMED", redeemed_by=self.roster)
+        self.assertEqual(self.client.post(url, payload).status_code, 409)
+        ticket.season = self.first
+        ticket.status = "DISABLED"
+        ticket.save()
+        self.assertEqual(self.client.post(url, payload).status_code, 409)
+        ticket.status = "REDEEMED"
+        ticket.save()
+        self.assertEqual(self.client.post(url, payload).status_code, 201)
+
     def setUp(self):
         self.client = APIClient()
         self.admin = make_user("season-admin", "ADMIN")

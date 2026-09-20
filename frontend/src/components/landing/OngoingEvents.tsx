@@ -48,10 +48,10 @@ function EventCard({ event, destination, action }: { event: Row; destination: st
       <dl className="my-5 space-y-3 text-xs">
         <div className="flex items-start gap-2.5"><Clock3 className="h-4 w-4 shrink-0 text-amber-300/80" /><dt className="sr-only">Start time</dt><dd className="text-neutral-300">{when.time}</dd></div>
         <div className="flex items-start gap-2.5"><MapPin className="h-4 w-4 shrink-0 text-amber-300/80" /><dt className="sr-only">Venue</dt><dd className="break-words text-neutral-300">{String(event.venue || 'Venue to be announced')}</dd></div>
-        <div className="flex items-start gap-2.5"><Users className="h-4 w-4 shrink-0 text-amber-300/80" /><dt className="sr-only">Availability</dt><dd className="text-neutral-300">{slots > 0 ? `${slots} ${slots === 1 ? 'place' : 'places'} available` : event.allow_waitlist ? 'Full · waitlist available' : 'All places reserved'}</dd></div>
+        <div className="flex items-start gap-2.5"><Users className="h-4 w-4 shrink-0 text-amber-300/80" /><dt className="sr-only">Availability</dt><dd className="text-neutral-300">{event.registration_required === false ? "Open attendance · No registration needed" : slots > 0 ? `${slots} ${slots === 1 ? 'place' : 'places'} available` : event.allow_waitlist ? 'Full · waitlist available' : 'All places reserved'}</dd></div>
       </dl>
       <div className="mt-auto flex items-center justify-between gap-3 border-t border-white/10 pt-4">
-        <span className="flex items-center gap-1.5 text-[11px] text-neutral-400"><Trophy className="h-3.5 w-3.5 text-amber-300" /><span><strong className="font-semibold text-neutral-200">{Number(event.participation_points) || 0} pts</strong> participation</span></span>
+        <span className="flex items-center gap-1.5 text-[11px] text-neutral-400"><Trophy className="h-3.5 w-3.5 text-amber-300" /><span>{event.attendance_mode === "NONE" ? "No attendance required" : <><strong className="font-semibold text-neutral-200">{Number(event.participation_points) || 0} pts</strong> attendance</>}</span></span>
         <Link to={destination} className="flex min-h-10 items-center gap-2 rounded-lg bg-amber-300 px-3 py-2 text-xs font-bold text-neutral-950 transition hover:bg-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300">{action}<ArrowRight className="h-3.5 w-3.5" /></Link>
       </div>
     </div>

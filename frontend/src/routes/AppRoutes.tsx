@@ -17,6 +17,7 @@ const PrivacyPolicyPage = lazy(
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/auth/RegisterPage"));
 
+const StaffAttendancePage = lazy(() => import("../pages/admin/StaffAttendancePage"));
 const MeritSheetPage = lazy(() => import("../pages/student/MeritSheetPage"));
 const Dashboard = lazy(() => import("../pages/student/DashboardPage"));
 const ProfilePage = lazy(() => import("../pages/student/ProfilePage"));
@@ -54,6 +55,7 @@ export default function AppRoutes() {
       }
     >
       <Routes>
+        <Route path="/staff/attendance" element={<ProtectedRoute roles={["STAFF", "ORGANIZER", "ADMIN"]}><StaffAttendancePage /></ProtectedRoute>} />
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/results" element={<div className="min-h-screen bg-neutral-950 pt-24"><CompetitionResults /></div>} />

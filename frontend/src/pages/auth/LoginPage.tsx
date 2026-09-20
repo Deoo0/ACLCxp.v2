@@ -25,7 +25,7 @@ export default function LoginPage() {
     try {
       setError(""); setLoading(true); setShowTransition(true); setLoginComplete(false);
       const user = await login({ student_id: studentId, password });
-      setRedirectTo(user.role === "ADMIN" ? "/admin" : "/dashboard");
+      setRedirectTo(user.role === "ADMIN" ? "/admin" : ["STAFF", "ORGANIZER"].includes(user.role) ? "/staff/attendance" : "/dashboard");
       setLoginComplete(true);
     } catch (err: any) {
       setShowTransition(false);

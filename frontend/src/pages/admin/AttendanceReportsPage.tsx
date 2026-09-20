@@ -11,6 +11,7 @@ import {
   Notice,
   Badge,
 } from "../../components/admin/ConsoleUI";
+import DailyAttendance from "../../components/admin/DailyAttendance";
 import QRScanner from "../../components/admin/QRScanner";
 import { useApi, useWrite } from "../../services/queries";
 import type { Row, PageData } from "../../services/queries";
@@ -44,7 +45,7 @@ export default function AttendanceReportsPage() {
     (row) => String(row.id) === event,
   );
   const canCheckIn =
-    selectedEvent?.status === "ONGOING" && !selectedEvent?.archived_at;
+    selectedEvent?.status === "ONGOING" && !selectedEvent?.archived_at && (!selectedEvent?.attendance_mode || selectedEvent.attendance_mode === "PER_EVENT");
   const write = useWrite();
   const mutateAsync = write.mutateAsync;
   const submit = useCallback(
@@ -99,6 +100,7 @@ export default function AttendanceReportsPage() {
         title="Attendance & reports"
         description="Record confirmed students at ongoing events. Scans award participation points once; corrections update the student merit record."
       />
+      <DailyAttendance />
       <Panel>
         <div className="mb-5 space-y-4">
           <ArchiveFilters

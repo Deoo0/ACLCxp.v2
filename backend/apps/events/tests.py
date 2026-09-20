@@ -23,6 +23,23 @@ def event_data(category):
 
 
 class EventsWorkflowTests(TestCase):
+    def test_open_attendance_creation_and_registration_rejection(self):
+        data = event_data(self.category)
+        data.update(slug="open-event", registration_required=False)
+        data.pop("capacity")
+        response = self.client.post("/api/events/", data, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertFalse(response.data["registration_required"])
+        self.client.force_authenticate(self.student)
+        response = self.client.post(f'/api/events/{response.data["id"]}/register/', {}, format="json")
+        self.assertEqual(response.status_code, 409)
+
+    def test_attendance_mode_cannot_change_with_reservations(self):
+        self.assertEqual(self.register(self.student).status_code, 201)
+        self.client.force_authenticate(self.organizer)
+        response = self.client.patch(self.url, {"registration_required": False}, format="json")
+        self.assertEqual(response.status_code, 409)
+
     def setUp(self):
         self.client = APIClient()
         self.admin = make_user("admin", "ADMIN")
