@@ -1,3 +1,4 @@
+from apps.core.text_limits import LimitedModelSerializer
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from apps.houses.models import House
@@ -6,7 +7,7 @@ from django.db import models
 User = get_user_model()
 
 
-class RegisterSerializer(serializers.ModelSerializer):
+class RegisterSerializer(LimitedModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     house_id = serializers.IntegerField(write_only=True)
 
@@ -64,7 +65,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserProfileSerializer(LimitedModelSerializer):
     """Read-only profile — returned after login or /api/auth/me/"""
 
     house_name = serializers.CharField(source="house.name", read_only=True)
@@ -96,7 +97,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return obj.get_full_name()
 
 
-class UpdateUserSerializer(serializers.ModelSerializer):
+class UpdateUserSerializer(LimitedModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
 
     def validate(self, attrs):

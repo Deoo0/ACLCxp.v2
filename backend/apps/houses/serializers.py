@@ -1,9 +1,10 @@
+from apps.core.text_limits import LimitedModelSerializer
 from rest_framework import serializers
 from .models import House
 from apps.events.images import EventImageField
 
 
-class HouseSerializer(serializers.ModelSerializer):
+class HouseSerializer(LimitedModelSerializer):
     """Full house details — used for admin views"""
     logo_url = EventImageField(required=False, allow_null=True)
 
@@ -23,7 +24,7 @@ class HouseSerializer(serializers.ModelSerializer):
         ]
 
 
-class HouseSelectSerializer(serializers.ModelSerializer):
+class HouseSelectSerializer(LimitedModelSerializer):
     """Minimal house info — used in registration dropdown"""
 
     class Meta:

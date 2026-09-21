@@ -135,7 +135,7 @@ export default function EventsPage() {
                     <p className="flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-amber-400" />
                       {String(row.event_date)} /{" "}
-                      {String(row.start_time).slice(0, 5)} UTC
+                      {String(row.start_time).slice(0, 5)} PHT
                     </p>
                     <p className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-amber-400" />

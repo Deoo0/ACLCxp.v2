@@ -169,6 +169,50 @@ class TicketsViewSet(mixins.ListModelMixin, AdminBase):
         search = self.request.query_params.get("search", "")
         return qs.filter(ticket_number__icontains=search) if search else qs
 
+    @action(detail=False, methods=["get"])
+    def template(self, request):
+        from django.http import HttpResponse
+        from .ticket_import import template_bytes
+        response = HttpResponse(template_bytes(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="activation-tickets-template.xlsx"'
+        return response
+
+    @action(detail=False, methods=["post"], url_path="import")
+    def import_excel(self, request):
+        from .ticket_import import read_ticket_numbers
+        numbers = read_ticket_numbers(request.FILES.get("file"))
+        if IntramuralsTicket.all_objects.filter(ticket_number__in=numbers).exists():
+            raise ValidationError("A ticket number already exists. Nothing was imported.")
+        try:
+            with transaction.atomic():
+                from apps.seasons.scope import current_season_id
+                season_id = current_season_id()
+                rows = [IntramuralsTicket(season_id=season_id, ticket_number=number, qr_token=secrets.token_urlsafe(32), issued_at=timezone.now()) for number in numbers]
+                IntramuralsTicket.objects.bulk_create(rows)
+        except IntegrityError:
+            raise ValidationError("A ticket number already exists. Nothing was imported.")
+        return Response(TicketSerializer(rows, many=True).data, status=201)
+
+    @transaction.atomic
+    def destroy(self, request, pk=None):
+        ticket = get_object_or_404(IntramuralsTicket.objects.select_for_update(), pk=pk)
+        if ticket.status == "REDEEMED" or ticket.redeemed_by_id or ticket.redeemed_at:
+            raise Conflict("Redeemed tickets must be retained as activation history.")
+        ticket.delete()
+        return Response(status=204)
+
+    @action(detail=False, methods=["post"], url_path="batch-delete")
+    @transaction.atomic
+    def batch_delete(self, request):
+        ids = serializers.ListField(child=serializers.IntegerField(min_value=1), min_length=1, max_length=500).run_validation(request.data.get("ids"))
+        tickets = list(IntramuralsTicket.objects.select_for_update().filter(pk__in=ids).order_by("pk"))
+        if len(tickets) != len(set(ids)):
+            raise ValidationError("Some selected tickets no longer exist in this season. Refresh and try again.")
+        if any(t.status == "REDEEMED" or t.redeemed_by_id or t.redeemed_at for t in tickets):
+            raise Conflict("Redeemed tickets cannot be deleted. Nothing was deleted.")
+        IntramuralsTicket.objects.filter(pk__in=ids).delete()
+        return Response({"deleted": len(tickets)})
+
     @action(detail=False, methods=["post"])
     @transaction.atomic
     def generate(self, request):
@@ -414,3 +458,21 @@ def dashboard(request):
         "points": effective_points().aggregate(total=Sum("points"))["total"] or 0,
         "houses": HouseSerializer(houses_with_totals(), many=True, context={"request": request}).data,
         "recent": AuditSerializer(AuditLog.objects.order_by("-created_at")[:8], many=True).data})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def field_limits(request):
+    from apps.events.serializers import EventSerializer, EventCategorySerializer
+    from apps.results.management import MatchAdminSerializer
+    from apps.seasons.views import SeasonSerializer
+    resources = {
+        "/events/categories/": EventCategorySerializer, "/events/": EventSerializer,
+        "/admin/users/": AdminUserUpdateSerializer, "/admin/roster/": RosterSerializer,
+        "/admin/houses/": HouseSerializer, "/admin/results/": ResultSerializer,
+        "/admin/settings/": SettingSerializer, "/admin/matchups/": MatchAdminSerializer,
+        "/seasons/": SeasonSerializer,
+    }
+    return Response({path: {name: field.max_length for name, field in serializer().fields.items()
+                           if isinstance(field, serializers.CharField) and not field.read_only and field.max_length}
+                     for path, serializer in resources.items()})

@@ -14,7 +14,7 @@ function schedule(row: Row) {
     month: valid ? date.toLocaleDateString("en-PH", { month: "short" }) : "TBA",
     day: valid ? String(date.getDate()).padStart(2, "0") : "—",
     date: valid ? date.toLocaleDateString("en-PH", { weekday: "short", month: "short", day: "numeric", year: "numeric" }) : "Date to be announced",
-    time: time.length >= 2 ? `${hour % 12 || 12}:${time[1]} ${hour < 12 ? "AM" : "PM"} UTC` : "Time to be announced",
+    time: time.length >= 2 ? `${hour % 12 || 12}:${time[1]} ${hour < 12 ? "AM" : "PM"} PHT` : "Time to be announced",
   };
 }
 

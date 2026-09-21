@@ -1,3 +1,4 @@
+from apps.core.text_limits import LimitedModelSerializer
 from django.db import transaction
 from django.http import HttpResponse
 from django.utils import timezone
@@ -16,7 +17,7 @@ from .scope import current_season
 from .archive import archive, purge_records, season_records
 
 
-class SeasonSerializer(serializers.ModelSerializer):
+class SeasonSerializer(LimitedModelSerializer):
     class Meta:
         model = Season
         fields = ["id", "name", "status", "is_current", "starts_on", "ends_on", "closed_at", "exported_at", "purged_at"]

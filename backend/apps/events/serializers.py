@@ -1,3 +1,6 @@
+from uuid import uuid4
+from django.utils.text import slugify
+from apps.core.text_limits import LimitedModelSerializer
 from datetime import datetime
 from django.utils import timezone
 from rest_framework import serializers
@@ -6,13 +9,18 @@ from .models import Event, EventCategory, EventRegistration
 from .images import EventImageField
 
 
-class EventCategorySerializer(serializers.ModelSerializer):
+class EventCategorySerializer(LimitedModelSerializer):
+    def create(self, validated_data):
+        validated_data["slug"] = f"{slugify(validated_data['name'])[:16] or 'category'}-{uuid4().hex}"
+        return super().create(validated_data)
+
     class Meta:
         model = EventCategory
         fields = ["id", "name", "slug", "description", "icon", "color_code", "display_order", "is_active"]
+        read_only_fields = ["slug"]
 
 
-class EventSerializer(serializers.ModelSerializer):
+class EventSerializer(LimitedModelSerializer):
     capacity = serializers.IntegerField(required=False, min_value=1)
     banner_image = EventImageField(required=False, allow_null=True)
     poster_image = EventImageField(required=False, allow_null=True)
@@ -24,6 +32,7 @@ class EventSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"allowed_houses": "A selected house is no longer available. Refresh and choose active houses."})
 
     def create(self, validated_data):
+        validated_data["slug"] = f"{slugify(validated_data['title'])[:200] or 'event'}-{uuid4().hex}"
         self._lock_audience_houses(validated_data.get("allowed_houses"))
         return super().create(validated_data)
 
@@ -31,6 +40,8 @@ class EventSerializer(serializers.ModelSerializer):
         if "allowed_houses" in validated_data:
             self._lock_audience_houses(validated_data["allowed_houses"])
         return super().update(instance, validated_data)
+
+    tags = serializers.ListField(child=serializers.CharField(max_length=50), max_length=20, required=False, allow_null=True)
 
     registration_status = serializers.CharField(read_only=True, allow_null=True)
     category_name = serializers.CharField(source="category.name", read_only=True)
@@ -48,7 +59,7 @@ class EventSerializer(serializers.ModelSerializer):
                   "participation_points", "first_place_points", "second_place_points", "third_place_points",
                   "banner_image", "poster_image", "status", "is_featured", "tags", "requirements",
                   "rules", "prizes", "total_attended", "published_at", "completed_at", "archived_at", "created_at", "updated_at"]
-        read_only_fields = ["organizer", "current_registered", "total_attended", "published_at", "completed_at", "archived_at", "created_at", "updated_at"]
+        read_only_fields = ["slug", "organizer", "current_registered", "total_attended", "published_at", "completed_at", "archived_at", "created_at", "updated_at"]
 
     def validate(self, attrs):
         if not attrs.get("registration_required", getattr(self.instance, "registration_required", True)):
@@ -87,7 +98,7 @@ class EventSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class RegistrationSerializer(serializers.ModelSerializer):
+class RegistrationSerializer(LimitedModelSerializer):
     student_name = serializers.CharField(source="user.get_full_name", read_only=True)
     student_id = serializers.CharField(source="user.student_id", read_only=True)
     event_title = serializers.CharField(source="event.title", read_only=True)

@@ -5,6 +5,9 @@ import {
   Editor,
   button,
   primary,
+  danger,
+  positive,
+  secondary,
   input,
   Notice,
   Panel,
@@ -15,7 +18,8 @@ import { useApi, useWrite } from "../../services/queries";
 import { AccountFilters } from "../../components/admin/Filters";
 import type { Filters, AccountOptions } from "../../components/admin/Filters";
 import type { Row } from "../../services/queries";
-import { downloadCsv } from "../../services/download";
+import api from "../../services/api";
+import { downloadBlob, downloadCsv } from "../../services/download";
 
 const rosterFields: Field[] = [
   { name: "student_number", label: "Student number", required: true },
@@ -75,6 +79,8 @@ export default function UsersPage() {
   const [tab, setTab] = useState("users");
   const [edit, setEdit] = useState<Row | null>(null);
   const [toggle, setToggle] = useState<Row | null>(null);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [deleteBatch, setDeleteBatch] = useState(false);
   const [count, setCount] = useState(10);
   const [message, setMessage] = useState("");
   const [error, setError] = useState<unknown>(null);
@@ -92,6 +98,26 @@ export default function UsersPage() {
     } catch (e) {
       setError(e);
     }
+  };
+  const template = async () => {
+    setError(null);
+    try {
+      const response = await api.get("/admin/tickets/template/", { responseType: "blob" });
+      downloadBlob(response.data, "activation-tickets-template.xlsx");
+    } catch (e) { setError(e); }
+  };
+  const importTickets = async (file: File) => {
+    setError(null);
+    setMessage("");
+    try {
+      if (file.size > 5_000_000) throw new Error("Excel files must be smaller than 5 MB.");
+      const body = new FormData();
+      body.append("file", file);
+      const rows: Row[] = await write.mutateAsync({ path: "/admin/tickets/import/", body });
+      downloadCsv([["Ticket number", "QR token"], ...rows.map(row => [row.ticket_number, row.qr_token])], "imported-activation-tickets.csv");
+      setMessage(`${rows.length} tickets imported. Ticket numbers and generated QR tokens downloaded.`);
+      setSelected([]);
+    } catch (e) { setError(e); }
   };
   const generate = async () => {
     setError(null);
@@ -281,7 +307,10 @@ export default function UsersPage() {
           title="Activation tickets"
           description="Issue unique tickets for roster-verified activation. Each ticket can activate one student account."
           endpoint="/admin/tickets/"
+          canDelete={row => row.status !== "REDEEMED"}
+          deleteDescription="Permanently delete this unused ticket. It will no longer activate an account. Redeemed tickets are retained as activation history."
           columns={[
+            { key: "selected", label: "Select", render: row => <input type="checkbox" className="h-5 w-5 accent-amber-400" aria-label={`Select ticket ${row.ticket_number}`} disabled={row.status === "REDEEMED"} checked={selected.includes(row.id)} onChange={e => setSelected(ids => e.target.checked ? [...ids, row.id] : ids.filter(id => id !== row.id))} /> },
             { key: "ticket_number", label: "Ticket number" },
             {
               key: "status",
@@ -293,13 +322,23 @@ export default function UsersPage() {
           ]}
           extraActions={(r) =>
             r.status !== "REDEEMED" && (
-              <button className={button} onClick={() => setToggle(r)}>
+              <button className={r.status === "DISABLED" ? positive : danger} onClick={() => setToggle(r)}>
                 {r.status === "DISABLED" ? "Enable" : "Disable"}
               </button>
             )
           }
         >
           <Panel>
+            <div className="mb-5 flex flex-wrap items-center gap-3 border-b border-white/10 pb-5">
+              <button className={secondary} onClick={() => void template()}><Download className="h-4 w-4" />Excel template</button>
+              <label className={`${positive} relative cursor-pointer focus-within:ring-2 focus-within:ring-emerald-300`}>
+                <Upload className="h-4 w-4" />{write.isPending ? "Importing…" : "Import Excel"}
+                <input className="absolute inset-0 w-full cursor-pointer opacity-0" aria-label="Import activation tickets from Excel" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={write.isPending} onChange={e => { const file = e.target.files?.[0]; if (file) void importTickets(file); e.target.value = ""; }} />
+              </label>
+              <button className={danger} disabled={!selected.length || selected.length > 500 || write.isPending} onClick={() => setDeleteBatch(true)}>Delete selected ({selected.length})</button>
+              {selected.length > 0 && <button className={button} onClick={() => setSelected([])}>Clear selection</button>}
+              <p className="w-full text-xs leading-5 text-neutral-400">Import up to 5,000 unique 6- or 12-digit ticket numbers using the template. Keep cells formatted as Text to preserve leading zeros. Select up to 500 unused tickets for deletion.</p>
+            </div>
             <div className="flex flex-wrap items-end gap-3">
               <label className="space-y-2 text-sm text-neutral-400">
                 <span>Number of tickets</span>
@@ -334,6 +373,7 @@ export default function UsersPage() {
           onClose={() => setEdit(null)}
         />
       )}
+      {deleteBatch && <Editor destructive title={`Delete ${selected.length} selected tickets?`} description="Permanently delete the selected unused tickets. They will no longer activate accounts. If any selected ticket has since been redeemed, nothing will be deleted." path="/admin/tickets/batch-delete/" fields={[]} transform={() => ({ ids: selected })} onClose={() => { setDeleteBatch(false); setSelected([]); }} />}
       {toggle && (
         <Editor
           title={`${toggle.status === "DISABLED" ? "Enable" : "Disable"} ticket ${toggle.ticket_number}?`}

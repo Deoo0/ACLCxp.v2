@@ -27,8 +27,11 @@ import {
 import type { Row, PageData } from "../../services/queries";
 
 export const button =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-4 py-2 text-sm font-medium text-neutral-200 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex shrink-0 min-h-11 whitespace-nowrap items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[.04] px-4 py-2 text-sm font-medium text-neutral-200 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-50";
 export const primary = `${button} !border-amber-400/20 !bg-amber-400 !text-neutral-950 hover:!bg-amber-300`;
+export const danger = `${button} !border-rose-400/30 !bg-rose-500/15 !text-rose-200 hover:!bg-rose-500/25`;
+export const positive = `${button} !border-emerald-400/30 !bg-emerald-500/15 !text-emerald-200 hover:!bg-emerald-500/25`;
+export const secondary = `${button} !border-sky-400/30 !bg-sky-500/15 !text-sky-200 hover:!bg-sky-500/25`;
 export const input =
   "w-full min-h-11 rounded-xl border border-white/15 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 disabled:opacity-50";
 export function PageHeading({
@@ -140,6 +143,7 @@ export interface Field {
   hint?: string;
   min?: number;
   max?: number;
+  maxLength?: number;
   placeholder?: string;
 }
 function Lookup({
@@ -205,6 +209,7 @@ export function Editor({
   method = "post",
   onClose,
   transform,
+  destructive = method === "delete",
 }: {
   title: string;
   description?: string;
@@ -213,6 +218,7 @@ export function Editor({
   path: string;
   method?: "post" | "patch" | "delete";
   onClose: () => void;
+  destructive?: boolean;
   transform?: (data: Record<string, unknown>) => Record<string, unknown>;
 }) {
   const [values, setValues] = useState<Record<string, string>>(() =>
@@ -245,6 +251,10 @@ export function Editor({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const errorRef = useRef<HTMLDivElement>(null);
   const id = useId();
+  const limits = useApi<Record<string, Record<string, number>>>("/admin/field-limits/", fields.length > 0);
+  const resource = Object.keys(limits.data || {}).sort((a, b) => b.length - a.length).find(prefix => path.startsWith(prefix));
+  const fieldLimit = (field: Field) => field.maxLength ?? (resource ? limits.data?.[resource]?.[field.name] : undefined)
+    ?? (["reason", "notes"].includes(field.name) ? 1000 : undefined);
   const sections = editorSections(path, fields);
   const isLong = fields.length > 6;
   const dirty = Object.keys(values).some(key => values[key] !== baseline[key]);
@@ -264,6 +274,8 @@ export function Editor({
       for (const field of fields) {
         if (field.showWhen && !field.showWhen(values)) continue;
         const value = values[field.name];
+        const limit = fieldLimit(field);
+        if (limit && value.length > limit) throw new Error(`${field.label} must be at most ${limit} characters.`);
         if (field.type === "image" && value === String(initial[field.name] ?? "")) continue;
         if (field.type === "password" && !value) continue;
         if (field.type === "date" && !field.required && !value) { data[field.name] = null; continue; }
@@ -309,7 +321,7 @@ export function Editor({
     if (field.showWhen && !field.showWhen(values)) return null;
     const fieldId = `${id}-${field.name}`;
     const wide = ["textarea", "json", "image", "multi", "checkbox", "password"].includes(field.type || "") || ["description", "title", "reason", "notes", "value"].includes(field.name);
-    const common = { id: fieldId, "aria-describedby": `${fieldId}-help`, "aria-invalid": !!fieldErrors[field.name], required: field.required, className: `${input} ${fieldErrors[field.name] ? '!border-rose-400/60' : ''}` };
+    const common = { maxLength: fieldLimit(field), id: fieldId, "aria-describedby": `${fieldId}-help`, "aria-invalid": !!fieldErrors[field.name], required: field.required, className: `${input} ${fieldErrors[field.name] ? '!border-rose-400/60' : ''}` };
     const label = <label htmlFor={fieldId} className="text-sm font-medium text-neutral-200">{field.label}{field.required && <span className="ml-1 text-amber-300" aria-label="required">*</span>}</label>;
     return <div key={field.name} className={`min-w-0 space-y-2 ${wide ? 'sm:col-span-2' : ''}`}>
       {field.type !== "checkbox" && <div className="flex items-start justify-between gap-3">{label}{!field.required && <span className="pt-0.5 text-[10px] text-neutral-500">Optional</span>}</div>}
@@ -324,7 +336,7 @@ export function Editor({
       : field.type === "select" ? <select {...common} value={values[field.name]} onChange={e => change(field.name, e.target.value)}><option value="">Choose an option…</option>{field.options?.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
       : field.type === "textarea" || field.type === "json" ? <textarea {...common} className={`${common.className} min-h-28 resize-y leading-6`} placeholder={field.placeholder} value={values[field.name]} onChange={e => change(field.name, e.target.value)} />
       : <input {...common} type={field.type === 'list' ? 'text' : field.type || 'text'} min={field.min} max={field.max} placeholder={field.placeholder} value={values[field.name]} autoComplete={field.type === 'password' ? 'new-password' : 'off'} onChange={e => change(field.name, e.target.value)} />}
-      <div id={`${fieldId}-help`} className="space-y-1">{field.hint && <p className="text-xs leading-5 text-neutral-500">{field.hint.replace(' Hold Ctrl/Command to select multiple.', ' Select any that apply.')}</p>}{fieldErrors[field.name] && <p className="text-xs text-rose-300">{fieldErrors[field.name]}</p>}</div>
+      <div id={`${fieldId}-help`} className="space-y-1">{fieldLimit(field) && <p className={`text-xs ${values[field.name].length > fieldLimit(field)! ? "text-rose-300" : "text-neutral-500"}`}>{values[field.name].length} / {fieldLimit(field)} characters</p>}{field.hint && <p className="text-xs leading-5 text-neutral-500">{field.hint.replace(' Hold Ctrl/Command to select multiple.', ' Select any that apply.')}</p>}{fieldErrors[field.name] && <p className="text-xs text-rose-300">{fieldErrors[field.name]}</p>}</div>
     </div>;
   }
   return (
@@ -339,7 +351,7 @@ export function Editor({
         <Dialog.Content className={`admin-dialog fixed left-1/2 top-1/2 z-[81] flex max-h-[92dvh] w-[calc(100%-24px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#111315] text-neutral-200 shadow-2xl ${isLong ? 'max-w-5xl' : 'max-w-2xl'}`}>
           <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 bg-gradient-to-r from-white/[.04] to-transparent p-5 sm:px-7">
             <div className="flex min-w-0 items-start gap-4">
-              <span className={`hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border sm:flex ${method === 'delete' ? 'border-rose-400/20 bg-rose-400/10 text-rose-300' : 'border-amber-300/20 bg-amber-300/10 text-amber-300'}`}>{method === 'delete' ? <Trash2 className="h-5 w-5" /> : <ClipboardList className="h-5 w-5" />}</span>
+              <span className={`hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border sm:flex ${destructive ? 'border-rose-400/20 bg-rose-400/10 text-rose-300' : 'border-amber-300/20 bg-amber-300/10 text-amber-300'}`}>{destructive ? <Trash2 className="h-5 w-5" /> : <ClipboardList className="h-5 w-5" />}</span>
               <div className="min-w-0"><p className="mb-1 text-[9px] font-bold uppercase tracking-[.2em] text-neutral-500">Campus administration</p><Dialog.Title className="text-xl font-semibold tracking-tight text-white">{title}</Dialog.Title><Dialog.Description className="mt-2 max-w-2xl text-xs leading-5 text-neutral-400">{description}</Dialog.Description>{recordName && <p className="mt-2 break-words text-xs font-medium text-amber-200">{recordName}</p>}</div>
             </div>
             <Dialog.Close disabled={write.isPending} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 text-neutral-400 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-amber-300 disabled:opacity-40" aria-label="Close dialog"><X className="h-4 w-4" /></Dialog.Close>
@@ -356,12 +368,12 @@ export function Editor({
                     <div className={`grid grid-cols-1 items-start gap-x-5 gap-y-4 sm:grid-cols-2 ${section.fields.length === 1 ? "[&>div]:col-span-full" : ""}`}>{section.fields.map(renderField)}</div>
                   </section>)}
                 </fieldset>
-                {!fields.length && <div className={`flex items-start gap-3 rounded-xl border p-4 text-sm leading-6 ${method === 'delete' ? 'border-rose-400/20 bg-rose-400/5 text-rose-200' : 'border-amber-300/20 bg-amber-300/5 text-amber-200'}`}><AlertCircle className="mt-0.5 h-5 w-5 shrink-0" /><p>{method === 'delete' ? 'Review the record above. Confirming permanently deletes it.' : 'Review the action above, then confirm to apply the change.'}</p></div>}
+                {!fields.length && <div className={`flex items-start gap-3 rounded-xl border p-4 text-sm leading-6 ${destructive ? 'border-rose-400/20 bg-rose-400/5 text-rose-200' : 'border-amber-300/20 bg-amber-300/5 text-amber-200'}`}><AlertCircle className="mt-0.5 h-5 w-5 shrink-0" /><p>{destructive ? 'Review the record above. Confirming permanently deletes it.' : 'Review the action above, then confirm to apply the change.'}</p></div>}
               </div>
             </div>
             <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-[#151719] px-5 py-4 sm:px-7">
               <span className="hidden items-center gap-2 text-[11px] text-neutral-500 sm:flex"><span className={`h-1.5 w-1.5 rounded-full ${dirty ? 'bg-amber-300' : 'bg-neutral-600'}`} />{write.isPending ? 'Saving your changes…' : dirty ? 'Unsaved changes' : 'Changes apply when you save'}</span>
-              <div className="ml-auto flex gap-2"><button type="button" disabled={write.isPending} className={button} onClick={onClose}>Cancel</button><button type="submit" disabled={write.isPending} className={method === 'delete' ? `${button} !border-rose-400/30 !bg-rose-500 !text-white hover:!bg-rose-400` : primary}>{write.isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : method === 'delete' ? <Trash2 className="h-4 w-4" /> : fields.length ? <Save className="h-4 w-4" /> : <Check className="h-4 w-4" />}{write.isPending ? 'Saving…' : method === 'delete' ? 'Confirm deletion' : fields.length ? 'Save changes' : 'Confirm action'}</button></div>
+              <div className="ml-auto flex w-full flex-wrap justify-end gap-2 sm:w-auto"><button type="button" disabled={write.isPending} className={button} onClick={onClose}>Cancel</button><button type="submit" disabled={write.isPending} className={destructive ? `${button} !border-rose-400/30 !bg-rose-500 !text-white hover:!bg-rose-400` : primary}>{write.isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : destructive ? <Trash2 className="h-4 w-4" /> : fields.length ? <Save className="h-4 w-4" /> : <Check className="h-4 w-4" />}{write.isPending ? 'Saving…' : destructive ? 'Confirm deletion' : fields.length ? 'Save changes' : 'Confirm action'}</button></div>
             </footer>
           </form>
         </Dialog.Content>
@@ -444,7 +456,7 @@ export function Records({
                     </th>
                   ))}
                   {actions && (
-                    <th scope="col" className="px-5 py-4">
+                    <th scope="col" className="sticky right-0 z-10 w-px whitespace-nowrap bg-neutral-950 px-5 py-4 text-right font-medium">
                       Actions
                     </th>
                   )}
@@ -452,7 +464,7 @@ export function Records({
               </thead>
               <tbody className="divide-y divide-white/[.05]">
                 {query.data.data.map((row) => (
-                  <tr key={row.id} className="transition hover:bg-white/[.02]">
+                  <tr key={row.id} className="group bg-[#111111] transition hover:bg-[#181818]">
                     {columns.map((col) => (
                       <td
                         key={col.key}
@@ -466,8 +478,8 @@ export function Records({
                       </td>
                     ))}
                     {actions && (
-                      <td className="px-5 py-3">
-                        <div className="flex flex-wrap gap-2">
+                      <td className="sticky right-0 w-px bg-[#111111] px-5 py-3 align-middle transition group-hover:bg-[#181818]">
+                        <div className="ml-auto flex w-max max-w-40 flex-wrap items-center justify-end gap-2 sm:max-w-[22rem]">
                           {actions(row)}
                         </div>
                       </td>
@@ -564,14 +576,14 @@ export function ResourcePage({
             ? (row) => (
                 <>
                   {(typeof canEdit === "function" ? canEdit(row) : canEdit) && (
-                    <button className={button} onClick={() => setEdit(row)}>
+                    <button className={secondary} onClick={() => setEdit(row)}>
                       Edit
                     </button>
                   )}
                   {(typeof canDelete === "function"
                     ? canDelete(row)
                     : canDelete) && (
-                    <button className={button} onClick={() => setRemove(row)}>
+                    <button className={danger} onClick={() => setRemove(row)}>
                       Delete
                     </button>
                   )}
@@ -598,7 +610,7 @@ export function ResourcePage({
       )}
       {remove && (
         <Editor
-          title={`Delete ${String(remove.full_name || remove.name || remove.student_number || "record")}?`}
+          title={`Delete ${String(remove.ticket_number || remove.full_name || remove.name || remove.student_number || "record")}?`}
           description={deleteDescription}
           fields={[]}
           method="delete"

@@ -22,5 +22,5 @@ X_FRAME_OPTIONS = "DENY"
 if config("TRUST_PROXY_SSL_HEADER", default=False, cast=bool):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 STATIC_ROOT = BASE_DIR.parent / "staticfiles"
-STORAGES = {"default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+STORAGES = {"default": {"BACKEND": "apps.core.storage.DatabaseMediaStorage"},
             "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}}

@@ -100,7 +100,7 @@ class MatchupManagementTests(TestCase):
         match = self.client.get("/api/competitions/?tab=matches").data["data"][0]["matches"][0]
         self.assertEqual(match["house_one"]["id"], self.one.pk)
         self.assertEqual(match["house_one"]["color_code"], "#0000ff")
-        self.assertEqual(match["house_one"]["logo_url"], "http://testserver/media/houses/" + "a" * 32 + ".png")
+        self.assertEqual(match["house_one"]["logo_url"], "/media/houses/" + "a" * 32 + ".png")
         self.assertEqual(match["team_one_name"], "Blue Falcons")
         EventResult.objects.create(event=self.event, result_type="HOUSE", house=self.one, rank=1, score=0, is_verified=True)
         result = self.client.get("/api/competitions/").data["data"][0]["results"][0]

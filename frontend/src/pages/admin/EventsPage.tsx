@@ -6,6 +6,8 @@ import {
   Records,
   button,
   primary,
+  secondary,
+  positive,
   Badge,
   Panel,
 } from "../../components/admin/ConsoleUI";
@@ -22,12 +24,6 @@ export default function EventsPage() {
   const houses = useApi<PageData>("/admin/houses/?page_size=100");
   const fields: Field[] = [
     { name: "title", label: "Event title", required: true },
-    {
-      name: "slug",
-      label: "URL name",
-      required: true,
-      hint: "Unique lowercase name with hyphens, such as campus-chess-2027.",
-    },
     {
       name: "description",
       label: "Description",
@@ -247,12 +243,12 @@ export default function EventsPage() {
               <>
                 {(r.archived_at ||
                   ["COMPLETED", "CANCELLED"].includes(String(r.status))) && (
-                  <button className={button} onClick={() => setArchiving(r)}>
+                  <button className={secondary} onClick={() => setArchiving(r)}>
                     {r.archived_at ? "Restore" : "Archive"}
                   </button>
                 )}
                 {(next[String(r.status)] || []).length > 0 && (
-                  <button className={button} onClick={() => setStatus(r)}>
+                  <button className={positive} onClick={() => setStatus(r)}>
                     Change status
                   </button>
                 )}
@@ -281,14 +277,12 @@ export default function EventsPage() {
           }}
           fields={[
             { name: "name", label: "Name", required: true },
-            { name: "slug", label: "URL name", required: true },
             { name: "description", label: "Description", type: "textarea" },
             { name: "display_order", label: "Display order", type: "number" },
             { name: "is_active", label: "Active", type: "checkbox" },
           ]}
           columns={[
             { key: "name", label: "Category" },
-            { key: "slug", label: "URL name" },
             { key: "is_active", label: "Active" },
           ]}
         />
