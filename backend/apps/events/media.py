@@ -9,5 +9,6 @@ def event_image(request, filename, folder="events"):
         raise Http404
     response = FileResponse(photo, content_type="image/png" if filename.endswith(".png") else "image/jpeg")
     response["Cache-Control"] = "public, max-age=86400"
+    response["Cross-Origin-Resource-Policy"] = "cross-origin"
     response["X-Content-Type-Options"] = "nosniff"
     return response

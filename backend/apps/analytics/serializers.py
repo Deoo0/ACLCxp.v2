@@ -1,3 +1,4 @@
+from apps.core.text_limits import LimitedModelSerializer
 from rest_framework import serializers
 from apps.users.models import User, StudentRoster, IntramuralsTicket
 from apps.users.serializers import UpdateUserSerializer
@@ -8,7 +9,7 @@ from .models import AuditLog, SystemSetting
 from apps.events.images import EventImageField
 
 
-class AdminUserSerializer(serializers.ModelSerializer):
+class AdminUserSerializer(LimitedModelSerializer):
     house_name = serializers.CharField(source="house.name", read_only=True, default="")
     full_name = serializers.CharField(source="get_full_name", read_only=True)
     class Meta:
@@ -29,7 +30,7 @@ class AdminUserUpdateSerializer(UpdateUserSerializer):
         return attrs
 
 
-class RosterSerializer(serializers.ModelSerializer):
+class RosterSerializer(LimitedModelSerializer):
     class Meta:
         model = StudentRoster
         fields = ["id", "student_number", "first_name", "middle_name", "last_name", "program", "year_level", "section", "is_eligible", "account"]
@@ -37,14 +38,14 @@ class RosterSerializer(serializers.ModelSerializer):
         extra_kwargs = {"year_level": {"min_value": 1}}
 
 
-class TicketSerializer(serializers.ModelSerializer):
+class TicketSerializer(LimitedModelSerializer):
     class Meta:
         model = IntramuralsTicket
         fields = ["id", "ticket_number", "qr_token", "status", "issued_at", "redeemed_at", "redeemed_by"]
         read_only_fields = fields
 
 
-class HouseSerializer(serializers.ModelSerializer):
+class HouseSerializer(LimitedModelSerializer):
     logo_url = EventImageField(required=False, allow_null=True)
     member_count = serializers.IntegerField(source="actual_members", read_only=True)
     total_points = serializers.IntegerField(source="actual_points", read_only=True)
@@ -59,7 +60,7 @@ class HouseSerializer(serializers.ModelSerializer):
         return value
 
 
-class AttendanceSerializer(serializers.ModelSerializer):
+class AttendanceSerializer(LimitedModelSerializer):
     student_id = serializers.CharField(source="user.student_id", read_only=True)
     student_name = serializers.CharField(source="user.get_full_name", read_only=True)
     event_title = serializers.CharField(source="event.title", read_only=True)
@@ -69,7 +70,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class PointsSerializer(serializers.ModelSerializer):
+class PointsSerializer(LimitedModelSerializer):
     student_name = serializers.CharField(source="user.get_full_name", read_only=True, default="")
     house_name = serializers.CharField(source="house.name", read_only=True, default="")
     event_title = serializers.CharField(source="event.title", read_only=True, default="")
@@ -79,7 +80,7 @@ class PointsSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class ResultSerializer(serializers.ModelSerializer):
+class ResultSerializer(LimitedModelSerializer):
     student_name = serializers.CharField(source="user.get_full_name", read_only=True, default="")
     house_name = serializers.CharField(source="house.name", read_only=True, default="")
     event_title = serializers.CharField(source="event.title", read_only=True)
@@ -103,7 +104,7 @@ class ResultSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class AuditSerializer(serializers.ModelSerializer):
+class AuditSerializer(LimitedModelSerializer):
     class Meta:
         model = AuditLog
         fields = ["id", "user_email", "user_role", "action", "description", "status", "created_at"]
@@ -118,7 +119,7 @@ SETTING_DEFAULTS = {
 }
 
 
-class SettingSerializer(serializers.ModelSerializer):
+class SettingSerializer(LimitedModelSerializer):
     class Meta:
         model = SystemSetting
         fields = ["id", "key", "value", "data_type", "description", "updated_at"]

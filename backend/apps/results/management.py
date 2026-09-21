@@ -1,3 +1,4 @@
+from apps.core.text_limits import LimitedModelSerializer
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
@@ -28,7 +29,7 @@ def has_finished_descendant(match):
     return False
 
 
-class MatchAdminSerializer(serializers.ModelSerializer):
+class MatchAdminSerializer(LimitedModelSerializer):
     event_title = serializers.CharField(source="event.title", read_only=True)
     house_one_name = serializers.SerializerMethodField()
     house_two_name = serializers.SerializerMethodField()

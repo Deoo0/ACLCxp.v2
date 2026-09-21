@@ -12,9 +12,9 @@ export function editorSections(path: string, fields: Field[]) {
     section('Schedule & publication', 'Set the date when known and decide whether the match is public.', 'scheduled_at is_published'),
     section('Match outcome', 'Record the winning side independently of final tournament placements.', 'winner_side'),
   ];
-  else if (path.startsWith('/events/categories/')) layout = [section('Category identity', 'How this category appears in event listings.', 'name slug description'), section('Display & availability', 'Control ordering and whether the category can be selected.', 'display_order is_active')];
+  else if (path.startsWith('/events/categories/')) layout = [section('Category identity', 'How this category appears in event listings.', 'name description'), section('Display & availability', 'Control ordering and whether the category can be selected.', 'display_order is_active')];
   else if (path.startsWith('/events/')) layout = [
-    section('Event overview', 'Introduce the event and help students understand what to expect.', 'title slug category description'),
+    section('Event overview', 'Introduce the event and help students understand what to expect.', 'title category description'),
     section('When & where', 'Set the event date, time, and venue.', 'event_date start_time end_time venue'),
     section('Attendance registration', 'Choose attendance reservations or open attendance with ticket verification at check-in.', 'attendance_mode registration_required capacity allow_waitlist registration_opens_at registration_closes_at'),
     section('Audience', 'Choose who can access and register for this event.', 'visibility allowed_programs allowed_houses allowed_year_levels'),

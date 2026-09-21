@@ -9,3 +9,9 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
+
+
+class UploadedImage(models.Model):
+    name = models.CharField(max_length=500, unique=True)
+    content = models.BinaryField()
+    created_at = models.DateTimeField(auto_now_add=True)

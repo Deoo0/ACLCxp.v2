@@ -36,4 +36,6 @@ class EventImageField(serializers.ImageField):
         # Existing URL-based photos remain readable until replaced.
         if value and str(value).startswith(("https://", "http://")):
             return str(value)
-        return super().to_representation(value) or ""
+        # Keep local media paths independent of proxy scheme and serializer context.
+        # The frontend resolves these against its configured API origin.
+        return value.url if value else ""

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Editor, Records, PageHeading, button, type Field } from "../../components/admin/ConsoleUI";
+import { Editor, Records, PageHeading, secondary, type Field } from "../../components/admin/ConsoleUI";
 import type { Row } from "../../services/queries";
 
 function settingField(row: Row): Field {
@@ -16,7 +16,7 @@ export default function SettingsPage() {
   const [editing, setEditing] = useState<Row | null>(null);
   return <div className="space-y-6">
     <PageHeading title="Portal settings" description="Manage announcements, support contact details, milestones, and registration. Updates appear when student pages refresh." />
-    <Records endpoint="/admin/settings/" columns={[{ key: 'key', label: 'Setting' }, { key: 'description', label: 'Purpose' }, { key: 'value', label: 'Current value' }, { key: 'updated_at', label: 'Updated' }]} actions={row => <button className={button} onClick={() => setEditing(row)}>Edit</button>} />
+    <Records endpoint="/admin/settings/" columns={[{ key: 'key', label: 'Setting' }, { key: 'description', label: 'Purpose' }, { key: 'value', label: 'Current value' }, { key: 'updated_at', label: 'Updated' }]} actions={row => <button className={secondary} onClick={() => setEditing(row)}>Edit</button>} />
     {editing && <Editor title={`Edit ${settingField(editing).label.toLowerCase()}`} description={String(editing.description || 'Update this setting for the student portal.')} path={`/admin/settings/${editing.id}/`} method="patch" initial={editing} fields={[settingField(editing)]} transform={data => ({ value: String(data.value ?? '') })} onClose={() => setEditing(null)} />}
   </div>;
 }

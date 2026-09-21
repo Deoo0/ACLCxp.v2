@@ -12,7 +12,7 @@ for prefix, view in [("users", console.UsersViewSet), ("roster", console.RosterV
     ("results", console.ResultsViewSet), ("audit", console.AuditViewSet), ("settings", console.SettingsViewSet)]:
     router.register(prefix, view, basename="console-" + prefix)
 
-urlpatterns = [path("attendance/daily/", daily_attendance), path("admin/dashboard/", console.dashboard), path("admin/", include(router.urls)),
+urlpatterns = [path("admin/field-limits/", console.field_limits), path("attendance/daily/", daily_attendance), path("admin/dashboard/", console.dashboard), path("admin/", include(router.urls)),
     path("portal/attendance-overview/", portal.attendance_overview),
     path("portal/summary/", portal.summary), path("portal/merit/", portal.merit),
     path("portal/attendance/", portal.attendance), path("portal/event-pass/", portal.event_pass)]
