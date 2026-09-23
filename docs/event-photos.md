@@ -9,6 +9,13 @@ section is hidden automatically. Team cards support swiping and previous/next
 buttons. These are event-specific introductions, separate from attendance
 registrations and competition results.
 
+The student dashboard also features an automatic team showcase. Every seven
+seconds it advances to the next house, then to the next eligible published or
+ongoing event, looping back after the final team. Events without teams are
+skipped. Manual selection pauses playback; students can resume with Play.
+Autoplay pauses on hover, when offscreen, or when the tab is hidden, and is
+disabled for reduced-motion preferences.
+
 Existing team photos are preserved when editing member details. Remove a house
 team to remove its card. New photos use the same validated JPG/PNG upload and
 storage flow as event artwork. Save large photo batches in smaller groups.
