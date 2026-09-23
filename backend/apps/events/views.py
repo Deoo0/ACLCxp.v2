@@ -46,10 +46,12 @@ class EventViewSet(viewsets.ModelViewSet):
         return [AllowAny()] if self.action in ("list", "retrieve") else [IsAuthenticated()]
 
     def get_queryset(self):
-        queryset = visible_events(Event.objects.select_related("category"), self.request.user)
+        queryset = visible_events(Event.objects.select_related("category").prefetch_related("teams__house"), self.request.user)
         if self.request.user.is_authenticated:
             queryset = queryset.annotate(registration_status=Subquery(EventRegistration.objects.filter(event=OuterRef("pk"), user=self.request.user).values("status")[:1]))
         if self.action == "list":
+            if self.request.query_params.get("upcoming") == "true":
+                queryset = queryset.filter(status__in=["PUBLISHED", "ONGOING"])
             queryset = filter_event_period(queryset, self.request.query_params)
             search = self.request.query_params.get("search", "")
             if search:

@@ -26,7 +26,7 @@ api.interceptors.response.use(
     const resolveImages = (value: unknown): void => {
       if (!value || typeof value !== "object" || value instanceof Blob) return;
       for (const [key, item] of Object.entries(value)) {
-        if (["banner_image", "poster_image", "logo_url", "profile_photo"].includes(key) && typeof item === "string" && item.startsWith("/media/")) {
+        if (["photo", "banner_image", "poster_image", "logo_url", "profile_photo"].includes(key) && typeof item === "string" && item.startsWith("/media/")) {
           (value as Record<string, unknown>)[key] = new URL(item, origin || window.location.origin).href;
         } else if (item && typeof item === "object") resolveImages(item);
       }

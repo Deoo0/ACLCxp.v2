@@ -16,6 +16,8 @@ import { useApi } from "../../services/queries";
 import type { PageData, Row } from "../../services/queries";
 export default function EventsPage() {
   const [archive, setArchive] = useState("active");
+  const [category, setCategory] = useState("");
+  const categories = useApi<PageData>("/events/categories/?page_size=100");
   const [year, setYear] = useState("");
   const [archiving, setArchiving] = useState<Row | "year" | null>(null);
   const [tab, setTab] = useState("events");
@@ -49,7 +51,7 @@ export default function EventsPage() {
       type: "time",
       required: true,
     },
-    { name: "end_time", label: "End time (UTC)", type: "time", required: true },
+    { name: "end_time", label: "End time (UTC)", type: "time", hint: "Leave blank when the finish time is not yet known." },
     { name: "venue", label: "Venue", required: true },
     { name: "attendance_mode", label: "Attendance recording", type: "select", required: true,
       options: [{ value: "PER_EVENT", label: "Per-event check-in" }, { value: "DAILY", label: "Daily approval — one scan for the day" }, { value: "NONE", label: "No attendance required" }],
@@ -144,6 +146,7 @@ export default function EventsPage() {
     },
     { name: "banner_image", label: "Event background photo", type: "image" },
     { name: "poster_image", label: "Event poster photo", type: "image" },
+    { name: "teams", label: "House teams", type: "teams" },
     { name: "requirements", label: "Requirements", type: "textarea" },
     { name: "rules", label: "Rules", type: "textarea" },
     { name: "prizes", label: "Prizes", type: "textarea" },
@@ -174,6 +177,7 @@ export default function EventsPage() {
       {tab === "events" ? (
         <div className="space-y-5">
           <Panel>
+            <label className="mb-4 block text-sm text-neutral-300">Category<select className="mt-2 block min-h-11 w-full rounded-xl border border-white/15 bg-neutral-950 px-3 sm:max-w-xs" value={category} onChange={e => setCategory(e.target.value)}><option value="">All categories</option>{categories.data?.data.map(row => <option key={row.id} value={row.id}>{String(row.name)}</option>)}</select></label>
             <ArchiveFilters
               archive={archive}
               year={year}
@@ -201,7 +205,7 @@ export default function EventsPage() {
             title="Events"
             description="Create drafts, publish activities and manage their lifecycle. Published events appear on eligible students' event pages."
             endpoint="/events/"
-            listEndpoint={`/events/?archive=${archive}&year=${year}`}
+            listEndpoint={`/events/?archive=${archive}&year=${year}&category=${category}`}
             fields={fields}
             defaults={{
               attendance_mode: "PER_EVENT",
