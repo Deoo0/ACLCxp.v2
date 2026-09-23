@@ -70,7 +70,7 @@ class Event(BaseModel):
     # Scheduling
     event_date = models.DateField(db_index=True)
     start_time = models.TimeField()
-    end_time = models.TimeField()
+    end_time = models.TimeField(null=True, blank=True)
     venue = models.CharField(max_length=200)
 
     # Registration
@@ -151,6 +151,18 @@ class Event(BaseModel):
     @property
     def available_slots(self):
         return self.capacity - self.current_registered
+
+
+class EventTeam(BaseModel):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="teams")
+    house = models.ForeignKey("houses.House", on_delete=models.PROTECT)
+    photo = models.ImageField(upload_to=event_photo_path, max_length=500, blank=True)
+    members = models.JSONField(default=list, blank=True)
+    display_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["display_order", "pk"]
+        constraints = [models.UniqueConstraint(fields=["event", "house"], name="event_team_house_unique")]
 
 
 class EventRegistration(BaseModel):

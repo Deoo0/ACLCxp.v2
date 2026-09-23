@@ -20,6 +20,7 @@ export function editorSections(path: string, fields: Field[]) {
     section('Audience', 'Choose who can access and register for this event.', 'visibility allowed_programs allowed_houses allowed_year_levels'),
     section('Points & rewards', 'Configure participation and final placement awards.', 'participation_points first_place_points second_place_points third_place_points prizes'),
     section('Event artwork', 'Upload a background and poster. Preview and crop before saving.', 'banner_image poster_image'),
+    section('House teams', 'Optionally introduce the participating houses, their team photos, and members.', 'teams'),
     section('Participation guide', 'Give students clear instructions for taking part.', 'requirements rules'),
     section('Event status', 'Apply the next step in the event lifecycle.', 'status'),
   ];

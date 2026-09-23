@@ -1,6 +1,7 @@
+import EventTeams from "./EventTeams";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
-import { CalendarDays, Clock3, MapPin, Users, Trophy, Ticket, ArrowUpRight, X, CheckCircle2, ClipboardList, ShieldCheck, Gift } from "lucide-react";
+import { CalendarDays, Clock3, MapPin, Users, Trophy, Ticket, X, CheckCircle2, ClipboardList, ShieldCheck, Gift } from "lucide-react";
 import type { Row } from "../../services/queries";
 import { Notice, Loading, button, primary } from "../admin/ConsoleUI";
 
@@ -62,7 +63,7 @@ export default function EventDetails({ event, loading, loadError, retry, pending
           <div className="min-w-0 space-y-7">
             {poster ? <figure className="overflow-hidden rounded-2xl border border-white/10 bg-black/30">
               <img src={poster} alt={`${text(event.title)} event poster`} className="max-h-[560px] w-full object-contain" />
-              <figcaption className="flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 text-xs text-neutral-400"><span>Event {event.poster_image ? 'poster' : 'background'}</span><a href={poster} target="_blank" rel="noopener noreferrer" className="flex min-h-8 items-center gap-1.5 rounded text-amber-300 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-amber-300">View full size<ArrowUpRight className="h-3.5 w-3.5" /></a></figcaption>
+              <figcaption className="flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 text-xs text-neutral-400"><span>Event {event.poster_image ? 'poster' : 'background'}</span></figcaption>
             </figure> : <div className="flex aspect-[16/9] flex-col items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-amber-300/10 to-neutral-950"><CalendarDays className="mb-4 h-12 w-12 text-amber-300/60" /><p className="text-xs font-medium uppercase tracking-[.2em] text-neutral-400">Your next campus experience</p></div>}
             <section><h3 className="text-lg font-semibold text-white">About this event</h3><p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-neutral-400">{text(event.description) || 'More details will be shared soon.'}</p></section>
           </div>
@@ -95,6 +96,7 @@ export default function EventDetails({ event, loading, loadError, retry, pending
             </section>
           </aside>
         </div>
+        <EventTeams teams={event.teams} />
         {['requirements', 'rules', 'prizes'].some(key => event[key]) && <div className="grid gap-4 border-t border-white/10 bg-black/10 p-5 sm:p-8 md:grid-cols-3">
           {[{ key: 'requirements', title: 'What to bring', icon: ClipboardList }, { key: 'rules', title: 'Know before you go', icon: ShieldCheck }, { key: 'prizes', title: 'Up for grabs', icon: Gift }].map(({ key, title, icon: Icon }) => event[key] ? <section key={key} className="min-w-0 rounded-xl border border-white/10 bg-white/[.02] p-5"><Icon className="mb-4 h-5 w-5 text-amber-300" /><h3 className="text-sm font-semibold text-white">{title}</h3><p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-neutral-400">{text(event[key])}</p></section> : null)}
         </div>}

@@ -5,7 +5,7 @@ from datetime import datetime
 from django.utils import timezone
 from rest_framework import serializers
 from apps.houses.models import House
-from .models import Event, EventCategory, EventRegistration
+from .models import Event, EventCategory, EventRegistration, EventTeam
 from .images import EventImageField
 
 
@@ -20,7 +20,41 @@ class EventCategorySerializer(LimitedModelSerializer):
         read_only_fields = ["slug"]
 
 
+class TeamMemberSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=150)
+    role = serializers.CharField(max_length=100)
+
+
+class EventTeamSerializer(serializers.ModelSerializer):
+    photo = EventImageField(required=False, allow_null=True)
+    members = TeamMemberSerializer(many=True, max_length=100)
+    house_name = serializers.CharField(source="house.name", read_only=True)
+
+    class Meta:
+        model = EventTeam
+        fields = ["house", "house_name", "photo", "members"]
+        validators = []
+
+
 class EventSerializer(LimitedModelSerializer):
+    teams = EventTeamSerializer(many=True, required=False, max_length=30)
+
+    def validate_teams(self, teams):
+        houses = [team["house"].pk for team in teams]
+        if len(houses) != len(set(houses)):
+            raise serializers.ValidationError("Add each house only once.")
+        return teams
+
+    def _save_teams(self, event, teams):
+        if teams is None:
+            return
+        keep = []
+        for index, data in enumerate(teams):
+            team, _ = EventTeam.objects.update_or_create(
+                event=event, house=data["house"], defaults={**data, "display_order": index})
+            keep.append(team.pk)
+        event.teams.exclude(pk__in=keep).delete()
+
     capacity = serializers.IntegerField(required=False, min_value=1)
     banner_image = EventImageField(required=False, allow_null=True)
     poster_image = EventImageField(required=False, allow_null=True)
@@ -32,14 +66,20 @@ class EventSerializer(LimitedModelSerializer):
             raise serializers.ValidationError({"allowed_houses": "A selected house is no longer available. Refresh and choose active houses."})
 
     def create(self, validated_data):
+        teams = validated_data.pop("teams", None)
         validated_data["slug"] = f"{slugify(validated_data['title'])[:200] or 'event'}-{uuid4().hex}"
         self._lock_audience_houses(validated_data.get("allowed_houses"))
-        return super().create(validated_data)
+        event = super().create(validated_data)
+        self._save_teams(event, teams)
+        return event
 
     def update(self, instance, validated_data):
+        teams = validated_data.pop("teams", None)
         if "allowed_houses" in validated_data:
             self._lock_audience_houses(validated_data["allowed_houses"])
-        return super().update(instance, validated_data)
+        event = super().update(instance, validated_data)
+        self._save_teams(event, teams)
+        return event
 
     tags = serializers.ListField(child=serializers.CharField(max_length=50), max_length=20, required=False, allow_null=True)
 
@@ -52,7 +92,7 @@ class EventSerializer(LimitedModelSerializer):
 
     class Meta:
         model = Event
-        fields = ["id", "registration_status", "title", "slug", "description", "category", "category_name", "organizer",
+        fields = ["id", "teams", "registration_status", "title", "slug", "description", "category", "category_name", "organizer",
                   "event_date", "start_time", "end_time", "venue", "capacity", "current_registered",
                   "available_slots", "attendance_mode", "registration_required", "allow_waitlist", "registration_opens_at", "registration_closes_at",
                   "visibility", "allowed_programs", "allowed_houses", "allowed_year_levels",
@@ -69,7 +109,7 @@ class EventSerializer(LimitedModelSerializer):
             return attrs.get(name, getattr(self.instance, name, default))
         if value("capacity", 0) < 1 or value("capacity", 0) < value("current_registered", 0):
             raise serializers.ValidationError({"capacity": "Capacity must be positive and cover existing registrations."})
-        if value("end_time") <= value("start_time"):
+        if value("end_time") is not None and value("end_time") <= value("start_time"):
             raise serializers.ValidationError({"end_time": "End time must follow start time on the same day."})
         opens, closes = value("registration_opens_at"), value("registration_closes_at")
         start = timezone.make_aware(datetime.combine(value("event_date"), value("start_time")))

@@ -2,6 +2,7 @@ import { useId, useRef, useState } from "react";
 import axios from "axios";
 import { editorSections } from "./editorSections";
 import ImageUpload from "./ImageUpload";
+import EventTeamsEditor from "./EventTeamsEditor";
 import type { ReactNode, FormEvent } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
@@ -121,6 +122,7 @@ export interface Field {
   name: string;
   label: string;
   type?:
+    | "teams"
     | "image"
     | "text"
     | "textarea"
@@ -225,7 +227,7 @@ export function Editor({
     Object.fromEntries(
       fields.map((f) => [
         f.name,
-        f.type === "json" || f.type === "multi"
+        f.type === "teams" || f.type === "json" || f.type === "multi"
           ? JSON.stringify(initial[f.name] ?? [])
           : f.type === "list"
             ? Array.isArray(initial[f.name])
@@ -278,9 +280,9 @@ export function Editor({
         if (limit && value.length > limit) throw new Error(`${field.label} must be at most ${limit} characters.`);
         if (field.type === "image" && value === String(initial[field.name] ?? "")) continue;
         if (field.type === "password" && !value) continue;
-        if (field.type === "date" && !field.required && !value) { data[field.name] = null; continue; }
+        if (["date", "time"].includes(field.type || "") && !field.required && !value) { data[field.name] = null; continue; }
         data[field.name] =
-          field.type === "json" || field.type === "multi"
+          field.type === "teams" || field.type === "json" || field.type === "multi"
             ? JSON.parse(value || "[]")
             : field.type === "list"
               ? value
@@ -298,6 +300,14 @@ export function Editor({
                       ? new Date(value).toISOString()
                       : null
                     : value;
+      }
+      if (Array.isArray(data.teams)) data.teams = data.teams.map(team => {
+        const entry = { ...team };
+        if (entry.photo && !entry.photo.startsWith("data:")) delete entry.photo;
+        return entry;
+      });
+      if (Array.isArray(data.teams) && new Blob([JSON.stringify(data)]).size > 15 * 1024 * 1024) {
+        throw new Error("These photos are too large to save together. Use smaller photos, or add a few house teams at a time and save between batches.");
       }
       await write.mutateAsync({
         path,
@@ -320,12 +330,13 @@ export function Editor({
   function renderField(field: Field) {
     if (field.showWhen && !field.showWhen(values)) return null;
     const fieldId = `${id}-${field.name}`;
-    const wide = ["textarea", "json", "image", "multi", "checkbox", "password"].includes(field.type || "") || ["description", "title", "reason", "notes", "value"].includes(field.name);
+    const wide = ["teams", "textarea", "json", "image", "multi", "checkbox", "password"].includes(field.type || "") || ["description", "title", "reason", "notes", "value"].includes(field.name);
     const common = { maxLength: fieldLimit(field), id: fieldId, "aria-describedby": `${fieldId}-help`, "aria-invalid": !!fieldErrors[field.name], required: field.required, className: `${input} ${fieldErrors[field.name] ? '!border-rose-400/60' : ''}` };
     const label = <label htmlFor={fieldId} className="text-sm font-medium text-neutral-200">{field.label}{field.required && <span className="ml-1 text-amber-300" aria-label="required">*</span>}</label>;
     return <div key={field.name} className={`min-w-0 space-y-2 ${wide ? 'sm:col-span-2' : ''}`}>
       {field.type !== "checkbox" && <div className="flex items-start justify-between gap-3">{label}{!field.required && <span className="pt-0.5 text-[10px] text-neutral-500">Optional</span>}</div>}
-      {field.type === "image" ? <ImageUpload id={fieldId} label={field.label} aspectRatio={field.aspectRatio} value={values[field.name]} onChange={value => change(field.name, value)} />
+      {field.type === "teams" ? <EventTeamsEditor value={values[field.name]} onChange={value => change(field.name, value)} />
+      : field.type === "image" ? <ImageUpload id={fieldId} label={field.label} aspectRatio={field.aspectRatio} value={values[field.name]} onChange={value => change(field.name, value)} />
       : field.type === "lookup" ? <Lookup id={fieldId} invalid={!!fieldErrors[field.name]} field={field} value={values[field.name]} onChange={value => change(field.name, value)} />
       : field.type === "checkbox" ? <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/10 bg-neutral-950/40 p-4" htmlFor={fieldId}><span><span className="block text-sm font-medium text-neutral-200">{field.label}</span><span className="mt-1 block text-xs text-neutral-500">{values[field.name] === 'true' ? 'Enabled' : 'Disabled'}</span></span><input id={fieldId} required={field.required} type="checkbox" checked={values[field.name] === 'true'} onChange={e => change(field.name, String(e.target.checked))} className="h-5 w-5 shrink-0 accent-amber-400" /></label>
       : field.type === "multi" ? <fieldset id={fieldId} aria-label={field.label} className="grid gap-2 rounded-xl border border-white/10 bg-neutral-950/40 p-3 sm:grid-cols-2">{field.options?.map(option => {
