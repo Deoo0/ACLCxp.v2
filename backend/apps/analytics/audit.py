@@ -8,7 +8,7 @@ class AuditMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if request.path.startswith("/api/") and not request.path.startswith("/api/auth/") and request.method in ("POST", "PUT", "PATCH", "DELETE"):
+        if request.path.startswith("/api/") and not request.path.startswith(("/api/auth/", "/api/seasons/")) and request.method in ("POST", "PUT", "PATCH", "DELETE"):
             user = getattr(request, "user", None)
             if user and user.is_authenticated:
                 AuditLog.objects.create(user=user, user_email=user.email, user_role=user.role,

@@ -1,3 +1,4 @@
+from apps.seasons.scope import SeasonManager, current_season_id
 from django.db import models
 from apps.core.models import BaseModel
 from django.core.validators import FileExtensionValidator
@@ -41,6 +42,10 @@ class House(BaseModel):
 
 
 class HouseStanding(BaseModel):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season = models.ForeignKey("seasons.Season", on_delete=models.PROTECT, null=True, blank=True, default=current_season_id)
     """Historical house leaderboard snapshots"""
 
     PERIOD_CHOICES = [
@@ -74,7 +79,7 @@ class HouseStanding(BaseModel):
 
     class Meta:
         db_table = "house_standings"
-        unique_together = [["house", "period_type", "period_start"]]
+        unique_together = [["season", "house", "period_type", "period_start"]]
         ordering = ["-period_start", "rank"]
         indexes = [
             models.Index(fields=["period_type", "-period_start"]),

@@ -34,8 +34,13 @@ def effective_points():
 
 
 def houses_with_totals():
+    from apps.seasons.scope import current_season
+    season = current_season()
+    member_filter = Q(members__is_active=True, members__role="STUDENT")
+    if season:
+        member_filter &= Q(members__season_memberships__season=season)
     points = effective_points().filter(house=OuterRef("pk")).values("house").annotate(total=Sum("points")).values("total")
-    return House.objects.annotate(actual_members=Count("members", filter=Q(members__is_active=True, members__role="STUDENT")),
+    return House.objects.annotate(actual_members=Count("members", filter=member_filter, distinct=True),
         actual_points=Coalesce(Subquery(points, output_field=IntegerField()), Value(0))).order_by("-actual_points", "name")
 
 
@@ -53,17 +58,19 @@ class UsersViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, AdminBase):
         user = get_object_or_404(User.objects.select_for_update(), pk=pk)
         if user.pk == request.user.pk or user.role != "STUDENT" or user.is_superuser:
             raise Conflict("Only student accounts can be deleted. You cannot delete your own account.")
-        if (EventRegistration.objects.filter(user=user).exists()
-                or Attendance.objects.filter(user=user).exists()
-                or PointsTransaction.objects.filter(user=user).exists()
-                or EventResult.objects.filter(user=user).exists()
-                or Event.objects.filter(organizer=user).exists()
-                or ScanLog.objects.filter(user=user).exists()):
+        if (EventRegistration.all_objects.filter(user=user).exists()
+                or Attendance.all_objects.filter(user=user).exists()
+                or PointsTransaction.all_objects.filter(user=user).exists()
+                or EventResult.all_objects.filter(user=user).exists()
+                or Event.all_objects.filter(organizer=user).exists()
+                or ScanLog.all_objects.filter(user=user).exists()):
             raise Conflict("This student has event, attendance, or points history. Disable the account instead to preserve those records.")
         # Preserve ticket redemption history and prevent accidental reactivation.
         StudentRoster.objects.filter(account=user).update(is_eligible=False)
         if user.house_id:
             House.objects.filter(pk=user.house_id).update(member_count=Greatest(F("member_count") - 1, 0))
+        if user.season_memberships.exists():
+            raise Conflict("This student has season participation records. Disable the account instead, or purge its closed seasons first.")
         user.delete()
         return Response(status=204)
 
@@ -162,6 +169,50 @@ class TicketsViewSet(mixins.ListModelMixin, AdminBase):
         search = self.request.query_params.get("search", "")
         return qs.filter(ticket_number__icontains=search) if search else qs
 
+    @action(detail=False, methods=["get"])
+    def template(self, request):
+        from django.http import HttpResponse
+        from .ticket_import import template_bytes
+        response = HttpResponse(template_bytes(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="activation-tickets-template.xlsx"'
+        return response
+
+    @action(detail=False, methods=["post"], url_path="import")
+    def import_excel(self, request):
+        from .ticket_import import read_ticket_numbers
+        numbers = read_ticket_numbers(request.FILES.get("file"))
+        if IntramuralsTicket.all_objects.filter(ticket_number__in=numbers).exists():
+            raise ValidationError("A ticket number already exists. Nothing was imported.")
+        try:
+            with transaction.atomic():
+                from apps.seasons.scope import current_season_id
+                season_id = current_season_id()
+                rows = [IntramuralsTicket(season_id=season_id, ticket_number=number, qr_token=secrets.token_urlsafe(32), issued_at=timezone.now()) for number in numbers]
+                IntramuralsTicket.objects.bulk_create(rows)
+        except IntegrityError:
+            raise ValidationError("A ticket number already exists. Nothing was imported.")
+        return Response(TicketSerializer(rows, many=True).data, status=201)
+
+    @transaction.atomic
+    def destroy(self, request, pk=None):
+        ticket = get_object_or_404(IntramuralsTicket.objects.select_for_update(), pk=pk)
+        if ticket.status == "REDEEMED" or ticket.redeemed_by_id or ticket.redeemed_at:
+            raise Conflict("Redeemed tickets must be retained as activation history.")
+        ticket.delete()
+        return Response(status=204)
+
+    @action(detail=False, methods=["post"], url_path="batch-delete")
+    @transaction.atomic
+    def batch_delete(self, request):
+        ids = serializers.ListField(child=serializers.IntegerField(min_value=1), min_length=1, max_length=500).run_validation(request.data.get("ids"))
+        tickets = list(IntramuralsTicket.objects.select_for_update().filter(pk__in=ids).order_by("pk"))
+        if len(tickets) != len(set(ids)):
+            raise ValidationError("Some selected tickets no longer exist in this season. Refresh and try again.")
+        if any(t.status == "REDEEMED" or t.redeemed_by_id or t.redeemed_at for t in tickets):
+            raise Conflict("Redeemed tickets cannot be deleted. Nothing was deleted.")
+        IntramuralsTicket.objects.filter(pk__in=ids).delete()
+        return Response({"deleted": len(tickets)})
+
     @action(detail=False, methods=["post"])
     @transaction.atomic
     def generate(self, request):
@@ -170,7 +221,7 @@ class TicketsViewSet(mixins.ListModelMixin, AdminBase):
         for _ in range(count):
             while True:
                 number = str(secrets.randbelow(900000000000) + 100000000000)
-                if not IntramuralsTicket.objects.filter(ticket_number=number).exists():
+                if not IntramuralsTicket.all_objects.filter(ticket_number=number).exists():
                     break
             rows.append(IntramuralsTicket.objects.create(ticket_number=number, qr_token=secrets.token_urlsafe(32), issued_at=timezone.now()))
         return Response(TicketSerializer(rows, many=True).data, status=201)
@@ -194,11 +245,11 @@ class HousesViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Updat
         house = get_object_or_404(House.objects.select_for_update(), pk=pk)
         if house.members.exists():
             raise Conflict("Reassign or remove all students from this house before deleting it, including disabled accounts.")
-        if (PointsTransaction.objects.filter(house=house).exists()
-                or EventResult.objects.filter(house=house).exists() or house.standings.exists()):
+        if (PointsTransaction.all_objects.filter(house=house).exists()
+                or EventResult.all_objects.filter(house=house).exists() or house.standings.exists()):
             raise Conflict("This house has points, results, or standings history. Deactivate it instead to preserve those records.")
         if any(house.pk in (ids or []) or str(house.pk) in (ids or [])
-               for ids in Event.objects.values_list("allowed_houses", flat=True)):
+               for ids in Event.all_objects.values_list("allowed_houses", flat=True)):
             raise Conflict("Remove this house from event audience restrictions before deleting it.")
         house.delete()
         return Response(status=204)
@@ -395,10 +446,33 @@ class SettingsViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, AdminBase)
 @api_view(["GET"])
 @permission_classes([IsSchoolAdmin])
 def dashboard(request):
-    return Response({"students": User.objects.filter(role="STUDENT", is_active=True).count(),
+    from apps.seasons.scope import current_season
+    season = current_season()
+    students = User.objects.filter(role="STUDENT", is_active=True)
+    if season:
+        students = students.filter(season_memberships__season=season)
+    return Response({"students": students.count(),
         "events": Event.objects.count(), "ongoing": Event.objects.filter(status="ONGOING").count(),
         "registrations": EventRegistration.objects.exclude(status="CANCELLED").count(),
         "attendance": Attendance.objects.filter(is_valid=True).count(),
         "points": effective_points().aggregate(total=Sum("points"))["total"] or 0,
         "houses": HouseSerializer(houses_with_totals(), many=True, context={"request": request}).data,
         "recent": AuditSerializer(AuditLog.objects.order_by("-created_at")[:8], many=True).data})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def field_limits(request):
+    from apps.events.serializers import EventSerializer, EventCategorySerializer
+    from apps.results.management import MatchAdminSerializer
+    from apps.seasons.views import SeasonSerializer
+    resources = {
+        "/events/categories/": EventCategorySerializer, "/events/": EventSerializer,
+        "/admin/users/": AdminUserUpdateSerializer, "/admin/roster/": RosterSerializer,
+        "/admin/houses/": HouseSerializer, "/admin/results/": ResultSerializer,
+        "/admin/settings/": SettingSerializer, "/admin/matchups/": MatchAdminSerializer,
+        "/seasons/": SeasonSerializer,
+    }
+    return Response({path: {name: field.max_length for name, field in serializer().fields.items()
+                           if isinstance(field, serializers.CharField) and not field.read_only and field.max_length}
+                     for path, serializer in resources.items()})

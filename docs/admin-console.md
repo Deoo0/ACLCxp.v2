@@ -76,3 +76,46 @@ npm run lint
 ```
 
 The frontend was checked with TypeScript, a production Vite build and targeted lint for changed console/student components. Browser checks covered desktop/mobile layouts, admin manual check-in, the connected student totals/leaderboard, and the scannable pass dialog. Physical camera scanning, PostgreSQL concurrency and a 5,000-student load test still require the deployment environment. Capacity is not certified by the SQLite tests.
+
+
+## QA improvements: text, tickets, and action controls
+
+Text limits are configured in `backend/apps/core/text_limits.py`. Change
+`TEXT_LIMITS` to adjust long-text fields: event description 3,000, requirements
+1,500, rules 3,000, prizes 1,000, category description 500, house description 1,000,
+and profile bio 500 characters. Other editable model TextFields default to 2,000
+via `DEFAULT_TEXT_LIMIT`. Existing longer values are preserved; an edited value
+must fit the limit before saving. No truncation is performed.
+
+Short text limits (event title/venue, names, program, etc.) come from each model's
+`CharField(max_length=...)`. For example, event title and venue are defined in
+`backend/apps/events/models.py` (200 characters each). After changing a model
+field length, generate/apply its migration. Long-text API limit changes require
+only a backend restart. `/api/admin/field-limits/` supplies current lengths to the
+shared editor, including character counters and browser input limits, so there
+is no second copy to maintain in the frontend. Action reasons remain limited to
+1,000 characters in `backend/apps/analytics/console.py`.
+
+Event and category URL-name inputs are removed. Identifiers remain internally
+for compatibility, are generated on creation, and stay unchanged when renamed.
+
+Under Accounts > Activation tickets:
+
+- **Excel template** downloads an `.xlsx` workbook with a Tickets sheet and instructions.
+- **Import Excel** accepts up to 5,000 rows / 5 MB using the `ticket_number` column.
+  Numbers must be 6 or 12 digits. Keep cells as Text for leading zeros. QR tokens
+  are generated automatically and downloaded with imported ticket numbers as CSV.
+- Imports reject the entire workbook for invalid rows, formulas, duplicates,
+  or ticket numbers already issued in any season.
+- **Delete** removes an unused ticket after confirmation. Select checkboxes to
+  **Delete selected**, up to 500 at once. Redeemed tickets remain protected; a
+  redeemed, missing, or other-season ID rejects the entire batch.
+- Routes: `GET /api/admin/tickets/template/`, multipart
+  `POST /api/admin/tickets/import/` with `file`, `DELETE /api/admin/tickets/{id}/`,
+  and `POST /api/admin/tickets/batch-delete/` with `{ "ids": [1, 2] }`.
+  All require administrator access and respect existing season write rules.
+
+Shared table actions stay visible while scrolling horizontally, wrap on desktop,
+and stack on narrow screens. Edit/download buttons use blue, activation/import
+uses green, primary saves use amber, and deletion/disable uses red, with text
+labels and confirmation dialogs for destructive operations.

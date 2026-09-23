@@ -60,7 +60,7 @@ export function useWrite() {
       path: string;
       body?: unknown;
       method?: "post" | "patch" | "delete";
-    }) => (await api.request({ url: path, method, data: body })).data,
+    }) => (await api.request({ url: path, method, data: body, ...(body instanceof FormData ? { headers: { "Content-Type": undefined } } : {}) })).data,
     onSuccess: () => queryClient.invalidateQueries(),
   });
 }

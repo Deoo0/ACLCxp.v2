@@ -1,3 +1,4 @@
+from apps.seasons.scope import SeasonManager, current_season_id
 from django.db import models
 from apps.core.models import BaseModel
 from apps.users.models import User
@@ -6,6 +7,10 @@ from apps.results.models import EventResult
 
 
 class Notification(BaseModel):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season = models.ForeignKey("seasons.Season", on_delete=models.PROTECT, null=True, blank=True, default=current_season_id)
     """In-app notifications"""
 
     PRIORITY_CHOICES = [
@@ -61,6 +66,10 @@ class Notification(BaseModel):
 
 
 class EmailLog(models.Model):
+
+    objects = SeasonManager()
+    all_objects = models.Manager()
+    season = models.ForeignKey("seasons.Season", on_delete=models.PROTECT, null=True, blank=True, default=current_season_id)
     """Email delivery tracking"""
 
     STATUS_CHOICES = [

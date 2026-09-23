@@ -23,6 +23,76 @@ def event_data(category):
 
 
 class EventsWorkflowTests(TestCase):
+    def test_optional_end_time_create_clear_and_validate(self):
+        data = event_data(self.category)
+        data.pop("end_time")
+        response = self.client.post("/api/events/", data, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertIsNone(response.data["end_time"])
+        self.assertEqual(self.client.patch(self.url, {"end_time": None}, format="json").status_code, 200)
+        self.assertEqual(self.client.patch(self.url, {"title": "Updated"}, format="json").status_code, 200)
+        self.assertEqual(self.client.patch(self.url, {"end_time": "09:00"}, format="json").status_code, 400)
+
+    def test_house_teams_validation_persistence_and_permissions(self):
+        import base64
+        import tempfile
+        from io import BytesIO
+        from PIL import Image
+        from django.test import override_settings
+        house = House.objects.create(name="Phoenix", color_code="#ff5500")
+        image = BytesIO()
+        Image.new("RGB", (10, 10)).save(image, format="PNG")
+        photo = "data:image/png;base64," + base64.b64encode(image.getvalue()).decode()
+        team = {"house": house.pk, "photo": photo, "members": [{"name": "Alex", "role": "Captain"}]}
+        with tempfile.TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
+            response = self.client.patch(self.url, {"teams": [team]}, format="json")
+            self.assertEqual(response.status_code, 200, response.data)
+            saved_photo = response.data["teams"][0]["photo"]
+            self.assertTrue(saved_photo.endswith(".png"))
+            team.pop("photo")
+            team["members"][0]["role"] = "Coach"
+            response = self.client.patch(self.url, {"teams": [team]}, format="json")
+            self.assertEqual(response.status_code, 200, response.data)
+            self.assertEqual(response.data["teams"][0]["photo"], saved_photo)
+            self.assertEqual(self.client.patch(self.url, {"teams": [team, team]}, format="json").status_code, 400)
+            self.assertEqual(self.client.patch(self.url, {"teams": [{**team, "members": [{"name": "Alex", "role": ""}]}]}, format="json").status_code, 400)
+            self.client.force_authenticate(self.other_organizer)
+            self.assertEqual(self.client.patch(self.url, {"teams": []}, format="json").status_code, 403)
+            self.client.force_authenticate(None)
+            response = self.client.get(self.url)
+            self.assertEqual(response.data["teams"][0]["house_name"], "Phoenix")
+            self.assertEqual(response.data["teams"][0]["members"][0]["role"], "Coach")
+            self.client.force_authenticate(self.organizer)
+            self.assertEqual(self.client.patch(self.url, {"teams": []}, format="json").status_code, 200)
+            self.assertFalse(self.event.teams.exists())
+
+    def test_upcoming_category_filter_includes_ongoing_only(self):
+        self.event.status = "ONGOING"
+        self.event.save()
+        self.client.force_authenticate(None)
+        response = self.client.get(f"/api/events/?upcoming=true&category={self.category.pk}")
+        self.assertEqual(response.data["count"], 1)
+        self.event.status = "COMPLETED"
+        self.event.save()
+        self.assertEqual(self.client.get("/api/events/?upcoming=true").data["count"], 0)
+
+    def test_open_attendance_creation_and_registration_rejection(self):
+        data = event_data(self.category)
+        data.update(slug="open-event", registration_required=False)
+        data.pop("capacity")
+        response = self.client.post("/api/events/", data, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertFalse(response.data["registration_required"])
+        self.client.force_authenticate(self.student)
+        response = self.client.post(f'/api/events/{response.data["id"]}/register/', {}, format="json")
+        self.assertEqual(response.status_code, 409)
+
+    def test_attendance_mode_cannot_change_with_reservations(self):
+        self.assertEqual(self.register(self.student).status_code, 201)
+        self.client.force_authenticate(self.organizer)
+        response = self.client.patch(self.url, {"registration_required": False}, format="json")
+        self.assertEqual(response.status_code, 409)
+
     def setUp(self):
         self.client = APIClient()
         self.admin = make_user("admin", "ADMIN")

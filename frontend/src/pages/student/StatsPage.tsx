@@ -1,4 +1,5 @@
 import { useApi } from "../../services/queries";
+import StudentCompetitions from "../../components/dashboard/StudentCompetitions";
 import {
   StudentFrame,
   HouseStandings,
@@ -41,6 +42,7 @@ export default function StatsPage() {
             </Panel>
           </div>
           <HouseStandings houses={query.data.houses} />
+          <StudentCompetitions />
         </>
       )}
     </StudentFrame>

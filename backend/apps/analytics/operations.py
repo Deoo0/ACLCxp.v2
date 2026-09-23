@@ -13,6 +13,8 @@ from apps.results.models import PointsTransaction
 
 
 def post_points(*, user=None, house=None, points, source_key, actor, reason, kind, event=None, result=None):
+    from apps.seasons.scope import require_membership
+    require_membership(user)
     house = house or (user.house if user else None)
     entry, created = PointsTransaction.objects.get_or_create(source_key=source_key, defaults=dict(
         user=user, house=house, points=points, reason=reason, transaction_type=kind,
@@ -38,9 +40,19 @@ def reverse_points(entry, actor, reason):
 
 
 @transaction.atomic
-def check_in(actor, event_id, student_id=None, token=None):
+def check_in(actor, event_id, student_id=None, token=None, *, daily=False):
     event = get_object_or_404(Event.objects.select_for_update(), pk=event_id)
-    if event.status != "ONGOING":
+    if event.archived_at:
+        raise Conflict("Archived events cannot accept attendance.")
+    if event.attendance_mode == "NONE":
+        raise Conflict("Attendance is not required for this event.")
+    if daily:
+        from apps.events.services import event_start
+        if event.attendance_mode != "DAILY" or event.status not in ("PUBLISHED", "ONGOING", "COMPLETED") or event_start(event) > timezone.now():
+            raise Conflict("This event is not available for daily approval.")
+    elif event.attendance_mode == "DAILY":
+        raise Conflict("Use daily approval for this event; one scan covers the day's eligible events.")
+    elif event.status != "ONGOING":
         raise Conflict("Start the event before recording attendance.")
     if token:
         try:
@@ -49,23 +61,34 @@ def check_in(actor, event_id, student_id=None, token=None):
         except (signing.BadSignature, KeyError, TypeError):
             raise ValidationError("Invalid or expired QR code. Ask the student to refresh their pass.")
     user = get_object_or_404(User.objects.select_related("house"), student_id=student_id, role="STUDENT", is_active=True)
+    from apps.seasons.scope import require_membership
+    require_membership(user)
+    if daily or not event.registration_required:
+        from apps.users.models import IntramuralsTicket
+        tickets = IntramuralsTicket.objects.filter(status="REDEEMED", redeemed_by__account=user)
+        if event.season_id:
+            tickets = tickets.filter(season_id=event.season_id)
+        if not tickets.exists():
+            raise Conflict("A redeemed ticket for this season is required before check-in.")
     existing = Attendance.objects.filter(event=event, user=user).first()
     if existing:
         if not existing.is_valid:
             raise Conflict("This attendance was voided. Restore the record to correct it.")
         return existing, False
     registration = EventRegistration.objects.filter(event=event, user=user, status="REGISTERED").first()
-    if not registration:
+    if event.registration_required and not registration:
         raise Conflict("A confirmed registration is required. Waitlisted students cannot check in.")
     if not eligible(event, user):
         raise Conflict("This student no longer meets the event eligibility rules.")
     attendance = Attendance.objects.create(event=event, user=user, scanned_by=actor,
-                                           scan_method="QR_CODE" if token else "MANUAL")
-    registration.status = "ATTENDED"
-    registration.attended = True
-    registration.attendance_marked_at = timezone.now()
-    registration.attendance_marked_by = actor
-    registration.save()
+                                           scan_method="QR_CODE" if token else "MANUAL",
+                                           validation_notes="Approved through daily attendance." if daily else "")
+    if registration:
+        registration.status = "ATTENDED"
+        registration.attended = True
+        registration.attendance_marked_at = timezone.now()
+        registration.attendance_marked_by = actor
+        registration.save()
     event.total_attended += 1
     event.save(update_fields=["total_attended", "updated_at"])
     post_points(user=user, points=event.participation_points, source_key=f"attendance:{attendance.pk}",

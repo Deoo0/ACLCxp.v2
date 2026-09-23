@@ -13,6 +13,75 @@ from .models import AuditLog, SystemSetting
 
 
 class ConnectedConsoleTests(TestCase):
+    def test_open_attendance_requires_ticket_and_records_once_without_registration(self):
+        EventRegistration.objects.filter(event=self.event).delete()
+        self.event.registration_required = False
+        self.event.capacity = 1
+        self.event.current_registered = 0
+        self.event.save()
+        self.assertEqual(self.check_in().status_code, 409)
+        roster = StudentRoster.objects.create(student_number=self.student.student_id, first_name="Student",
+            last_name="One", program="BSIT", year_level=1, account=self.student)
+        IntramuralsTicket.objects.create(ticket_number="123456789012", qr_token="open-ticket",
+            status="REDEEMED", redeemed_by=roster)
+        token = signing.dumps({"student_id": self.student.student_id}, salt="student-event-pass")
+        self.assertEqual(self.check_in(token).status_code, 201)
+        self.assertEqual(self.check_in(token).status_code, 200)
+        self.assertEqual(Attendance.objects.filter(event=self.event).count(), 1)
+        self.assertFalse(EventRegistration.objects.filter(event=self.event).exists())
+        self.assertEqual(PointsTransaction.objects.filter(event=self.event).count(), 1)
+        self.client.force_authenticate(self.student)
+        overview = self.client.get("/api/portal/attendance-overview/").data
+        self.assertEqual(overview["summary"]["attended"], 1)
+        self.assertEqual(overview["summary"]["points"], 5)
+        self.assertEqual(overview["data"][0]["status"], "ATTENDED")
+        self.client.force_authenticate(self.admin)
+        # A second ticket holder can attend even beyond the placeholder capacity.
+        other_roster = StudentRoster.objects.create(student_number=self.other.student_id, first_name="Other",
+            last_name="Student", program="BSIT", year_level=1, account=self.other)
+        IntramuralsTicket.objects.create(ticket_number="123456789013", qr_token="other-ticket",
+            status="REDEEMED", redeemed_by=other_roster)
+        response = self.client.post("/api/admin/attendance/check_in/", {"event": self.event.pk,
+            "student_id": self.other.student_id}, format="json")
+        self.assertEqual(response.status_code, 201)
+        self.event.refresh_from_db()
+        self.assertEqual(self.event.total_attended, 2)
+        self.assertEqual(self.event.current_registered, 0)
+
+    def test_attendance_overview_statuses_totals_and_student_scope(self):
+        self.client.force_authenticate(self.student)
+        url = "/api/portal/attendance-overview/"
+        response = self.client.get(url)
+        self.assertEqual(response.data["summary"]["pending"], 1)
+        self.assertEqual(response.data["data"][0]["status"], "PENDING")
+        self.event.status = "COMPLETED"
+        self.event.save()
+        self.assertEqual(self.client.get(url).data["summary"]["absent"], 1)
+        scan = Attendance.objects.create(event=self.event, user=self.student, scanned_by=self.admin)
+        response = self.client.get(url)
+        self.assertEqual(response.data["summary"]["rate"], 100)
+        self.assertEqual(response.data["data"][0]["signed_by"], self.admin.get_full_name())
+        filtered = self.client.get(url, {"status": "ABSENT"})
+        self.assertEqual(filtered.data["count"], 0)
+        self.assertEqual(filtered.data["summary"]["attended"], 1)
+        self.assertEqual(self.client.get(url, {"search": "chess"}).data["count"], 1)
+        scan.is_valid = False
+        scan.save()
+        self.assertEqual(self.client.get(url).data["data"][0]["status"], "INVALID")
+        self.assertEqual(self.client.get(url).data["summary"]["rate"], 0)
+        scan.delete()
+        registration = EventRegistration.objects.get(user=self.student, event=self.event)
+        for status in ("WAITLISTED", "CANCELLED"):
+            registration.status = status
+            registration.save()
+            response = self.client.get(url)
+            self.assertEqual(response.data["data"][0]["status"], status)
+            self.assertEqual(response.data["summary"]["total"], 0)
+        self.client.force_authenticate(self.other)
+        self.assertEqual(self.client.get(url).data["count"], 0)
+        self.client.force_authenticate(None)
+        self.assertEqual(self.client.get(url).status_code, 401)
+
     def test_account_filters_combine_and_options_cover_all_accounts(self):
         self.student.program = "BSIT"
         self.student.year_level = 2

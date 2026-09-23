@@ -47,7 +47,7 @@ export default function EventsPage() {
           ? "Your registration has been cancelled."
           : response.data.status === "WAITLISTED"
             ? "You joined the waitlist. Your registration updates when a place becomes available."
-            : "Your registration is confirmed. Bring your event pass when you arrive.",
+            : "Your attendance reservation is confirmed. This is not a player or contestant sign-up. Bring your student QR pass for check-in.",
       );
     } catch (e) {
       setError(e);
@@ -61,7 +61,7 @@ export default function EventsPage() {
           Find your next event
         </h1>
         <p className="mt-2 text-sm text-neutral-400">
-          Browse eligible events, reserve a place and follow your registrations.
+          Browse events and register to attend when required. Open-attendance events only need your student QR pass at check-in.
         </p>
       </header>
       <div className="flex flex-wrap gap-3">
@@ -135,7 +135,7 @@ export default function EventsPage() {
                     <p className="flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-amber-400" />
                       {String(row.event_date)} /{" "}
-                      {String(row.start_time).slice(0, 5)} UTC
+                      {String(row.start_time).slice(0, 5)} PHT
                     </p>
                     <p className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-amber-400" />
@@ -143,7 +143,7 @@ export default function EventsPage() {
                     </p>
                     <p className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-amber-400" />
-                      {String(row.available_slots)} places available
+                      {row.registration_required === false ? "Open attendance · No registration needed" : `${String(row.available_slots)} attendance places available`}
                     </p>
                   </div>
                   {Boolean(row.registration_status) && (
@@ -190,7 +190,7 @@ export default function EventsPage() {
       )}
       <section>
         <h2 className="mb-4 text-lg font-semibold text-white">
-          My registrations
+          My attendance reservations
         </h2>
         <Records
           endpoint="/events/my-registrations/"

@@ -20,7 +20,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Some serializers have no request context and return relative upload URLs.
+    // Resolve them against the API host, including when the frontend is hosted separately.
+    const resolveImages = (value: unknown): void => {
+      if (!value || typeof value !== "object" || value instanceof Blob) return;
+      for (const [key, item] of Object.entries(value)) {
+        if (["photo", "banner_image", "poster_image", "logo_url", "profile_photo"].includes(key) && typeof item === "string" && item.startsWith("/media/")) {
+          (value as Record<string, unknown>)[key] = new URL(item, origin || window.location.origin).href;
+        } else if (item && typeof item === "object") resolveImages(item);
+      }
+    };
+    resolveImages(response.data);
+    return response;
+  },
   async (error) => {
     const config = error.config;
     if (

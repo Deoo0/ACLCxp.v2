@@ -134,6 +134,9 @@ def activate_account(request):
             ticket.redeemed_by = roster
             ticket.redeemed_at = timezone.now()
             ticket.save(update_fields=["status", "redeemed_by", "redeemed_at", "updated_at"])
+            if ticket.season_id:
+                from apps.seasons.models import SeasonMembership
+                SeasonMembership.objects.create(season_id=ticket.season_id, user=user, ticket=ticket)
     except (IntramuralsTicket.DoesNotExist, StudentRoster.DoesNotExist, KeyError):
         return _error("ACTIVATION_INVALID", "Your verification is invalid. Please start again.")
     except IntegrityError:

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import StudentCompetitions from "../../components/dashboard/StudentCompetitions";
 import {
   ArrowRight,
   QrCode,
@@ -117,6 +118,7 @@ export default function DashboardPage() {
           );
         })}
       </div>
+      <StudentCompetitions compact />
       <div className="grid gap-5 lg:grid-cols-2">
         <HouseStandings houses={data.houses} />
         <Panel>

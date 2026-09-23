@@ -6,6 +6,8 @@ import {
   Records,
   button,
   primary,
+  secondary,
+  positive,
   Badge,
   Panel,
 } from "../../components/admin/ConsoleUI";
@@ -14,6 +16,8 @@ import { useApi } from "../../services/queries";
 import type { PageData, Row } from "../../services/queries";
 export default function EventsPage() {
   const [archive, setArchive] = useState("active");
+  const [category, setCategory] = useState("");
+  const categories = useApi<PageData>("/events/categories/?page_size=100");
   const [year, setYear] = useState("");
   const [archiving, setArchiving] = useState<Row | "year" | null>(null);
   const [tab, setTab] = useState("events");
@@ -22,12 +26,6 @@ export default function EventsPage() {
   const houses = useApi<PageData>("/admin/houses/?page_size=100");
   const fields: Field[] = [
     { name: "title", label: "Event title", required: true },
-    {
-      name: "slug",
-      label: "URL name",
-      required: true,
-      hint: "Unique lowercase name with hyphens, such as campus-chess-2027.",
-    },
     {
       name: "description",
       label: "Description",
@@ -53,23 +51,31 @@ export default function EventsPage() {
       type: "time",
       required: true,
     },
-    { name: "end_time", label: "End time (UTC)", type: "time", required: true },
+    { name: "end_time", label: "End time (UTC)", type: "time", hint: "Leave blank when the finish time is not yet known." },
     { name: "venue", label: "Venue", required: true },
+    { name: "attendance_mode", label: "Attendance recording", type: "select", required: true,
+      options: [{ value: "PER_EVENT", label: "Per-event check-in" }, { value: "DAILY", label: "Daily approval — one scan for the day" }, { value: "NONE", label: "No attendance required" }],
+      hint: "Daily approval records this event with the day's other daily-approval events. Turn off attendance registration below if no reservation is needed. No attendance required means no attendance points or absence tracking. Choose before check-ins begin." },
+    { name: "registration_required", label: "Require registration to attend", type: "checkbox",
+      hint: "Turn off for open attendance: no reservation or attendee limit. Scan each student's QR pass to verify their redeemed ticket and record attendance. This is not player or contestant registration. Attendance mode can change before active registrations or check-ins exist." },
     {
       name: "capacity",
-      label: "Capacity",
+      label: "Attendance reservation limit",
+      showWhen: values => values.registration_required === "true",
       type: "number",
       min: 1,
       required: true,
     },
-    { name: "allow_waitlist", label: "Allow waitlist", type: "checkbox" },
+    { name: "allow_waitlist", label: "Allow attendance waitlist", type: "checkbox", showWhen: values => values.registration_required === "true" },
     {
       name: "registration_opens_at",
+      showWhen: values => values.registration_required === "true",
       label: "Registration opens (your local time)",
       type: "datetime-local",
     },
     {
       name: "registration_closes_at",
+      showWhen: values => values.registration_required === "true",
       label: "Registration closes (your local time)",
       type: "datetime-local",
     },
@@ -140,6 +146,7 @@ export default function EventsPage() {
     },
     { name: "banner_image", label: "Event background photo", type: "image" },
     { name: "poster_image", label: "Event poster photo", type: "image" },
+    { name: "teams", label: "House teams", type: "teams" },
     { name: "requirements", label: "Requirements", type: "textarea" },
     { name: "rules", label: "Rules", type: "textarea" },
     { name: "prizes", label: "Prizes", type: "textarea" },
@@ -170,6 +177,7 @@ export default function EventsPage() {
       {tab === "events" ? (
         <div className="space-y-5">
           <Panel>
+            <label className="mb-4 block text-sm text-neutral-300">Category<select className="mt-2 block min-h-11 w-full rounded-xl border border-white/15 bg-neutral-950 px-3 sm:max-w-xs" value={category} onChange={e => setCategory(e.target.value)}><option value="">All categories</option>{categories.data?.data.map(row => <option key={row.id} value={row.id}>{String(row.name)}</option>)}</select></label>
             <ArchiveFilters
               archive={archive}
               year={year}
@@ -197,9 +205,11 @@ export default function EventsPage() {
             title="Events"
             description="Create drafts, publish activities and manage their lifecycle. Published events appear on eligible students' event pages."
             endpoint="/events/"
-            listEndpoint={`/events/?archive=${archive}&year=${year}`}
+            listEndpoint={`/events/?archive=${archive}&year=${year}&category=${category}`}
             fields={fields}
             defaults={{
+              attendance_mode: "PER_EVENT",
+              registration_required: true,
               capacity: 100,
               allow_waitlist: true,
               visibility: "PUBLIC",
@@ -230,19 +240,19 @@ export default function EventsPage() {
               {
                 key: "current_registered",
                 label: "Seats",
-                render: (r) => `${r.current_registered} / ${r.capacity}`,
+                render: (r) => r.registration_required === false ? `Open attendance · ${r.total_attended} attended` : `${r.current_registered} / ${r.capacity}`,
               },
             ]}
             extraActions={(r) => (
               <>
                 {(r.archived_at ||
                   ["COMPLETED", "CANCELLED"].includes(String(r.status))) && (
-                  <button className={button} onClick={() => setArchiving(r)}>
+                  <button className={secondary} onClick={() => setArchiving(r)}>
                     {r.archived_at ? "Restore" : "Archive"}
                   </button>
                 )}
                 {(next[String(r.status)] || []).length > 0 && (
-                  <button className={button} onClick={() => setStatus(r)}>
+                  <button className={positive} onClick={() => setStatus(r)}>
                     Change status
                   </button>
                 )}
@@ -271,14 +281,12 @@ export default function EventsPage() {
           }}
           fields={[
             { name: "name", label: "Name", required: true },
-            { name: "slug", label: "URL name", required: true },
             { name: "description", label: "Description", type: "textarea" },
             { name: "display_order", label: "Display order", type: "number" },
             { name: "is_active", label: "Active", type: "checkbox" },
           ]}
           columns={[
             { key: "name", label: "Category" },
-            { key: "slug", label: "URL name" },
             { key: "is_active", label: "Active" },
           ]}
         />
