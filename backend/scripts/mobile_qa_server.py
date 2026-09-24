@@ -59,6 +59,10 @@ try:
     ticket = IntramuralsTicket.objects.create(ticket_number="999888777666", qr_token=secrets.token_urlsafe(24),
         season=season, status="REDEEMED", redeemed_by=roster)
     SeasonMembership.objects.create(season=season, user=student, ticket=ticket)
+    scan_ticket = IntramuralsTicket.objects.create(ticket_number="000123456789",
+        qr_token=secrets.token_urlsafe(24), season=season, status="AVAILABLE")
+    short_scan_ticket = IntramuralsTicket.objects.create(ticket_number="000123",
+        qr_token=secrets.token_urlsafe(24), season=season, status="AVAILABLE")
     category = EventCategory.objects.create(name="Mobile QA Sports", slug="mobile-qa-sports")
     event = Event.objects.create(title="Mobile QA Campus Chess", slug="mobile-qa-chess",
         description="A real API test event for checking registration and mobile layouts.",
@@ -75,7 +79,9 @@ try:
         server.timeout = 0.5
         manifest.write_text(json.dumps({"password": password, "student": student.student_id,
             "admin": users["ADMIN"].student_id, "eventId": event.pk, "seasonId": season.pk,
-            "api": "http://127.0.0.1:8001", "database": test_name}), encoding="utf-8")
+            "api": "http://127.0.0.1:8001", "database": test_name,
+            "scanTicketNumber": scan_ticket.ticket_number, "scanQrToken": scan_ticket.qr_token,
+            "scanShortTicketNumber": short_scan_ticket.ticket_number}), encoding="utf-8")
         print(f"READY manifest={manifest}", flush=True)
         deadline = time.monotonic() + 1200
         while time.monotonic() < deadline and not stop.exists():
