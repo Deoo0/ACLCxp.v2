@@ -453,7 +453,7 @@ export function Records({
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overscroll-x-contain" tabIndex={0} role="region" aria-label="Records table, scroll horizontally for more columns">
             <table className="w-full text-left text-sm">
               <thead className="bg-neutral-950/40 text-[11px] uppercase tracking-wider text-neutral-500">
                 <tr>

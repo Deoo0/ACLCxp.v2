@@ -120,18 +120,19 @@ export default function SupportChat() {
     const [isTyping, setIsTyping] = useState(false);
     const [hasNewMessage, setHasNewMessage] = useState(false);
     const bottomRef = useRef<HTMLDivElement>(null);
+    const launcherRef = useRef<HTMLButtonElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (open) {
-            setHasNewMessage(false);
-            setTimeout(() => inputRef.current?.focus(), 300);
+            const timer = setTimeout(() => inputRef.current?.focus(), 300);
+            return () => clearTimeout(timer);
         }
     }, [open]);
 
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages, isTyping]);
+        if (open) bottomRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "nearest" });
+    }, [messages, isTyping, open]);
 
     const sendMessage = (text: string) => {
         if (!text.trim()) return;
@@ -169,9 +170,12 @@ export default function SupportChat() {
         <>
             {/* Floating Button */}
             <button
-                onClick={() => setOpen((v) => !v)}
-                className="fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full bg-[#2E308E] text-white shadow-lg flex items-center justify-center hover:bg-[#252770] active:scale-95 transition-all duration-200"
-                aria-label="Open support chat"
+                ref={launcherRef}
+                onClick={() => { setHasNewMessage(false); setOpen((v) => !v); }}
+                className="support-launcher fixed right-5 z-50 w-14 h-14 rounded-full bg-[#2E308E] text-white shadow-lg flex items-center justify-center hover:bg-[#252770] active:scale-95 transition-all duration-200"
+                aria-label={open ? "Close support chat" : "Open support chat"}
+                aria-expanded={open}
+                aria-controls="support-panel"
             >
                 {open ? (
                     <FaChevronDown size={20} />
@@ -187,12 +191,16 @@ export default function SupportChat() {
 
             {/* Chat Window */}
             <div
-                className={`fixed bottom-22 right-5 z-50 w-[calc(100vw-40px)] max-w-sm bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${
+                id="support-panel"
+                role="region"
+                aria-label="ACLCxp support chat"
+                inert={!open}
+                onKeyDown={(event) => { if (event.key === "Escape") { setOpen(false); launcherRef.current?.focus(); } }}
+                className={`support-panel fixed right-5 z-50 w-[calc(100vw-40px)] max-w-sm bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${
                     open
                         ? "opacity-100 translate-y-0 pointer-events-auto"
                         : "opacity-0 translate-y-4 pointer-events-none"
                 }`}
-                style={{ maxHeight: "75vh", minHeight: "400px" }}
             >
                 {/* Header */}
                 <div className="bg-[#2E308E] px-4 py-3 flex items-center justify-between shrink-0">
@@ -206,7 +214,7 @@ export default function SupportChat() {
                         </div>
                     </div>
                     <button
-                        onClick={() => setOpen(false)}
+                        onClick={() => { setOpen(false); launcherRef.current?.focus(); }}
                         className="text-white/70 hover:text-white transition-colors"
                         aria-label="Close chat"
                     >
@@ -215,7 +223,7 @@ export default function SupportChat() {
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#F5F5F5]">
+                <div role="log" aria-label="Support messages" aria-live="polite" className="min-h-0 flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#F5F5F5]">
                     {messages.map((msg) => {
                         if (msg.from === "bot" && msg.text.startsWith("__chips__")) {
                             const chips = msg.text.replace("__chips__", "").split("|");
@@ -240,7 +248,7 @@ export default function SupportChat() {
                                 className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}
                             >
                                 <div
-                                    className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
+                                    className={`max-w-[80%] break-words px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
                                         msg.from === "user"
                                             ? "bg-[#2E308E] text-white rounded-br-sm"
                                             : "bg-white text-[#1E1E1E] rounded-bl-sm shadow-sm border border-gray-100"
@@ -284,18 +292,19 @@ export default function SupportChat() {
                 {/* Input */}
                 <div className="px-3 py-3 border-t border-gray-100 bg-white flex gap-2 shrink-0">
                     <input
+                        aria-label="Your question"
                         ref={inputRef}
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Type a question..."
-                        className="flex-1 px-4 py-2.5 rounded-full bg-[#F5F5F5] text-sm text-[#1E1E1E] outline-none focus:ring-2 focus:ring-[#2E308E] transition-all"
+                        className="min-w-0 flex-1 px-4 py-2.5 rounded-full bg-[#F5F5F5] text-sm text-[#1E1E1E] outline-none focus:ring-2 focus:ring-[#2E308E] transition-all"
                     />
                     <button
                         onClick={() => sendMessage(input)}
                         disabled={!input.trim()}
-                        className="w-10 h-10 rounded-full bg-[#2E308E] text-white flex items-center justify-center hover:bg-[#252770] active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                        className="w-11 h-11 rounded-full bg-[#2E308E] text-white flex items-center justify-center hover:bg-[#252770] active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
                         aria-label="Send message"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 translate-x-0.5">
