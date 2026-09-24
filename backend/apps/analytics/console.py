@@ -164,6 +164,29 @@ class TicketsViewSet(mixins.ListModelMixin, AdminBase):
     serializer_class = TicketSerializer
     queryset = IntramuralsTicket.objects.order_by("-issued_at", "-pk")
 
+    @action(detail=False, methods=["get"])
+    def export(self, request):
+        from django.http import HttpResponse
+        from apps.seasons.scope import current_season
+
+        season = current_season()
+        if season is None:
+            raise ValidationError("Select a current season before downloading tickets.")
+        tickets = IntramuralsTicket.objects.filter(
+            season=season, status="AVAILABLE", redeemed_by__isnull=True,
+            redeemed_at__isnull=True,
+        ).order_by("ticket_number")
+        if not tickets.exists():
+            raise ValidationError("No available tickets to download in the current season.")
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = 'attachment; filename="available-activation-tickets.csv"'
+        response["Cache-Control"] = "no-store"
+        response.write("\ufeff")
+        writer = csv.writer(response)
+        writer.writerow(["Ticket number", "QR token"])
+        writer.writerows(tickets.values_list("ticket_number", "qr_token").iterator())
+        return response
+
     def get_queryset(self):
         qs = super().get_queryset()
         search = self.request.query_params.get("search", "")

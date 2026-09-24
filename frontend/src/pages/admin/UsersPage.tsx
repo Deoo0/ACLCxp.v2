@@ -82,6 +82,7 @@ export default function UsersPage() {
   const [selected, setSelected] = useState<number[]>([]);
   const [deleteBatch, setDeleteBatch] = useState(false);
   const [count, setCount] = useState(10);
+  const [downloadingTickets, setDownloadingTickets] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState<unknown>(null);
   const write = useWrite();
@@ -105,6 +106,27 @@ export default function UsersPage() {
       const response = await api.get("/admin/tickets/template/", { responseType: "blob" });
       downloadBlob(response.data, "activation-tickets-template.xlsx");
     } catch (e) { setError(e); }
+  };
+  const redownloadTickets = async () => {
+    setError(null);
+    setMessage("");
+    setDownloadingTickets(true);
+    try {
+      const response = await api.get("/admin/tickets/export/", { responseType: "blob" });
+      downloadBlob(response.data, "available-activation-tickets.csv");
+      setMessage("Available tickets downloaded with their original QR tokens. Keep the file secure.");
+    } catch (e) {
+      // Blob requests also return API validation errors as blobs.
+      if (e && typeof e === "object" && "response" in e) {
+        const response = (e as { response?: { data?: unknown } }).response;
+        if (response?.data instanceof Blob) {
+          try { response.data = JSON.parse(await response.data.text()); } catch { /* Use the original error. */ }
+        }
+      }
+      setError(e);
+    } finally {
+      setDownloadingTickets(false);
+    }
   };
   const importTickets = async (file: File) => {
     setError(null);
@@ -331,8 +353,12 @@ export default function UsersPage() {
           <Panel>
             <div className="mb-5 flex flex-wrap items-center gap-3 border-b border-white/10 pb-5">
               <button className={secondary} onClick={() => void template()}><Download className="h-4 w-4" />Excel template</button>
+              <button className={secondary} disabled={downloadingTickets || write.isPending} onClick={() => void redownloadTickets()}>
+                <Download className="h-4 w-4" />{downloadingTickets ? "Downloading…" : "Re-download available tickets"}
+              </button>
+              <p className="w-full text-xs leading-5 text-neutral-400">Download all available tickets in the current season with their original QR tokens. Redeemed and disabled tickets are excluded. Tokens can redeem tickets; share each one only with its intended student.</p>
               <label className={`${positive} relative cursor-pointer focus-within:ring-2 focus-within:ring-emerald-300`}>
-                <Upload className="h-4 w-4" />{write.isPending ? "Importing�" : "Import Excel"}
+                <Upload className="h-4 w-4" />{write.isPending ? "Importing…" : "Import Excel"}
                 <input className="absolute inset-0 w-full cursor-pointer opacity-0" aria-label="Import activation tickets from Excel" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={write.isPending} onChange={e => { const file = e.target.files?.[0]; if (file) void importTickets(file); e.target.value = ""; }} />
               </label>
               <button className={danger} disabled={!selected.length || selected.length > 500 || write.isPending} onClick={() => setDeleteBatch(true)}>Delete selected ({selected.length})</button>
