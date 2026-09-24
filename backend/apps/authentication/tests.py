@@ -1,3 +1,4 @@
+from apps.seasons.testing import active_season, enroll_student
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 from apps.users.models import IntramuralsTicket, StudentRoster, User
@@ -6,8 +7,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 class SessionSecurityTests(TestCase):
     def setUp(self):
+        active_season()
         self.client = APIClient()
         self.user = User.objects.create_user("SESSION", "SafePassword!2026", email="session@gmail.com", year_level=1)
+        enroll_student(self.user)
         self.refresh = RefreshToken.for_user(self.user)
 
     def test_refresh_rotates_and_rejects_reuse(self):
@@ -40,6 +43,7 @@ class SessionSecurityTests(TestCase):
 @override_settings(REST_FRAMEWORK={"DEFAULT_THROTTLE_RATES": {"anon": "1000/hour", "ticket_verification": "1000/minute", "student_verification": "1000/minute", "account_activation": "1000/hour"}})
 class TicketVerifiedRegistrationTests(TestCase):
     def setUp(self):
+        active_season()
         self.client = APIClient()
         self.roster = StudentRoster.objects.create(student_number="2026-12345", first_name="Ada", middle_name="", last_name="Lovelace", program="BSIT", year_level=1, section="A", is_eligible=True)
         self.ticket = IntramuralsTicket.objects.create(ticket_number="123456", qr_token="opaque-qr-token")

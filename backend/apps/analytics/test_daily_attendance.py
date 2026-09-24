@@ -1,3 +1,4 @@
+from apps.seasons.testing import active_season, enroll_student
 from datetime import timedelta
 from zoneinfo import ZoneInfo
 from django.core import signing
@@ -15,6 +16,7 @@ from .models import AuditLog
 
 class DailyAttendanceTests(TestCase):
     def setUp(self):
+        active_season()
         self.client = APIClient()
         self.staff = make_user("faculty", "STAFF")
         self.student = make_user("attendee")
@@ -26,6 +28,7 @@ class DailyAttendanceTests(TestCase):
             last_name="One", program="BSIT", year_level=1, account=self.student)
         self.ticket = IntramuralsTicket.objects.create(ticket_number="123456789012", qr_token="daily-ticket",
             status="REDEEMED", redeemed_by=self.roster)
+        enroll_student(self.student, self.ticket)
         self.token = signing.dumps({"student_id": self.student.student_id}, salt="student-event-pass")
         self.url = "/api/attendance/daily/"
 
@@ -81,7 +84,7 @@ class DailyAttendanceTests(TestCase):
     def test_ticket_invalid_qr_future_date_and_permissions(self):
         self.ticket.status = "DISABLED"
         self.ticket.save()
-        self.assertEqual(len(self.approve().data["skipped"]), 4)
+        self.assertEqual(self.approve().status_code, 403)
         self.assertFalse(Attendance.objects.exists())
         self.assertEqual(self.approve(token="invalid").status_code, 400)
         self.assertEqual(self.approve(date=str(self.day + timedelta(days=3))).status_code, 400)
@@ -105,6 +108,8 @@ class DailyAttendanceTests(TestCase):
         self.assertEqual(self.client.post("/api/admin/attendance/check_in/", {"event": event.pk, "token": self.token}).status_code, 409)
 
     def test_season_scope_and_closed_season(self):
+        SeasonMembership.objects.filter(user=self.student).delete()
+        Season.objects.update(is_current=False)
         season = Season.objects.create(name="Current", status="ACTIVE", is_current=True)
         SeasonMembership.objects.create(season=season, user=self.student, ticket=self.ticket)
         Event.all_objects.filter(pk=self.events[0].pk).update(season=season)

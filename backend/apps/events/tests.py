@@ -1,3 +1,4 @@
+from apps.seasons.testing import active_season, enroll_student
 from datetime import timedelta
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
@@ -94,13 +95,17 @@ class EventsWorkflowTests(TestCase):
         self.assertEqual(response.status_code, 409)
 
     def setUp(self):
+        active_season()
         self.client = APIClient()
         self.admin = make_user("admin", "ADMIN")
         self.organizer = make_user("organizer", "ORGANIZER")
         self.other_organizer = make_user("other-organizer", "ORGANIZER")
         self.student = make_user("student")
+        enroll_student(self.student)
         self.second = make_user("second")
+        enroll_student(self.second)
         self.third = make_user("third")
+        enroll_student(self.third)
         self.category = EventCategory.objects.create(name="Sports", slug="sports")
         self.client.force_authenticate(self.organizer)
         response = self.client.post("/api/events/", event_data(self.category), format="json")
@@ -319,12 +324,15 @@ class EventsWorkflowTests(TestCase):
 @skipUnlessDBFeature("has_select_for_update")
 class RegistrationConcurrencyTests(TransactionTestCase):
     def setUp(self):
+        active_season()
         organizer = make_user("organizer", "ORGANIZER")
         category = EventCategory.objects.create(name="Sports", slug="sports")
         data = event_data(category)
         data.pop("category")
         self.event = Event.objects.create(category=category, organizer=organizer, **data)
         self.users = [make_user("first"), make_user("second")]
+        for user in self.users:
+            enroll_student(user)
 
     def race(self, user_ids):
         barrier = Barrier(2)
@@ -356,6 +364,7 @@ class RegistrationConcurrencyTests(TransactionTestCase):
 
 class EventImageUploadTests(TestCase):
     def setUp(self):
+        active_season()
         import tempfile
         from django.test import override_settings
         self.media = tempfile.TemporaryDirectory()
