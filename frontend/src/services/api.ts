@@ -35,6 +35,14 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
+    if (error.response?.status === 403 && error.response.data?.code === "SEASON_NOT_OPEN") {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      window.dispatchEvent(new Event("auth:expired"));
+    }
+    if (error.response?.status === 403 && error.response.data?.code === "SEASON_ACCESS_REQUIRED") {
+      window.dispatchEvent(new Event("season:locked"));
+    }
     const config = error.config;
     if (
       error.response?.status !== 401 ||

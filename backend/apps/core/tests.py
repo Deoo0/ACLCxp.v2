@@ -1,3 +1,4 @@
+from apps.seasons.testing import active_season, enroll_student
 import base64
 import io
 import tempfile
@@ -17,9 +18,11 @@ from .models import UploadedImage
 
 class AdminQAChangesTests(TestCase):
     def setUp(self):
+        active_season()
         self.client = APIClient()
         self.admin = make_user("qa-admin", "ADMIN")
         self.student = make_user("qa-student")
+        enroll_student(self.student)
         self.client.force_authenticate(self.admin)
         self.category = EventCategory.objects.create(name="QA", slug="qa")
 
@@ -46,7 +49,7 @@ class AdminQAChangesTests(TestCase):
         for numbers in [["222222", "111111"], ["222222", "222222"], ["222222", "=1+2"], ["222222", "12345"]]:
             response = self.client.post("/api/admin/tickets/import/", {"file": self.workbook(numbers)}, format="multipart")
             self.assertEqual(response.status_code, 400, response.data)
-            self.assertEqual(IntramuralsTicket.objects.count(), 1)
+            self.assertEqual(IntramuralsTicket.objects.exclude(redeemed_by__account=self.student).count(), 1)
         response = self.client.post("/api/admin/tickets/import/", {"file": SimpleUploadedFile("bad.xlsx", b"invalid")}, format="multipart")
         self.assertEqual(response.status_code, 400)
 
@@ -55,7 +58,7 @@ class AdminQAChangesTests(TestCase):
         redeemed = IntramuralsTicket.objects.create(ticket_number="222222", qr_token="redeemed", status="REDEEMED")
         response = self.client.post("/api/admin/tickets/batch-delete/", {"ids": [unused.pk, redeemed.pk]}, format="json")
         self.assertEqual(response.status_code, 409)
-        self.assertEqual(IntramuralsTicket.objects.count(), 2)
+        self.assertEqual(IntramuralsTicket.objects.exclude(redeemed_by__account=self.student).count(), 2)
         self.assertEqual(self.client.delete(f"/api/admin/tickets/{redeemed.pk}/").status_code, 409)
         self.assertEqual(self.client.delete(f"/api/admin/tickets/{unused.pk}/").status_code, 204)
         other = IntramuralsTicket.objects.create(ticket_number="333333", qr_token="other")

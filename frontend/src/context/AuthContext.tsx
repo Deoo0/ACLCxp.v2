@@ -55,10 +55,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (credentials: LoginCredentials): Promise<AuthUser> => {
     queryClient.clear();
-    await loginService(credentials); // saves tokens, we ignore the returned user
-    const freshUser = await getMe(); // fetch authoritative profile
-    setUser(freshUser);
-    return freshUser;
+    try {
+      await loginService(credentials); // saves tokens, we ignore the returned user
+      const freshUser = await getMe(); // rechecks access if the season changed during login
+      setUser(freshUser);
+      return freshUser;
+    } catch (error) {
+      clearTokens();
+      setUser(null);
+      throw error;
+    }
   };
 
   const refreshUser = async (): Promise<void> => {

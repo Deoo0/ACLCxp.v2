@@ -44,7 +44,8 @@ try:
 
     password = secrets.token_urlsafe(24)
     house = House.objects.create(name="Mobile QA House", color_code="#2563eb")
-    season = Season.objects.create(name="Mobile QA Season", status="ACTIVE", is_current=True)
+    draft = "--draft" in sys.argv
+    season = Season.objects.create(name="Mobile QA Season", status="DRAFT" if draft else "ACTIVE", is_current=not draft)
     users = {}
     for role in ("STUDENT", "ADMIN"):
         users[role] = User.objects.create_user(
@@ -73,7 +74,7 @@ try:
                      handler_class=QuietHandler) as server:
         server.timeout = 0.5
         manifest.write_text(json.dumps({"password": password, "student": student.student_id,
-            "admin": users["ADMIN"].student_id, "eventId": event.pk,
+            "admin": users["ADMIN"].student_id, "eventId": event.pk, "seasonId": season.pk,
             "api": "http://127.0.0.1:8001", "database": test_name}), encoding="utf-8")
         print(f"READY manifest={manifest}", flush=True)
         deadline = time.monotonic() + 1200

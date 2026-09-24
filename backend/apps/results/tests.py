@@ -1,3 +1,4 @@
+from apps.seasons.testing import active_season, enroll_student
 from django.test import TestCase
 from django.utils import timezone
 from datetime import timedelta
@@ -9,6 +10,7 @@ from .models import EventResult, MatchAnnouncement
 
 class CompetitionFeedTests(TestCase):
     def setUp(self):
+        active_season()
         self.client = APIClient()
         self.organizer = make_user("results-admin", "ADMIN")
         category = EventCategory.objects.create(name="Sports", slug="sports")
@@ -44,10 +46,12 @@ class CompetitionFeedTests(TestCase):
 
 class MatchupManagementTests(TestCase):
     def setUp(self):
+        active_season()
         from apps.houses.models import House
         self.client = APIClient()
         self.admin = make_user("match-admin", "ADMIN")
         self.student = make_user("match-student")
+        enroll_student(self.student)
         self.client.force_authenticate(self.admin)
         category = EventCategory.objects.create(name="Games", slug="games")
         data = event_data(category)

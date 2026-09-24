@@ -1,3 +1,4 @@
+from apps.seasons.testing import active_season, enroll_student
 from django.test import TestCase
 from rest_framework.test import APIClient
 from apps.houses.models import House
@@ -6,9 +7,12 @@ from .models import User
 
 class PermissionTests(TestCase):
     def setUp(self):
+        active_season()
         self.client = APIClient()
         self.student = User.objects.create_user("S1", "StrongPass!876", email="one@gmail.com", year_level=1)
+        enroll_student(self.student)
         self.other = User.objects.create_user("S2", "StrongPass!876", email="two@gmail.com", year_level=1)
+        enroll_student(self.other)
         self.admin = User.objects.create_user("A1", "StrongPass!876", email="admin@gmail.com", year_level=1, role="ADMIN")
 
     def test_anonymous_cannot_read_or_edit_users_or_create_house(self):
