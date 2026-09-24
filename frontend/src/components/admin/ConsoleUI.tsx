@@ -110,7 +110,7 @@ export function Panel({
 }) {
   return (
     <section
-      className={`rounded-2xl border border-white/10 bg-neutral-900/60 p-5 sm:p-6 ${className}`}
+      className={`min-w-0 rounded-2xl border border-white/10 bg-neutral-900/60 p-5 sm:p-6 ${className}`}
     >
       {children}
     </section>
