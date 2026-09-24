@@ -60,11 +60,11 @@ export default function StudentPass({
               <Notice error={query.error} retry={() => void query.refetch()} />
             ) : (
               <>
-                <div className="mx-auto my-6 w-fit rounded-2xl bg-white p-2">
+                <div className="mx-auto my-6 w-full max-w-68 rounded-2xl bg-white p-2">
                   <img
                     src={query.data.image}
                     alt="Your scannable student event pass"
-                    className="h-64 w-64 max-w-full"
+                    className="aspect-square h-auto w-full"
                   />
                 </div>
                 <p className="text-center text-xs text-neutral-500">

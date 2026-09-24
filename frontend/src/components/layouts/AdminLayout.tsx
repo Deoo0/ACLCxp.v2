@@ -94,7 +94,7 @@ export default function AdminLayout() {
         {navigation}
       </aside>
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-[74px] items-center justify-between gap-4 border-b border-white/10 bg-neutral-950/90 px-4 backdrop-blur-xl sm:px-8">
+        <header className="sticky top-0 z-30 flex h-[74px] items-center justify-between gap-2 border-b border-white/10 bg-neutral-950/90 px-4 backdrop-blur-xl sm:px-8">
           <div className="flex items-center gap-3">
             <Dialog.Root open={open} onOpenChange={setOpen}>
               <Dialog.Trigger
@@ -123,7 +123,7 @@ export default function AdminLayout() {
               </Dialog.Portal>
             </Dialog.Root>
             <span className="text-sm font-medium text-neutral-300">
-              Campus management
+              <span className="sm:hidden">Campus</span><span className="hidden sm:inline">Campus management</span>
             </span>
           </div>
           <span className="flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
@@ -131,7 +131,8 @@ export default function AdminLayout() {
             Administrator
           </span>
         </header>
-        <main className="mx-auto max-w-[1500px] p-4 sm:p-8">
+        <a href="#main-content" className="skip-link">Skip to content</a>
+        <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1500px] p-4 sm:p-8">
           <PageTransition />
         </main>
       </div>

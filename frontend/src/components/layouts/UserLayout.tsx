@@ -23,7 +23,8 @@ export default function UserLayout() {
       <div className="h-[74px] lg:h-20">
         <UserNavBar />
       </div>
-      <main className="pb-28 lg:pb-8">
+      <a href="#main-content" className="skip-link">Skip to content</a>
+      <main id="main-content" tabIndex={-1} className="student-content">
         <PageTransition />
       </main>
       <BottomNavigation

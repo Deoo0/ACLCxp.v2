@@ -29,7 +29,7 @@ export default function BottomNavigation({ items, centerAction }: BottomNavigati
     const Icon = item.icon;
     const active = isActive(item.path);
     return (
-      <NavLink to={item.path} className={`relative flex min-h-14 min-w-13 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 text-[10px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${active ? "text-amber-300" : "text-neutral-500 hover:text-neutral-300"}`} aria-current={active ? "page" : undefined}>
+      <NavLink to={item.path} className={`relative flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-0.5 text-[11px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${active ? "text-amber-300" : "text-neutral-400 hover:text-neutral-200"}`} aria-current={active ? "page" : undefined}>
         {active && <span className="absolute top-1 h-1 w-1 rounded-full bg-amber-400" aria-hidden="true" />}
         <Icon className={`h-5 w-5 ${active ? "text-amber-400" : ""}`} aria-hidden="true" />
         <span>{item.label}</span>

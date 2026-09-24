@@ -24,7 +24,8 @@ export default function PublicLayout() {
         <>
             <PublicNavBar />
 
-            <main>
+            <a href="#main-content" className="skip-link">Skip to content</a>
+            <main id="main-content" tabIndex={-1}>
                 <PageTransition />
             </main>
 

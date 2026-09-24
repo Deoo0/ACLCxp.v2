@@ -25,7 +25,9 @@ export default function Header() {
                 {/* Left Side Div */}
                 <div className="flex items-center gap-8">
                     {/* Logo */}
-                    <div
+                    <button
+                        type="button"
+                        aria-label="ACLCxp home"
                         onClick={handleLogoClick}
                         className="flex items-center gap-1 cursor-pointer"
                     >
@@ -35,12 +37,12 @@ export default function Header() {
                             className="w-14 h-14 object-contain"
                             />
                         <div className="flex translate-y-0.5">
-                            <h1 className="font-bold text-2xl tracking-wide hidden sm:inline text-white">
+                            <span className="font-bold text-2xl tracking-wide hidden sm:inline text-white">
                                 ACLC
-                            </h1>
+                            </span>
                             <span className="text-[#D91B22] text-sm font-bold ml-1 tracking-wide hidden sm:inline font-arcade">XP</span>
                         </div>
-                    </div>
+                    </button>
 
                     {/* line separator */}
                     <div className="w-0.5 h-9 bg-white/50 hidden lg:inline" />
