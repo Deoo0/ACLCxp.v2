@@ -24,13 +24,14 @@ class SeasonLifecycleTests(TestCase):
         url = "/api/admin/attendance/check_in/"
         payload = {"event": self.event.pk, "student_id": self.student.student_id}
         old_season = Season.objects.create(name="Previous season", status="CLOSED")
-        ticket = IntramuralsTicket.all_objects.create(ticket_number="555555555555", qr_token="open-current",
-            season=old_season, status="REDEEMED", redeemed_by=self.roster)
-        self.assertEqual(self.client.post(url, payload).status_code, 409)
+        ticket = self.ticket
+        ticket.season = old_season
+        ticket.save()
+        self.assertEqual(self.client.post(url, payload).status_code, 403)
         ticket.season = self.first
         ticket.status = "DISABLED"
         ticket.save()
-        self.assertEqual(self.client.post(url, payload).status_code, 409)
+        self.assertEqual(self.client.post(url, payload).status_code, 403)
         ticket.status = "REDEEMED"
         ticket.save()
         self.assertEqual(self.client.post(url, payload).status_code, 201)
@@ -43,6 +44,7 @@ class SeasonLifecycleTests(TestCase):
         self.student.house = self.house
         self.student.save()
         self.roster = StudentRoster.objects.create(student_number=self.student.student_id, first_name="Student", last_name="One", program="BSIT", year_level=1, account=self.student)
+        self.ticket = IntramuralsTicket.objects.create(ticket_number="111222333444", qr_token="legacy-ticket", status="REDEEMED", redeemed_by=self.roster)
         category = EventCategory.objects.create(name="Sports", slug="sports")
         data = event_data(category)
         data.pop("category")

@@ -15,9 +15,10 @@ class Conflict(APIException):
 
 
 def eligible(event, user):
-    if user and user.is_authenticated and user.role == "STUDENT" and event.season_id:
-        from apps.seasons.models import SeasonMembership
-        if event.season.status != "ACTIVE" or not SeasonMembership.objects.filter(season_id=event.season_id, user=user).exists():
+    if user and user.is_authenticated and user.role == "STUDENT":
+        from apps.seasons.scope import current_season, valid_membership
+        season = current_season()
+        if not season or season.pk != event.season_id or season.status != "ACTIVE" or not valid_membership(user, season):
             return False
     if event.visibility == "PRIVATE":
         return False  # Invitation management is not yet supported.

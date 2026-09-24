@@ -194,6 +194,10 @@ def login(request):
             status=status.HTTP_401_UNAUTHORIZED,
         )
         
+    from apps.seasons.scope import student_session_error
+    season_error = student_session_error(authenticated_user)
+    if season_error:
+        return Response(season_error, status=403)
     refresh = RefreshToken.for_user(authenticated_user)
 
     return Response(
@@ -275,6 +279,10 @@ def refresh_token(request):
         user = User.objects.filter(pk=token.get("user_id"), is_active=True).first()
         if not user or (api_settings.CHECK_REVOKE_TOKEN and token.get(api_settings.REVOKE_TOKEN_CLAIM) != get_md5_hash_password(user.password)):
             return Response({"detail": "Session expired. Please sign in again."}, status=401)
+        from apps.seasons.scope import student_session_error
+        season_error = student_session_error(user)
+        if season_error:
+            return Response(season_error, status=403)
         serializer = TokenRefreshSerializer(data={"refresh": refresh})
         serializer.is_valid(raise_exception=True)
         return Response({"status": "success", "data": serializer.validated_data})

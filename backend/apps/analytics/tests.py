@@ -1,3 +1,4 @@
+from apps.seasons.testing import active_season, enroll_student
 import uuid
 from datetime import timedelta
 from django.core import signing
@@ -19,11 +20,12 @@ class ConnectedConsoleTests(TestCase):
         self.event.capacity = 1
         self.event.current_registered = 0
         self.event.save()
-        self.assertEqual(self.check_in().status_code, 409)
-        roster = StudentRoster.objects.create(student_number=self.student.student_id, first_name="Student",
-            last_name="One", program="BSIT", year_level=1, account=self.student)
-        IntramuralsTicket.objects.create(ticket_number="123456789012", qr_token="open-ticket",
-            status="REDEEMED", redeemed_by=roster)
+        ticket = IntramuralsTicket.objects.get(redeemed_by__account=self.student)
+        ticket.status = "DISABLED"
+        ticket.save()
+        self.assertEqual(self.check_in().status_code, 403)
+        ticket.status = "REDEEMED"
+        ticket.save()
         token = signing.dumps({"student_id": self.student.student_id}, salt="student-event-pass")
         self.assertEqual(self.check_in(token).status_code, 201)
         self.assertEqual(self.check_in(token).status_code, 200)
@@ -37,8 +39,7 @@ class ConnectedConsoleTests(TestCase):
         self.assertEqual(overview["data"][0]["status"], "ATTENDED")
         self.client.force_authenticate(self.admin)
         # A second ticket holder can attend even beyond the placeholder capacity.
-        other_roster = StudentRoster.objects.create(student_number=self.other.student_id, first_name="Other",
-            last_name="Student", program="BSIT", year_level=1, account=self.other)
+        other_roster = StudentRoster.objects.get(account=self.other)
         IntramuralsTicket.objects.create(ticket_number="123456789013", qr_token="other-ticket",
             status="REDEEMED", redeemed_by=other_roster)
         response = self.client.post("/api/admin/attendance/check_in/", {"event": self.event.pk,
@@ -158,7 +159,9 @@ class ConnectedConsoleTests(TestCase):
     def test_delete_unused_student_retains_disabled_roster_and_used_ticket(self):
         self.other.house = self.house
         self.other.save()
-        roster = StudentRoster.objects.create(student_number="OTHER", first_name="Grace", last_name="Cruz", program="BSIT", year_level=1, account=self.other)
+        from apps.seasons.models import SeasonMembership
+        SeasonMembership.objects.filter(user=self.other).delete()
+        roster = StudentRoster.objects.get(account=self.other)
         ticket = IntramuralsTicket.objects.create(ticket_number="123456123456", qr_token="delete-test", status="REDEEMED", redeemed_by=roster)
         user_id = self.other.pk
         response = self.client.delete(f"/api/admin/users/{user_id}/")
@@ -206,11 +209,14 @@ class ConnectedConsoleTests(TestCase):
             self.assertEqual(self.client.delete(f"/api/admin/houses/{self.house.pk}/").status_code, status)
 
     def setUp(self):
+        active_season()
         self.client = APIClient()
         self.house = House.objects.create(name="Azul", color_code="#123456")
         self.admin = User.objects.create_user("ADMIN", "SafePassword!123", email="admin@gmail.com", year_level=1, role="ADMIN")
         self.student = User.objects.create_user("STUDENT", "SafePassword!123", email="student@gmail.com", year_level=1, role="STUDENT", house=self.house)
+        enroll_student(self.student)
         self.other = User.objects.create_user("OTHER", "SafePassword!123", email="other@gmail.com", year_level=1, role="STUDENT")
+        enroll_student(self.other)
         category = EventCategory.objects.create(name="Sport", slug="sport")
         self.event = Event.objects.create(title="Chess", slug="chess", description="Tournament", category=category, organizer=self.admin,
             event_date=timezone.localdate()+timedelta(days=1), start_time="10:00", end_time="12:00", venue="Hall", capacity=10,
@@ -305,13 +311,13 @@ class ConnectedConsoleTests(TestCase):
         csv="student_number,first_name,last_name,program,year_level\nR1,Ada,Santos,BSIT,1\nR2,Grace,Cruz,BSIT,2"
         response=self.client.post("/api/admin/roster/bulk/",{"csv":csv},format="json")
         self.assertEqual(response.status_code,201,response.data)
-        self.assertEqual(StudentRoster.objects.count(),2)
+        self.assertEqual(StudentRoster.objects.filter(student_number__in=["R1", "R2"]).count(),2)
         response=self.client.post("/api/admin/roster/bulk/",{"rows":[{"student_number":"R3","first_name":"A","last_name":"B","program":"BSIT","year_level":1},{"student_number":"R4"}]},format="json")
         self.assertEqual(response.status_code,400)
         self.assertFalse(StudentRoster.objects.filter(student_number="R3").exists())
         response=self.client.post("/api/admin/tickets/generate/",{"count":2},format="json")
         self.assertEqual(response.status_code,201)
-        self.assertEqual(IntramuralsTicket.objects.count(),2)
+        self.assertEqual(IntramuralsTicket.objects.filter(status="AVAILABLE").count(),2)
         row=response.data[0]
         self.assertEqual(self.client.post(f"/api/admin/tickets/{row['id']}/toggle/",{}).data["status"],"DISABLED")
 

@@ -13,7 +13,7 @@ from apps.events.services import Conflict
 from apps.users.models import User, IntramuralsTicket, StudentRoster
 from apps.houses.models import House
 from .models import Season, SeasonMembership
-from .scope import current_season
+from .scope import current_season, valid_membership
 from .archive import archive, purge_records, season_records
 
 
@@ -65,7 +65,12 @@ class SeasonViewSet(viewsets.GenericViewSet):
             from django.apps import apps
             for app, model in [("events", "Event"), ("results", "PointsTransaction"), ("users", "IntramuralsTicket"), ("analytics", "AuditLog"), ("attendance", "ScanLog"), ("houses", "HouseStanding"), ("notifications", "Notification"), ("notifications", "EmailLog")]:
                 apps.get_model(app, model).all_objects.filter(season__isnull=True).update(season=season)
-            SeasonMembership.objects.bulk_create([SeasonMembership(season=season, user=user) for user in User.objects.filter(role="STUDENT", is_active=True)])
+            # Adopt only verifiable redeemed tickets, never grant access from an account alone.
+            for ticket in IntramuralsTicket.objects.filter(season=season, status="REDEEMED",
+                    redeemed_by__is_eligible=True, redeemed_by__account__is_active=True,
+                    redeemed_by__account__role="STUDENT").select_related("redeemed_by"):
+                SeasonMembership.objects.get_or_create(season=season, user=ticket.redeemed_by.account,
+                    defaults={"ticket": ticket})
         if target == "CLOSED":
             season.closed_at = timezone.now()
         else:
@@ -125,9 +130,9 @@ class SeasonViewSet(viewsets.GenericViewSet):
 @permission_classes([IsAuthenticated])
 def access(request):
     season = current_season()
-    enrolled = bool(season and SeasonMembership.objects.filter(season=season, user=request.user).exists())
+    enrolled = valid_membership(request.user, season)
     return Response({"season": SeasonSerializer(season).data if season else None, "enrolled": enrolled,
-                     "can_access": not season or (season.status == "ACTIVE" and enrolled), "can_redeem": bool(season and season.status in ("REGISTRATION", "ACTIVE") and not enrolled)})
+                     "can_access": bool(season and season.status == "ACTIVE" and enrolled), "can_redeem": bool(request.user.role == "STUDENT" and season and season.status in ("REGISTRATION", "ACTIVE") and not enrolled)})
 
 
 @api_view(["POST"])
@@ -138,7 +143,7 @@ def redeem(request):
     season = current_season()
     if not season or season.status not in ("REGISTRATION", "ACTIVE") or request.user.role != "STUDENT":
         raise Conflict("Season registration is not open.")
-    if SeasonMembership.objects.filter(season=season, user=request.user).exists():
+    if valid_membership(request.user, season):
         return Response({"detail": "You are already enrolled in this season."})
     number = serializers.CharField(max_length=12).run_validation(request.data.get("ticket_number"))
     ticket = IntramuralsTicket.objects.select_for_update().filter(ticket_number=number, season=season, status="AVAILABLE").first()
@@ -149,5 +154,5 @@ def redeem(request):
     ticket.redeemed_by = roster
     ticket.redeemed_at = timezone.now()
     ticket.save()
-    SeasonMembership.objects.create(season=season, user=request.user, ticket=ticket)
+    SeasonMembership.objects.update_or_create(season=season, user=request.user, defaults={"ticket": ticket})
     return Response({"detail": "Season activated. Your dashboard unlocks when the season starts."})

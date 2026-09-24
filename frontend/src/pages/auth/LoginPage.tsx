@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
 import { FaArrowLeft, FaEye, FaEyeSlash, FaLock, FaUser } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import ForgotPasswordModal from "../../components/ui/ForgotPasswordModal";
@@ -27,10 +28,11 @@ export default function LoginPage() {
       const user = await login({ student_id: studentId, password });
       setRedirectTo(user.role === "ADMIN" ? "/admin" : ["STAFF", "ORGANIZER"].includes(user.role) ? "/staff/attendance" : "/dashboard");
       setLoginComplete(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setShowTransition(false);
-      const status = err?.response?.status;
-      setError(status === 401 ? "Incorrect Student Number or password." : status === 403 ? "This account has been disabled. Please contact the SSC." : status === 404 ? "No activated account was found for this Student Number." : "Unable to sign in. Please try again.");
+      const response = axios.isAxiosError(err) ? err.response : undefined;
+      const status = response?.status;
+      setError(status === 401 ? "Incorrect Student Number or password." : status === 403 ? response?.data?.message || "This account cannot sign in right now. Please contact the SSC." : status === 404 ? "No activated account was found for this Student Number." : "Unable to sign in. Please try again.");
     } finally { setLoading(false); }
   };
 
