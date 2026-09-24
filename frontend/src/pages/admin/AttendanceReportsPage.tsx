@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ScanLine, Download } from "lucide-react";
 import {
   PageHeading,
@@ -11,6 +11,9 @@ import {
   Notice,
   Badge,
 } from "../../components/admin/ConsoleUI";
+import VerificationFeedback from "../../components/feedback/VerificationFeedback";
+import type { VerificationState } from "../../components/feedback/VerificationFeedback";
+import { errorMessage } from "../../services/queries";
 import DailyAttendance from "../../components/admin/DailyAttendance";
 import QRScanner from "../../components/admin/QRScanner";
 import { useApi, useWrite } from "../../services/queries";
@@ -20,6 +23,8 @@ import { downloadBlob } from "../../services/download";
 import { AccountFilters, ArchiveFilters } from "../../components/admin/Filters";
 import type { Filters } from "../../components/admin/Filters";
 export default function AttendanceReportsPage() {
+  const [feedback, setFeedback] = useState<VerificationState | null>(null);
+  const inFlight = useRef(false);
   const [archive, setArchive] = useState("active");
   const [year, setYear] = useState("");
   const [filters, setFilters] = useState<Filters>({});
@@ -50,8 +55,12 @@ export default function AttendanceReportsPage() {
   const mutateAsync = write.mutateAsync;
   const submit = useCallback(
     async (token?: string) => {
+      if (inFlight.current) return;
+      inFlight.current = true;
       setScanner(false);
       setError(null);
+      setMessage("");
+      setFeedback({ kind: "pending", title: "Checking attendance", message: "Please wait while attendance is verified and saved." });
       try {
         const row = await mutateAsync({
           path: "/admin/attendance/check_in/",
@@ -60,13 +69,11 @@ export default function AttendanceReportsPage() {
             ...(token ? { token } : { student_id: student }),
           },
         });
-        setMessage(
-          `Attendance recorded for ${row.student_name}. Participation points are synchronized.`,
-        );
+        setFeedback({ kind: "success", title: "Attendance confirmed", message: `Attendance is recorded for ${row.student_name}. Repeat scans do not duplicate attendance or points.` });
         setStudent("");
       } catch (e) {
-        setError(e);
-      }
+        setFeedback({ kind: "error", title: "Attendance not recorded", message: errorMessage(e) });
+      } finally { inFlight.current = false; }
     },
     [event, student, mutateAsync],
   );
@@ -189,7 +196,7 @@ export default function AttendanceReportsPage() {
                 type="button"
                 className={button}
                 disabled={!canCheckIn || write.isPending}
-                onClick={() => setScanner(!scanner)}
+                onClick={() => { setFeedback(null); setScanner(!scanner); }}
               >
                 <ScanLine className="h-4 w-4" />
                 {scanner ? "Close camera" : "Scan QR pass"}
@@ -197,6 +204,7 @@ export default function AttendanceReportsPage() {
             </div>
           </form>
         </div>
+        {feedback && <div className="mt-4"><VerificationFeedback {...feedback} /></div>}
         {scanner && (
           <div className="mx-auto mt-5 max-w-sm">
             <QRScanner onScan={scan} />
