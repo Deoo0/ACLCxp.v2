@@ -7,7 +7,7 @@ import type { PageData, Row } from "../../services/queries";
 import type { EventTeam } from "../admin/EventTeamsEditor";
 import { Notice } from "../admin/ConsoleUI";
 
-const ROTATION_MS = 7000;
+const ROTATION_MS = 2000;
 const control = "flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-white/15 px-3 text-sm text-neutral-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-amber-300 disabled:opacity-30";
 
 export function TeamShowcaseCarousel({ events }: { events: Row[] }) {
