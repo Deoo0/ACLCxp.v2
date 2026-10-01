@@ -12,6 +12,7 @@ from apps.events.models import EventRegistration
 from apps.attendance.models import Attendance
 from apps.users.models import User
 from .console import effective_points, houses_with_totals
+from apps.seasons.scope import championship_seasons
 from .serializers import PointsSerializer, AttendanceSerializer, HouseSerializer, SETTING_DEFAULTS
 from .models import SystemSetting
 
@@ -31,8 +32,10 @@ def summary(request):
     students = User.objects.filter(role="STUDENT", is_active=True)
     point_filter = Q(points_transactions__is_approved=True, points_transactions__is_reversed=False)
     if season:
-        students = students.filter(season_memberships__season=season)
-        point_filter &= Q(points_transactions__season=season)
+        from apps.seasons.models import SeasonMembership
+        participating = SeasonMembership.objects.filter(season__in=championship_seasons(season)).values("user_id")
+        students = students.filter(pk__in=participating)
+        point_filter &= Q(points_transactions__season__in=championship_seasons(season))
     students = students.annotate(total=Sum("points_transactions__points", filter=point_filter, default=0))
     return Response({"points": points, "rank": students.filter(total__gt=points).count() + 1,
         "attendance": Attendance.objects.filter(user=request.user, is_valid=True).count(),
