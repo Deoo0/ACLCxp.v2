@@ -392,6 +392,12 @@ export function Editor({
     </Dialog.Root>
   );
 }
+function detailValue(value: unknown): ReactNode {
+  if (Array.isArray(value)) return value.length ? <ul className="space-y-2">{value.map((item, index) => <li key={index}>{detailValue(item)}</li>)}</ul> : "None";
+  if (value && typeof value === "object") return <dl className="space-y-2">{Object.entries(value).map(([key, item]) => <div key={key}><dt className="text-xs capitalize text-neutral-500">{key.replaceAll("_", " ")}</dt><dd>{detailValue(item)}</dd></div>)}</dl>;
+  return valueText(value);
+}
+
 export type Column = {
   key: string;
   label: string;
@@ -412,11 +418,30 @@ export function Records({
   searchValue?: string;
   onSearchChange?: (value: string) => void;
 }) {
+  const [managedId, setManagedId] = useState<number | null>(null);
+  // Keep a compact overview; every original column remains in the detail dialog.
+  const summaryKeys: Record<string, string[]> = {
+    "/admin/users/": ["student_id", "full_name", "role", "is_active"],
+    "/admin/houses/": ["name", "member_count", "total_points", "is_active"],
+    "/events/": ["title", "event_date", "status", "current_registered"],
+    "/admin/settings/": ["key", "value"],
+    "/admin/audit/": ["created_at", "user_email", "description", "status"],
+    "/admin/results/": ["event_title", "student_name", "rank", "points_awarded"],
+    "/seasons/": ["name", "academic_year", "status", "is_current"],
+  };
+  const keys = summaryKeys[endpoint.split("?")[0]];
+  const overviewColumns = keys ? columns.filter(col => keys.includes(col.key)) : columns.slice(0, 3);
+  const statusColumn = columns.find(col => ["status", "role", "is_active", "is_valid", "is_published", "is_verified"].includes(col.key));
+  if (!keys && statusColumn && !overviewColumns.includes(statusColumn)) overviewColumns.push(statusColumn);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const query = useApi<PageData>(
     `${endpoint}${endpoint.includes("?") ? "&" : "?"}page=${page}&search=${encodeURIComponent(searchValue ?? search)}&refresh=${refreshKey}`,
   );
+  const managedRow = query.data?.data.find(row => row.id === managedId);
+  const recordLabel = (row: Row) => String(row.title || row.full_name || row.name || row.ticket_number || row.student_name || row.student_number || row.key || `Record #${row.id}`);
+  const detailColumns = columns.filter(col => col.key !== "selected");
+  const extraDetails = managedRow ? Object.keys(managedRow).filter(key => !columns.some(col => col.key === key) && key !== "id") : [];
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 p-4">
@@ -457,7 +482,7 @@ export function Records({
             <table className="w-full text-left text-sm">
               <thead className="bg-neutral-950/40 text-[11px] uppercase tracking-wider text-neutral-500">
                 <tr>
-                  {columns.map((col) => (
+                  {overviewColumns.map((col) => (
                     <th
                       scope="col"
                       key={col.key}
@@ -466,9 +491,9 @@ export function Records({
                       {col.label}
                     </th>
                   ))}
-                  {actions && (
+                  {(
                     <th scope="col" className="sticky right-0 z-10 w-px whitespace-nowrap bg-neutral-950 px-5 py-4 text-right font-medium">
-                      Actions
+                      Manage
                     </th>
                   )}
                 </tr>
@@ -476,23 +501,23 @@ export function Records({
               <tbody className="divide-y divide-white/[.05]">
                 {query.data.data.map((row) => (
                   <tr key={row.id} className="group bg-[#111111] transition hover:bg-[#181818]">
-                    {columns.map((col) => (
+                    {overviewColumns.map((col) => (
                       <td
                         key={col.key}
                         className="max-w-sm px-5 py-4 text-neutral-300"
                       >
-                        <div className="break-words">
+                        <div className="line-clamp-2 break-words">
                           {col.render
                             ? col.render(row)
                             : valueText(row[col.key])}
                         </div>
                       </td>
                     ))}
-                    {actions && (
+                    {(
                       <td className="sticky right-0 w-px bg-[#111111] px-5 py-3 align-middle transition group-hover:bg-[#181818]">
-                        <div className="ml-auto flex w-max max-w-40 flex-wrap items-center justify-end gap-2 sm:max-w-[22rem]">
-                          {actions(row)}
-                        </div>
+                        <button type="button" className={secondary} aria-label={`Manage ${recordLabel(row)}`} onClick={() => setManagedId(row.id)}>
+                          <ClipboardList className="h-4 w-4" /> Manage
+                        </button>
                       </td>
                     )}
                   </tr>
@@ -533,6 +558,43 @@ export function Records({
           </footer>
         </>
       )}
+      <Dialog.Root open={!!managedRow} onOpenChange={open => { if (!open) setManagedId(null); }}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm" />
+          <Dialog.Content className="admin-dialog fixed left-1/2 top-1/2 z-[71] flex max-h-[90dvh] w-[calc(100%-24px)] max-w-3xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#111315] text-neutral-200 shadow-2xl">
+            <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 p-5 sm:p-6">
+              <div className="min-w-0">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-amber-300">Record details</p>
+                <Dialog.Title className="break-words text-xl font-semibold text-white">{managedRow && recordLabel(managedRow)}</Dialog.Title>
+                <Dialog.Description className="mt-2 text-sm text-neutral-400">Review the complete record and choose an action below.</Dialog.Description>
+              </div>
+              <Dialog.Close className={button} aria-label="Close record details"><X className="h-4 w-4" /></Dialog.Close>
+            </header>
+            {managedRow && <div className="min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-6">
+              <dl className="grid gap-4 sm:grid-cols-2">
+                {detailColumns.map(col => <div key={col.key} className="min-w-0 rounded-xl border border-white/10 bg-white/[.025] p-4">
+                  <dt className="mb-2 text-xs font-medium text-neutral-500">{col.label}</dt>
+                  <dd className="whitespace-pre-wrap break-words text-sm leading-6 text-neutral-200">{col.render ? col.render(managedRow) : detailValue(managedRow[col.key])}</dd>
+                </div>)}
+                {extraDetails.map(key => <div key={key} className="min-w-0 rounded-xl border border-white/10 bg-white/[.025] p-4">
+                  <dt className="mb-2 text-xs font-medium capitalize text-neutral-500">{key.replaceAll("_", " ")}</dt>
+                  <dd className="whitespace-pre-wrap break-words text-sm leading-6 text-neutral-200">{detailValue(managedRow[key])}</dd>
+                </div>)}
+              </dl>
+            </div>}
+            <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-white/[.025] p-5">
+              <Dialog.Close className={button}>Close</Dialog.Close>
+              {managedRow && actions && <div className="flex flex-wrap gap-2" onClick={event => {
+                // Run the button's handler before closing its parent dialog.
+                // Closing during capture can unmount it before its click fires.
+                const target = event.target as Element;
+                const action = target.closest("button");
+                if (action && !action.disabled) setManagedId(null);
+              }}>{actions(managedRow)}</div>}
+            </footer>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }

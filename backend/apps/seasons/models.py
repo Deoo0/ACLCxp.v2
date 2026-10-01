@@ -4,6 +4,7 @@ from apps.core.models import BaseModel
 
 
 class Season(BaseModel):
+    academic_year = models.CharField(max_length=9, blank=True, default="", db_index=True)
     name = models.CharField(max_length=120, unique=True)
     status = models.CharField(max_length=20, default="DRAFT", choices=[("DRAFT", "Draft"), ("REGISTRATION", "Registration open"), ("ACTIVE", "Active"), ("CLOSED", "Closed")])
     is_current = models.BooleanField(default=False)

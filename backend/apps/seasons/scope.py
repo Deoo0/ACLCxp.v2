@@ -46,3 +46,11 @@ def require_membership(user, season=None):
     if user and user.role == "STUDENT":
         if not season or season.status != "ACTIVE" or not valid_membership(user, season):
             raise PermissionDenied("Activate your ticket for the active season before participating.")
+
+
+def championship_seasons(season):
+    """Point reporting only; never use this scope for access or operational writes."""
+    from .models import Season
+    if season.academic_year:
+        return Season.objects.filter(academic_year=season.academic_year).exclude(status="DRAFT")
+    return Season.objects.filter(pk=season.pk)

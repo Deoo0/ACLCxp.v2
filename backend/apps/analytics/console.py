@@ -30,7 +30,12 @@ from .operations import check_in, correct_attendance, post_points, reverse_point
 
 
 def effective_points():
-    return PointsTransaction.objects.filter(is_approved=True, is_reversed=False)
+    from apps.seasons.scope import current_season, championship_seasons
+    season = current_season()
+    points = PointsTransaction.all_objects.filter(is_approved=True, is_reversed=False)
+    if season:
+        points = points.filter(season__in=championship_seasons(season))
+    return points
 
 
 def houses_with_totals():

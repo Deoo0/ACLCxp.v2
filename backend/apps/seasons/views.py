@@ -18,9 +18,15 @@ from .archive import archive, purge_records, season_records
 
 
 class SeasonSerializer(LimitedModelSerializer):
+    def validate_academic_year(self, value):
+        import re
+        if value and (not re.fullmatch(r"[0-9]{4}-[0-9]{4}", value) or int(value[5:]) != int(value[:4]) + 1):
+            raise serializers.ValidationError("Use consecutive years, for example 2026-2027.")
+        return value
+
     class Meta:
         model = Season
-        fields = ["id", "name", "status", "is_current", "starts_on", "ends_on", "closed_at", "exported_at", "purged_at"]
+        fields = ["id", "name", "academic_year", "status", "is_current", "starts_on", "ends_on", "closed_at", "exported_at", "purged_at"]
         read_only_fields = ["status", "is_current", "closed_at", "exported_at", "purged_at"]
 
     def validate(self, attrs):
@@ -45,6 +51,23 @@ class SeasonViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=201)
+
+    @action(detail=True, methods=["post"], url_path="academic-year")
+    @transaction.atomic
+    def academic_year(self, request, pk=None):
+        list(Season.objects.select_for_update().order_by("pk"))
+        season = self.get_object()
+        if season.purged_at or season.academic_year:
+            raise Conflict("Only an unassigned, unpurged season can be linked to an academic year.")
+        serializer = self.get_serializer(season, data={"academic_year": request.data.get("academic_year", "")}, partial=True)
+        serializer.is_valid(raise_exception=True)
+        if not serializer.validated_data.get("academic_year"):
+            raise serializers.ValidationError("An academic year is required.")
+        serializer.save()
+        from apps.analytics.console import houses_with_totals
+        for house in houses_with_totals():
+            House.objects.filter(pk=house.pk).update(total_points=house.actual_points)
+        return Response(serializer.data)
 
     @action(detail=True, methods=["post"])
     @transaction.atomic
@@ -79,7 +102,7 @@ class SeasonViewSet(viewsets.GenericViewSet):
         season.status = target
         season.save()
         from apps.analytics.console import houses_with_totals
-        # Rebuild cached public totals for the selected season, rather than carrying them forward.
+        # Rebuild championship totals from original transactions; never copy awards.
         for house in houses_with_totals():
             House.objects.filter(pk=house.pk).update(total_points=house.actual_points, member_count=house.actual_members, current_rank=None, total_wins=0, total_participations=0)
         return Response(self.get_serializer(season).data)
@@ -109,6 +132,8 @@ class SeasonViewSet(viewsets.GenericViewSet):
     @transaction.atomic
     def purge(self, request, pk=None):
         season = Season.objects.select_for_update().get(pk=self.get_object().pk)
+        if season.academic_year:
+            raise Conflict("Academic-year seasons cannot be purged because their points contribute to championship history. Close and export instead.")
         if season.status != "CLOSED" or season.purged_at or not season.exported_at:
             raise Conflict("Only an exported, closed season can be purged.")
         if request.data.get("confirmation") != season.name or request.data.get("export_saved") is not True:

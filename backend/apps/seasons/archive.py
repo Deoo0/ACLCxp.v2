@@ -51,7 +51,7 @@ def archive(season):
     for house in payload["houses"]:
         house["total_points"] = totals.get(house["id"], 0)
         house["member_count"] = records["memberships"].filter(user__house_id=house["id"]).count()
-    payload["season"] = {"id": season.pk, "name": season.name, "status": season.status, "starts_on": season.starts_on, "ends_on": season.ends_on, "closed_at": season.closed_at}
+    payload["season"] = {"academic_year": season.academic_year, "id": season.pk, "name": season.name, "status": season.status, "starts_on": season.starts_on, "ends_on": season.ends_on, "closed_at": season.closed_at}
     media, missing = {}, []
     paths = set()
     for event in records["events"]:
