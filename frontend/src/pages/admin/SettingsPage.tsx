@@ -4,6 +4,7 @@ import type { Row } from "../../services/queries";
 
 function settingField(row: Row): Field {
   const fields: Record<string, Field> = {
+    leaderboard_house_visibility: { name: "value", label: "Reveal leaderboard houses", type: "select", required: true, options: [{ label: "Hidden — show neutral ranks and points", value: "false" }, { label: "Revealed — show house names and branding", value: "true" }], hint: "Applies to all student leaderboards. Scores and ranks remain visible." },
     announcement: { name: 'value', label: 'Dashboard announcement', type: 'textarea', hint: 'Shown on student dashboards. Leave blank to hide the announcement.' },
     support_email: { name: 'value', label: 'Support email address', type: 'email', placeholder: 'support@example.com', hint: 'The contact address students can use for assistance.' },
     merit_milestone: { name: 'value', label: 'Points per milestone', type: 'number', min: 1, max: 1000000, required: true, hint: 'The number of points between each student dashboard milestone.' },
@@ -15,7 +16,7 @@ function settingField(row: Row): Field {
 export default function SettingsPage() {
   const [editing, setEditing] = useState<Row | null>(null);
   return <div className="space-y-6">
-    <PageHeading title="Portal settings" description="Manage announcements, support contact details, milestones, and registration. Updates appear when student pages refresh." />
+    <PageHeading title="Portal settings" description="Manage announcements, support contact details, milestones, registration, and leaderboard visibility. Updates appear when student pages refresh." />
     <Records endpoint="/admin/settings/" columns={[{ key: 'key', label: 'Setting' }, { key: 'description', label: 'Purpose' }, { key: 'value', label: 'Current value' }, { key: 'updated_at', label: 'Updated' }]} actions={row => <button className={secondary} onClick={() => setEditing(row)}>Edit</button>} />
     {editing && <Editor title={`Edit ${settingField(editing).label.toLowerCase()}`} description={String(editing.description || 'Update this setting for the student portal.')} path={`/admin/settings/${editing.id}/`} method="patch" initial={editing} fields={[settingField(editing)]} transform={data => ({ value: String(data.value ?? '') })} onClose={() => setEditing(null)} />}
   </div>;

@@ -1,3 +1,4 @@
+import IdentityConfirmation, { type StudentIdentity } from "../../components/admin/IdentityConfirmation";
 import { useCallback, useRef, useState } from "react";
 import { ScanLine, Download } from "lucide-react";
 import {
@@ -33,6 +34,7 @@ export default function AttendanceReportsPage() {
   const [search, setSearch] = useState("");
   const [student, setStudent] = useState("");
   const [scanner, setScanner] = useState(false);
+  const [pendingIdentity, setPendingIdentity] = useState<{ student: StudentIdentity; token?: string; student_id: string } | null>(null);
   const [correction, setCorrection] = useState<Row | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [message, setMessage] = useState("");
@@ -54,7 +56,7 @@ export default function AttendanceReportsPage() {
   const write = useWrite();
   const mutateAsync = write.mutateAsync;
   const submit = useCallback(
-    async (token?: string) => {
+    async (token?: string, identity_proof?: string, verifiedStudent?: string) => {
       if (inFlight.current) return;
       inFlight.current = true;
       setScanner(false);
@@ -62,11 +64,21 @@ export default function AttendanceReportsPage() {
       setMessage("");
       setFeedback({ kind: "pending", title: "Checking attendance", message: "Please wait while attendance is verified and saved." });
       try {
+        if (!identity_proof) {
+          const student_id = student.trim();
+          const response = await api.post<StudentIdentity>("/attendance/preview/", token ? { token } : { student_id });
+          setFeedback(null);
+          setPendingIdentity({ student: response.data, token, student_id });
+          return;
+        }
+        setPendingIdentity(null);
+
         const row = await mutateAsync({
           path: "/admin/attendance/check_in/",
           body: {
+            identity_proof,
             event: Number(event),
-            ...(token ? { token } : { student_id: student }),
+            ...(token ? { token } : { student_id: verifiedStudent || student }),
           },
         });
         setFeedback({ kind: "success", title: "Attendance confirmed", message: `Attendance is recorded for ${row.student_name}. Repeat scans do not duplicate attendance or points.` });
@@ -116,7 +128,7 @@ export default function AttendanceReportsPage() {
             onChange={(a, y) => {
               setArchive(a);
               setYear(y);
-              setEvent("");
+              setPendingIdentity(null); setEvent("");
               setScanner(false);
             }}
           />
@@ -143,7 +155,7 @@ export default function AttendanceReportsPage() {
               className={input}
               value={event}
               onChange={(e) => {
-                setEvent(e.target.value);
+                setPendingIdentity(null); setEvent(e.target.value);
                 setScanner(false);
               }}
             >
@@ -205,6 +217,7 @@ export default function AttendanceReportsPage() {
           </form>
         </div>
         {feedback && <div className="mt-4"><VerificationFeedback {...feedback} /></div>}
+        {pendingIdentity && <IdentityConfirmation student={pendingIdentity.student} onCancel={() => setPendingIdentity(null)} onConfirm={() => void submit(pendingIdentity.token, pendingIdentity.student.identity_proof, pendingIdentity.student_id)} />}
         {scanner && (
           <div className="mx-auto mt-5 max-w-sm">
             <QRScanner onScan={scan} />

@@ -63,7 +63,7 @@ def daily_attendance(request):
         approved_student_id = None
         for event in events:
             try:
-                attendance, created = check_in(request.user, event.pk, student_id or None, token or None, daily=True)
+                attendance, created = check_in(request.user, event.pk, student_id or None, token or None, daily=True, identity_proof=request.data.get("identity_proof", ""))
             except Conflict as exc:
                 skipped.append({"id": event.pk, "title": event.title, "reason": str(exc.detail)})
                 continue
@@ -77,3 +77,17 @@ def daily_attendance(request):
             request_method=request.method, request_path=request.path)
     return Response({"student_name": student_name, "date": day, "approved": approved,
                      "already_recorded": existing, "skipped": skipped})
+
+
+@api_view(["POST"])
+@permission_classes([CanApproveAttendance])
+def preview_student(request):
+    from .student_pass import resolve_student, identity, confirmation
+    token = serializers.CharField(allow_blank=True).run_validation(request.data.get("token", ""))
+    student_id = serializers.CharField(allow_blank=True).run_validation(request.data.get("student_id", ""))
+    if not token and not student_id:
+        raise serializers.ValidationError("Enter a student number or scan a QR pass.")
+    user = resolve_student(token, student_id)
+    response = Response({**identity(user), "identity_proof": confirmation(user)})
+    response["Cache-Control"] = "no-store"
+    return response

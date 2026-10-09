@@ -316,7 +316,7 @@ class AttendanceViewSet(mixins.ListModelMixin, AdminBase):
         if not student_id and not token:
             raise ValidationError("Enter a student number or scan a QR pass.")
         try:
-            row, created = check_in(request.user, event_id, student_id, token)
+            row, created = check_in(request.user, event_id, student_id, token, identity_proof=request.data.get("identity_proof", ""))
         except (ValidationError, Conflict) as exc:
             ScanLog.objects.create(event_id=event_id if Event.objects.filter(pk=event_id).exists() else None,
                 scanned_by=request.user, success=False, failure_reason=str(exc.detail)[:255])
