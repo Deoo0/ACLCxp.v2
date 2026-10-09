@@ -56,13 +56,15 @@ class EventViewSet(viewsets.ModelViewSet):
             search = self.request.query_params.get("search", "")
             if search:
                 queryset = queryset.filter(title__icontains=search)
-            for field in ("status", "category"):
+            for field in ("status", "category", "attendance_mode"):
                 value = self.request.query_params.get(field)
                 if value:
                     if field == "category" and not value.isdecimal():
                         raise ValidationError({"category": "Expected a numeric category ID."})
                     if field == "status" and value not in dict(Event.STATUS_CHOICES):
                         raise ValidationError({"status": "Unknown event status."})
+                    if field == "attendance_mode" and value not in dict(Event._meta.get_field("attendance_mode").choices):
+                        raise ValidationError({"attendance_mode": "Unknown attendance mode."})
                     queryset = queryset.filter(**{field: value})
         return queryset.order_by("event_date", "start_time", "pk")
 

@@ -22,11 +22,11 @@ import { button } from "../admin/ConsoleUI";
 const links = [
   { label: "Seasons", path: "/admin/seasons", icon: CalendarDays },
   { label: "Overview", path: "/admin", icon: LayoutDashboard },
+  { label: "Attendance", path: "/admin/attendance", icon: ScanLine },
   { label: "Students & access", path: "/admin/users", icon: Users },
   { label: "Events", path: "/admin/events", icon: CalendarDays },
   { label: "Houses", path: "/admin/houses", icon: Shield },
   { label: "Matchups & Results", path: "/admin/matchups", icon: Swords },
-  { label: "Attendance", path: "/admin/attendance", icon: ScanLine },
   { label: "Points & results", path: "/admin/points", icon: Trophy },
   { label: "Portal settings", path: "/admin/settings", icon: Settings },
   { label: "Audit trail", path: "/admin/audit-logs", icon: ScrollText },
@@ -126,14 +126,14 @@ export default function AdminLayout() {
               <span className="sm:hidden">Campus</span><span className="hidden sm:inline">Campus management</span>
             </span>
           </div>
-          <span className="flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
+          <div className="flex shrink-0 items-center gap-2"><NavLink to="/admin/attendance" aria-label="Open attendance" className={`${button} min-h-11`}><ScanLine className="h-4 w-4" aria-hidden="true" />Attendance</NavLink><span className="hidden items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300 sm:flex">
             <Shield className="h-3.5 w-3.5" />
             Administrator
-          </span>
+          </span></div>
         </header>
         <a href="#main-content" className="skip-link">Skip to content</a>
         <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1500px] p-4 sm:p-8">
-          <PageTransition />
+          <PageTransition animateSearch={location.pathname !== "/admin/attendance"} />
         </main>
       </div>
     </div>
