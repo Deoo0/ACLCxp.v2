@@ -13,6 +13,8 @@ const os = require('node:os');
    { id: 2, title: 'Open house activities', registration_required: false, attendance_mode: 'DAILY' },
    { id: 3, title: 'No-scan exhibit', registration_required: false, attendance_mode: 'NONE' },
    { id: 4, title: 'Student sports event', registration_required: true, attendance_mode: 'PER_EVENT' },
+   { id: 5, title: 'Completed art event', status: 'COMPLETED', registration_required: false, attendance_mode: 'NONE' },
+   { id: 6, title: 'Cancelled trip', status: 'CANCELLED', registration_required: true, attendance_mode: 'PER_EVENT' },
   ].map(event => ({ available_slots: 5, allow_waitlist: false, event_date: '2099-01-01', start_time: '10:00:00', end_time: null, status: 'PUBLISHED', venue: 'School hall', category_name: 'Campus activity', participation_points: 5, description: 'A student-friendly activity.', teams: [], ...event }));
   const attendance = [
    { id: 4, event_title: 'Verified sports', status: 'ATTENDED', signed_by: 'School staff', scanned_at: '2026-10-09T02:00:00Z', validation_notes: 'Confirmed in person' },
@@ -36,7 +38,10 @@ const os = require('node:os');
     const data = points.filter(row => row.reason.toLowerCase().includes((url.searchParams.get('search') || '').toLowerCase()));
     json = { data, count: data.length, previous: null, next: null };
    }
-   if (url.pathname === '/api/events/') json = { data: events.map(event => ({ ...event, registration_status: reservations.find(row => row.event === event.id)?.status || null })), count: 4, next: null, previous: null };
+   if (url.pathname === '/api/events/') {
+    const filtered = events.filter(event => (!url.searchParams.get('status') || event.status === url.searchParams.get('status')) && (url.searchParams.get('upcoming') !== 'true' || ['PUBLISHED', 'ONGOING'].includes(event.status)));
+    json = { data: filtered.map(event => ({ ...event, registration_status: reservations.find(row => row.event === event.id)?.status || null })), count: filtered.length, next: null, previous: null };
+   }
    if (url.pathname === '/api/events/my-registrations/') { const data = reservations.filter(row => row.event_title.toLowerCase().includes((url.searchParams.get('search') || '').toLowerCase())); json = { data, count: data.length, previous: null, next: null }; }
    const detail = url.pathname.match(/^\/api\/events\/(\d+)\/$/);
    if (detail) {
@@ -98,12 +103,15 @@ const os = require('node:os');
   await page.goto('http://127.0.0.1:5174/events?event=2'); await page.getByRole('button', { name: 'Show my QR pass', exact: true }).waitFor(); assert.equal(await page.getByRole('button', { name: 'Reserve attendance place', exact: true }).count(), 0); await page.keyboard.press('Escape');
   await page.goto('http://127.0.0.1:5174/events?event=3'); await page.getByText('No reservation or attendance scan is required.', { exact: true }).waitFor(); assert.equal(await page.getByRole('button', { name: 'Show my QR pass', exact: true }).count(), 0); await page.keyboard.press('Escape');
   await page.goto('http://127.0.0.1:5174/events?event=999'); await page.getByRole('alert').waitFor(); await page.getByRole('button', { name: 'Close event details', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Filter event status' }).selectOption('COMPLETED'); await page.getByText('Event ended · Check your merit record', { exact: true }).waitFor();
+  await page.getByRole('combobox', { name: 'Filter event status' }).selectOption('CANCELLED'); await page.getByText('Event cancelled · No new reservations', { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'View event: Cancelled trip', exact: true }).click(); await page.getByText('This event was cancelled. No new reservations or check-ins are available.', { exact: true }).waitFor(); assert.equal(await page.getByRole('button', { name: 'Reserve attendance place', exact: true }).count(), 0); await page.keyboard.press('Escape');
   for (const width of [320, 375, 768, 1440]) {
    await page.setViewportSize({ width, height: 900 });
    for (const url of ['/merit', '/merit?view=points', '/events', '/events?view=reservations', '/events?event=4']) {
     await page.goto('http://127.0.0.1:5174' + url);
-    await page.getByRole('heading', { level: 1 }).waitFor();
     if (url.includes('event=4')) await page.getByRole('button', { name: 'Show my QR pass', exact: true }).waitFor();
+    else await page.getByRole('heading', { level: 1 }).waitFor();
     await noOverflow();
     if (width === 1440 && url === '/events') await page.screenshot({ path: path.join(os.tmpdir(), 'aclcxp-student-events-1440.png'), fullPage: true });
    }

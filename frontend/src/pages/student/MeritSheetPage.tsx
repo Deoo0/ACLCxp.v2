@@ -27,12 +27,12 @@ export default function MeritSheetPage() {
   const summary = query.data?.summary;
   const updating = query.isPlaceholderData || term !== search.trim();
   const pointUpdating = points.isPlaceholderData || pointTerm !== pointSearch.trim();
-  const filter = (value: string) => { setStatus(value); setPage(1); setParams({ view: "attendance" }); };
+  const filter = (value: string) => { setStatus(value); setSearch(""); setPage(1); setParams({ view: "attendance" }); };
   return <StudentFrame>
     <header className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-sm text-amber-300">Your participation, recorded</p><h1 className="mt-2 text-3xl font-semibold text-white">My merit</h1><p className="mt-2 text-sm leading-6 text-neutral-400">See your verified attendance and the points you have earned.</p>{summary && <p className="mt-2 text-xs text-neutral-400">{summary.season}</p>}</div><button type="button" className={button} onClick={() => window.dispatchEvent(new Event("aclcxp:open-student-qr"))}><QrCode className="h-4 w-4" />My QR pass</button></header>
     {query.isPending ? <Loading /> : query.isError ? <Notice error={query.error} retry={() => void query.refetch()} /> : summary && <section aria-label="Merit overview" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {[
-        { label: "Merit points", value: summary.points, icon: Award, color: "text-amber-300", hint: "View points history", onClick: () => setParams({ view: "points" }) },
+        { label: "Merit points", value: summary.points, icon: Award, color: "text-amber-300", hint: "View points history", onClick: () => { setPointSearch(""); setPointPage(1); setParams({ view: "points" }); } },
         { label: "Attended", value: summary.attended, icon: CheckCircle2, color: "text-emerald-300", hint: "Verified by staff", onClick: () => filter("ATTENDED") },
         { label: "Awaiting check-in", value: summary.pending, icon: Clock3, color: "text-amber-300", hint: "Upcoming or ongoing", onClick: () => filter("PENDING") },
         { label: "Absent", value: summary.absent, icon: XCircle, color: "text-rose-300", hint: "View attendance record", onClick: () => filter("ABSENT") },
