@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import { eventSchedule, schoolTimestamp, attendanceStatuses, registrationLabels } from '../src/services/studentExperience.ts';
+const evening = eventSchedule('2026-12-31', '18:00:00', '19:00:00');
+assert(evening.date.includes('2027'), 'UTC evening must display the next Philippine calendar day');
+assert(evening.time.includes('2:00 AM') && evening.time.includes('3:00 AM'));
+assert.equal(eventSchedule('2026-10-09', '00:00:00').time, '8:00 AM PHT');
+assert.equal(eventSchedule('invalid', 'invalid').date, 'Schedule to be announced');
+assert(!eventSchedule('2026-10-09', '10:00:00', null).time.includes('TBA'));
+assert.equal(schoolTimestamp('invalid'), 'Date unavailable');
+assert(schoolTimestamp('2026-12-31T18:00:00Z').includes('2027'));
+assert.equal(attendanceStatuses.PENDING.label, 'Awaiting check-in');
+assert.equal(attendanceStatuses.INVALID.label, 'Needs review');
+assert.equal(registrationLabels.REGISTERED, 'Reservation confirmed');
+assert.notEqual(registrationLabels.REGISTERED, registrationLabels.ATTENDED);
+console.log('PASS: Philippine-time conversion and clear attendance/reservation labels.');
