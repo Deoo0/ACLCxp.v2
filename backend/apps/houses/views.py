@@ -14,7 +14,8 @@ def list_houses(request):
     Public endpoint — anyone can see the list of houses.
     Used during registration so students can pick their assigned house.
     """
-    houses = HouseSerializer(House.objects.filter(is_active=True), many=True, context={"request": request}).data
+    from .serializers import HouseSelectSerializer
+    houses = HouseSelectSerializer(House.objects.filter(is_active=True), many=True).data
     return Response(
         {"status": "success", "data": list(houses)}, status=status.HTTP_200_OK
     )

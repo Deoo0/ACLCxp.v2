@@ -37,3 +37,37 @@ tickets belonging to that student. It does not enroll ticketless accounts or reu
 - Active: the workspace unlocks only for a valid current-season membership whose ticket is redeemed, belongs to that season, and belongs to the same eligible student. Students without it see the ticket-redemption screen.
 - Ticket status, ownership, eligibility, and season membership are checked server-side on protected requests, not just at login. Disabled, unredeemed, missing, transferred, and previous-season tickets cannot grant workspace access. A valid replacement ticket can repair a legacy or invalid membership.
 - The frontend handles access-denied responses by locking the workspace and refreshing season access; season login errors are displayed accurately instead of being reported as a disabled account.
+
+
+## Annual championship: Intramurals + ACLC Week
+
+Use the same **Academic year**, e.g. `2026-2027`, for both seasons in Admin →
+Seasons. For existing, unpurged seasons, choose **Link academic year**. Linking
+is permanent through the app; check the year before saving. Existing seasons
+are not automatically linked by the migration. Newly created seasons ask for
+the academic year.
+
+Approved, non-reversed house and student points, student ranks, and student
+merit history include all opened seasons in that academic year. Draft seasons
+are excluded. Original transactions are used directly, so closing/opening a
+season does not copy or duplicate points. Individual ranks include active
+student accounts with membership in any season of the academic year; each
+student is counted once. House awards remain with the house credited by the
+original transaction even if a student later changes house.
+
+Tickets, memberships, competitions, attendance and operational admin reports
+remain season-specific. Students must redeem a new season ticket before
+participating. Season exports still contain that season's records and totals,
+with the academic-year label included. Linked seasons cannot be purged, even
+after closure, to retain championship history. Previously purged records cannot
+be recovered by linking a year. Unlinked legacy seasons retain isolated totals.
+
+At the end of ACLC Week, the current house standings show combined championship
+points. This change does not automatically announce or resolve tied champions.
+Use a different academic year for the next annual cycle to start fresh totals.
+
+Validation: 56 season/access/analytics tests passed on isolated SQLite,
+including carryover, original record retention, next-year reset, rank joins,
+current-season ticket checks, linking permissions and purge protection.
+TypeScript, focused lint and frontend production build were checked. Browser
+interaction and PostgreSQL validation for this change remain outstanding.

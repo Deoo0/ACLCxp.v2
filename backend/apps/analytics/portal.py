@@ -1,7 +1,6 @@
 import base64
 import qrcode
 import qrcode.image.svg
-from django.core import signing
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
@@ -12,6 +11,7 @@ from apps.events.models import EventRegistration
 from apps.attendance.models import Attendance
 from apps.users.models import User
 from .console import effective_points, houses_with_totals
+from apps.seasons.scope import championship_seasons
 from .serializers import PointsSerializer, AttendanceSerializer, HouseSerializer, SETTING_DEFAULTS
 from .models import SystemSetting
 
@@ -31,13 +31,15 @@ def summary(request):
     students = User.objects.filter(role="STUDENT", is_active=True)
     point_filter = Q(points_transactions__is_approved=True, points_transactions__is_reversed=False)
     if season:
-        students = students.filter(season_memberships__season=season)
-        point_filter &= Q(points_transactions__season=season)
+        from apps.seasons.models import SeasonMembership
+        participating = SeasonMembership.objects.filter(season__in=championship_seasons(season)).values("user_id")
+        students = students.filter(pk__in=participating)
+        point_filter &= Q(points_transactions__season__in=championship_seasons(season))
     students = students.annotate(total=Sum("points_transactions__points", filter=point_filter, default=0))
     return Response({"points": points, "rank": students.filter(total__gt=points).count() + 1,
         "attendance": Attendance.objects.filter(user=request.user, is_valid=True).count(),
         "registered": EventRegistration.objects.filter(user=request.user).exclude(status="CANCELLED").count(),
-        "houses": HouseSerializer(houses_with_totals().filter(is_active=True), many=True, context={"request": request}).data,
+        "houses": leaderboard_rows(request),
         "settings": public_settings()})
 
 
@@ -114,9 +116,28 @@ def attendance_overview(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def event_pass(request):
-    token = signing.dumps({"student_id": request.user.student_id}, salt="student-event-pass")
+    from rest_framework.exceptions import PermissionDenied
+    from .student_pass import issue_pass, identity
+    if request.user.role != "STUDENT" or not request.user.is_active:
+        raise PermissionDenied("Only active students can download a personal pass.")
+    token = issue_pass(request.user)
     svg = qrcode.make(token, image_factory=qrcode.image.svg.SvgPathImage, box_size=6, border=4).to_string()
     response = Response({"image": "data:image/svg+xml;base64," + base64.b64encode(svg).decode(),
-                         "expires_at": (timezone.now() + timezone.timedelta(seconds=300)).isoformat()})
+                         "student": identity(request.user)})
     response["Cache-Control"] = "no-store"
     return response
+
+
+def leaderboard_rows(request):
+    rows = HouseSerializer(houses_with_totals().filter(is_active=True), many=True, context={"request": request}).data
+    visible = public_settings()["leaderboard_house_visibility"] == "true"
+    previous, rank = None, 0
+    for index, row in enumerate(rows, 1):
+        if row["total_points"] != previous:
+            rank = index
+        previous = row["total_points"]
+        if not visible:
+            rows[index - 1] = {"id": -index, "name": f"House at rank {rank}", "total_points": row["total_points"], "rank": rank, "identity_hidden": True}
+        else:
+            row["rank"] = rank
+    return rows
