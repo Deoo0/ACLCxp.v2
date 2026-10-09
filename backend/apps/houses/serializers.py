@@ -26,7 +26,8 @@ class HouseSerializer(LimitedModelSerializer):
 
 class HouseSelectSerializer(LimitedModelSerializer):
     """Minimal house info — used in registration dropdown"""
+    logo_url = EventImageField(read_only=True)
 
     class Meta:
         model = House
-        fields = ["id", "name", "color_code", "motto"]
+        fields = ["id", "name", "color_code", "motto", "logo_url"]

@@ -1,3 +1,4 @@
+import { imageVariant, imageSrcSet } from "../../services/images";
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
@@ -110,7 +111,7 @@ export default function EventsPage() {
               >
                 {row.poster_image ? (
                   <img
-                    src={String(row.poster_image)}
+                    src={imageVariant(String(row.poster_image), 640)} srcSet={imageSrcSet(String(row.poster_image))} sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" decoding="async"
                     alt=""
                     className="h-40 w-full object-cover"
                     loading="lazy"

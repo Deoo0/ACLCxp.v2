@@ -23,6 +23,9 @@ class SeasonLifecycleTests(TestCase):
         self.event.save()
         url = "/api/admin/attendance/check_in/"
         payload = {"event": self.event.pk, "student_id": self.student.student_id}
+        preview = self.client.post("/api/attendance/preview/", {"student_id": self.student.student_id})
+        self.assertEqual(preview.status_code, 200)
+        payload["identity_proof"] = preview.data["identity_proof"]
         old_season = Season.objects.create(name="Previous season", status="CLOSED")
         ticket = self.ticket
         ticket.season = old_season

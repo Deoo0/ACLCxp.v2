@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Archive, Download, Play, Ticket, Trash2 } from "lucide-react";
 import { ResourcePage, Editor, Panel, Badge, Notice, button } from "../../components/admin/ConsoleUI";
-import { useApi, queryClient, type PageData, type Row } from "../../services/queries";
+import { useApi, invalidateMutation, type PageData, type Row } from "../../services/queries";
 import api from "../../services/api";
 import { downloadBlob } from "../../services/download";
 
@@ -20,7 +20,7 @@ export default function SeasonsPage() {
       const response = await api.post(`/seasons/${row.id}/export/`, {}, { responseType: 'blob', timeout: 120000 });
       downloadBlob(response.data, `season-${row.id}-export.zip`);
       setDigests(old => ({ ...old, [row.id]: String(response.headers['x-season-export-digest'] || '') }));
-      await queryClient.invalidateQueries();
+      await invalidateMutation(`/seasons/${row.id}/export/`);
     } catch (err) { setError(err); } finally { setBusy(null); }
   }
   return <div className="space-y-6">
