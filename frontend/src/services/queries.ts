@@ -1,4 +1,4 @@
-import { QueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { QueryClient, useQuery, useMutation, keepPreviousData } from "@tanstack/react-query";
 import axios from "axios";
 import api from "./api";
 import { queryPolicy, mutationResources, queryAffected } from "./queryPolicy";
@@ -20,11 +20,12 @@ export interface PageData<T = Row> {
   previous: string | null;
   data: T[];
 }
-export function useApi<T>(path: string, enabled = true) {
+export function useApi<T>(path: string, enabled = true, options?: { keepPreviousData?: boolean }) {
   return useQuery({
     queryKey: [path],
     enabled,
     ...queryPolicy(path),
+    placeholderData: options?.keepPreviousData ? keepPreviousData : undefined,
     queryFn: async ({ signal }) => (await api.get<T>(path, { signal })).data,
   });
 }

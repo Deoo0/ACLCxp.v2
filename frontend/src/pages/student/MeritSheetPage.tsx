@@ -1,94 +1,63 @@
 import { useState } from "react";
-import { CalendarDays, CheckCircle2, Clock3, XCircle, Search, ChevronLeft, ChevronRight, Award } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { CalendarDays, CheckCircle2, Clock3, XCircle, Search, Award, QrCode, RefreshCw, ArrowRight } from "lucide-react";
 import { StudentFrame } from "../../components/dashboard/LivePortal";
-import { Records, Loading, Notice, input, button } from "../../components/admin/ConsoleUI";
+import StudentPagination from "../../components/dashboard/StudentPagination";
+import { Loading, Notice, input, button } from "../../components/admin/ConsoleUI";
 import { useApi, type PageData } from "../../services/queries";
+import { useSearchTerm } from "../../services/useSearchTerm";
+import { attendanceStatuses, eventSchedule, schoolTimestamp } from "../../services/studentExperience";
 
-type AttendanceRow = {
-  id: number; event_title: string; category: string; event_date: string; start_time: string;
-  status: string; detail: string; signed_by: string | null; scanned_at: string | null; validation_notes: string;
-};
-type Overview = PageData<AttendanceRow> & {
-  summary: { attended: number; absent: number; pending: number; invalid: number; total: number; rate: number; season: string; points: number };
-};
-const statuses: Record<string, { label: string; color: string }> = {
-  NOT_REQUIRED: { label: "Not required", color: "border-white/10 bg-white/5 text-neutral-400" },
-  ATTENDED: { label: "Attended", color: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300" },
-  ABSENT: { label: "Absent", color: "border-rose-400/20 bg-rose-400/10 text-rose-300" },
-  PENDING: { label: "Pending", color: "border-amber-400/20 bg-amber-400/10 text-amber-300" },
-  INVALID: { label: "Invalidated", color: "border-rose-400/20 bg-rose-400/10 text-rose-300" },
-  WAITLISTED: { label: "Waitlisted", color: "border-sky-400/20 bg-sky-400/10 text-sky-300" },
-  CANCELLED: { label: "Cancelled", color: "border-white/10 bg-white/5 text-neutral-400" },
-};
-function eventDate(row: AttendanceRow) {
-  return new Date(`${row.event_date}T${row.start_time}Z`);
-}
+type AttendanceRow = { id: number; event_title: string; category: string; event_date: string; start_time: string; status: string; detail: string; signed_by: string | null; scanned_at: string | null; validation_notes: string };
+type Overview = PageData<AttendanceRow> & { summary: { attended: number; absent: number; pending: number; invalid: number; total: number; rate: number; season: string; points: number } };
+type MeritPoint = { id: number; points: number; reason: string; event: number | null; event_title: string | null; transaction_type: string; created_at: string };
+const pointTypes: Record<string, string> = { PARTICIPATION: "Attendance", PERFORMANCE: "Event award", MANUAL_ADJUSTMENT: "Points adjustment", PENALTY: "Deduction", BONUS: "Bonus" };
+
 export default function MeritSheetPage() {
+  const [params, setParams] = useSearchParams();
+  const view = params.get("view") === "points" ? "points" : "attendance";
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const query = useApi<Overview>(`/portal/attendance-overview/?page=${page}&status=${status}&search=${encodeURIComponent(search)}`);
+  const [pointSearch, setPointSearch] = useState("");
+  const [pointPage, setPointPage] = useState(1);
+  const term = useSearchTerm(search), pointTerm = useSearchTerm(pointSearch);
+  const query = useApi<Overview>(`/portal/attendance-overview/?page=${page}&page_size=10&status=${status}&search=${encodeURIComponent(term)}`, true, { keepPreviousData: true });
+  const points = useApi<PageData<MeritPoint>>(`/portal/merit/?page=${pointPage}&page_size=10&search=${encodeURIComponent(pointTerm)}`, view === "points", { keepPreviousData: true });
   const summary = query.data?.summary;
-  return (
-    <StudentFrame>
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm text-amber-300">Your participation, recorded</p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">Merit sheet</h1>
-          <p className="mt-2 text-sm text-neutral-400">A clear view of your attendance, participation, and earned points.</p>
-        </div>
-        {summary && <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-neutral-300">{summary.season}</span>}
+  const updating = query.isPlaceholderData || term !== search.trim();
+  const pointUpdating = points.isPlaceholderData || pointTerm !== pointSearch.trim();
+  const filter = (value: string) => { setStatus(value); setSearch(""); setPage(1); setParams({ view: "attendance" }); };
+  return <StudentFrame>
+    <header className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-sm text-amber-300">Your participation, recorded</p><h1 className="mt-2 text-3xl font-semibold text-white">My merit</h1><p className="mt-2 text-sm leading-6 text-neutral-400">See your verified attendance and the points you have earned.</p>{summary && <p className="mt-2 text-xs text-neutral-400">{summary.season}</p>}</div><button type="button" className={button} onClick={() => window.dispatchEvent(new Event("aclcxp:open-student-qr"))}><QrCode className="h-4 w-4" />My QR pass</button></header>
+    {query.isPending ? <Loading /> : query.isError ? <Notice error={query.error} retry={() => void query.refetch()} /> : summary && <section aria-label="Merit overview" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {[
+        { label: "Merit points", value: summary.points, icon: Award, color: "text-amber-300", hint: "View points history", onClick: () => { setPointSearch(""); setPointPage(1); setParams({ view: "points" }); } },
+        { label: "Attended", value: summary.attended, icon: CheckCircle2, color: "text-emerald-300", hint: "Verified by staff", onClick: () => filter("ATTENDED") },
+        { label: "Awaiting check-in", value: summary.pending, icon: Clock3, color: "text-amber-300", hint: "Upcoming or ongoing", onClick: () => filter("PENDING") },
+        { label: "Absent", value: summary.absent, icon: XCircle, color: "text-rose-300", hint: "View attendance record", onClick: () => filter("ABSENT") },
+      ].map(({ label, value, icon: Icon, color, hint, onClick }) => <button type="button" key={label} onClick={onClick} className="min-w-0 rounded-2xl border border-white/10 bg-neutral-900/60 p-4 text-left outline-none transition hover:border-amber-300/30 focus-visible:ring-2 focus-visible:ring-amber-300"><div className="flex items-start justify-between gap-2"><span className="text-xs text-neutral-300 sm:text-sm">{label}</span><Icon aria-hidden="true" className={`h-4 w-4 shrink-0 ${color}`} /></div><p className="mt-3 break-words text-2xl font-semibold tabular-nums text-white sm:text-3xl">{value.toLocaleString()}</p><p className="mt-2 text-xs text-neutral-400">{hint}</p></button>)}
+    </section>}
+    <nav aria-label="Merit views" className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-neutral-900/60 p-2">{[{ id: "attendance", label: "Attendance", icon: CheckCircle2 }, { id: "points", label: "Points history", icon: Award }].map(({ id, label, icon: Icon }) => <Link key={id} to={`/merit?view=${id}`} aria-current={view === id ? "page" : undefined} className={`flex min-h-12 items-center justify-center gap-2 rounded-xl px-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-amber-300 ${view === id ? "bg-amber-300/10 text-amber-200 ring-1 ring-amber-300/25" : "text-neutral-400 hover:bg-white/5"}`}><Icon className="h-4 w-4 shrink-0" />{label}</Link>)}</nav>
+    {view === "attendance" ? <section aria-labelledby="attendance-title" className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60">
+      <header className="space-y-4 border-b border-white/10 p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 id="attendance-title" className="text-lg font-semibold text-white">My attendance</h2>{summary && <p className="mt-1 text-sm text-neutral-400">{summary.attended} attended · {summary.total} tracked events</p>}</div><button type="button" className={button} onClick={() => void query.refetch()} aria-label="Refresh attendance"><RefreshCw className={`h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`} /></button></div>
+        {summary && <details className="text-xs text-neutral-400"><summary className="cursor-pointer">How your attendance total works</summary><p className="mt-2 leading-5">{summary.rate}% of tracked events have verified attendance. Upcoming events and invalidated records are included in the total, so this is not a final attendance rate. Cancelled, waitlisted, and attendance-exempt events are excluded.</p></details>}
+        <div className="flex flex-col gap-3 sm:flex-row"><label className="relative min-w-0 flex-1"><Search className="absolute left-3 top-3.5 h-4 w-4 text-neutral-500" aria-hidden="true" /><input aria-label="Search attendance events" className={`${input} !pl-10`} placeholder="Search an event" value={search} onChange={event => { setSearch(event.target.value); setPage(1); }} /></label><select aria-label="Filter attendance status" className={`${input} sm:max-w-56`} value={status} onChange={event => { setStatus(event.target.value); setPage(1); }}><option value="">All attendance</option>{Object.entries(attendanceStatuses).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}</select></div>
+        {(search || status) && <button type="button" className="text-xs text-amber-300 underline underline-offset-4" onClick={() => { setSearch(""); setStatus(""); setPage(1); }}>Clear attendance filters</button>}
       </header>
-      {query.isPending ? <Loading /> : query.isError ? <Notice error={query.error} retry={() => void query.refetch()} /> : summary && <>
-        <section aria-label="Merit overview" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: "Verified attendance", value: summary.attended, icon: CheckCircle2, color: "text-emerald-300", hint: "Events you checked in to" },
-            { label: "Pending events", value: summary.pending, icon: Clock3, color: "text-amber-300", hint: "Upcoming or ongoing" },
-            { label: "Absent", value: summary.absent, icon: XCircle, color: "text-rose-300", hint: "Completed without a check-in" },
-            { label: "Effective points", value: summary.points, icon: Award, color: "text-amber-300", hint: "From approved school records" },
-          ].map(({ label, value, icon: Icon, color, hint }) => <div key={label} className="rounded-2xl border border-white/10 bg-neutral-900/60 p-5">
-            <div className="flex items-center justify-between gap-2 text-sm text-neutral-400">{label}<Icon aria-hidden="true" className={`h-5 w-5 ${color}`} /></div>
-            <p className="mt-4 text-3xl font-semibold tabular-nums text-white">{value.toLocaleString()}</p>
-            <p className="mt-2 text-xs text-neutral-500">{hint}</p>
-          </div>)}
-        </section>
-        <section className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60" aria-labelledby="attendance-title">
-          <div className="border-b border-white/10 p-5 sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div><h2 id="attendance-title" className="text-lg font-semibold text-white">My attendance record</h2><p className="mt-1 text-sm text-neutral-400">Total events attended: <span className="font-medium text-white">{summary.attended} / {summary.total}</span></p></div>
-              <span className="text-3xl font-semibold tabular-nums text-amber-300">{summary.rate}<span className="text-base">%</span></span>
-            </div>
-            <div role="progressbar" aria-label="Attendance rate" aria-valuenow={summary.rate} aria-valuemin={0} aria-valuemax={100} className="mt-5 h-2 overflow-hidden rounded-full bg-white/5"><div className="h-full rounded-full bg-amber-400 transition-all" style={{ width: `${summary.rate}%` }} /></div>
-            <p className="mt-3 text-xs leading-5 text-neutral-500">Current-season registrations and check-ins. Pending and invalidated attendance count toward the total; cancelled, waitlisted, and attendance-exempt events do not.</p>
-          </div>
-          <div className="flex flex-col gap-3 border-b border-white/10 p-5 sm:flex-row">
-            <div className="relative flex-1"><Search aria-hidden="true" className="absolute left-3 top-3.5 h-4 w-4 text-neutral-500" /><input aria-label="Search attendance events" className={`${input} pl-10`} placeholder="Search an event..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} /></div>
-            <select aria-label="Filter attendance status" className={`${input} sm:max-w-48`} value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}><option value="">All statuses</option>{Object.entries(statuses).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}</select>
-          </div>
-          <div className="hidden grid-cols-[1.4fr_1fr_1.2fr] gap-4 border-b border-white/10 px-6 py-3 text-xs font-medium uppercase tracking-wider text-neutral-500 md:grid"><span>Event name</span><span>Date & time</span><span>Status & verification</span></div>
-          <ul className="divide-y divide-white/10">
-            {query.data.data.map(row => {
-              const badge = statuses[row.status];
-              return <li key={row.id} className="grid gap-4 p-5 md:grid-cols-[1.4fr_1fr_1.2fr] md:px-6">
-                <div className="flex items-start gap-3"><span className="rounded-xl border border-white/10 bg-white/5 p-2.5"><CalendarDays aria-hidden="true" className="h-5 w-5 text-amber-300" /></span><div><p className="font-medium text-white">{row.event_title}</p><p className="mt-1 text-xs text-neutral-500">{row.category}</p></div></div>
-                <div className="text-sm text-neutral-300"><p>{eventDate(row).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</p><p className="mt-1 text-xs text-neutral-500">{eventDate(row).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", timeZoneName: "short" })}</p></div>
-                <div><span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${badge.color}`}>{row.status === "ATTENDED" ? <CheckCircle2 className="h-3.5 w-3.5" /> : row.status === "ABSENT" || row.status === "INVALID" ? <XCircle className="h-3.5 w-3.5" /> : <Clock3 className="h-3.5 w-3.5" />}{badge.label}</span><p className="mt-2 text-xs text-neutral-400">{row.status === "ATTENDED" ? `Signed by: ${row.signed_by || "Verifier unavailable"}` : row.detail}</p>{row.scanned_at && <p className="mt-1 text-xs text-neutral-500">Check-in: {new Date(row.scanned_at).toLocaleString()}</p>}{row.validation_notes && <p className="mt-1 text-xs text-neutral-400">{row.validation_notes}</p>}</div>
-              </li>;
-            })}
-          </ul>
-          {!query.data.data.length && <div className="px-6 py-12 text-center"><CalendarDays className="mx-auto h-8 w-8 text-neutral-600" /><p className="mt-3 text-sm text-neutral-300">{search || status ? "No events match your filters." : "Your attendance story starts here."}</p><p className="mt-2 text-xs text-neutral-500">{search || status ? "Try another status or event name." : "Register for an event to see it in your merit sheet."}</p></div>}
-          <div className="flex items-center justify-between gap-3 border-t border-white/10 p-5 text-xs text-neutral-500"><span aria-live="polite">{query.data.count} events · Page {page}</span><div className="flex gap-2"><button className={button} disabled={!query.data.previous} onClick={() => setPage(page - 1)} aria-label="Previous attendance page"><ChevronLeft className="h-4 w-4" /></button><button className={button} disabled={!query.data.next} onClick={() => setPage(page + 1)} aria-label="Next attendance page"><ChevronRight className="h-4 w-4" /></button></div></div>
-        </section>
+      {query.isError ? <div className="p-4"><Notice error={query.error} retry={() => void query.refetch()} /></div> : query.isPending || updating ? <Loading /> : <>
+        <ul className="divide-y divide-white/10">{query.data.data.map(row => {
+          const state = attendanceStatuses[row.status] || { label: row.status, color: "border-white/15 text-neutral-300", next: row.detail };
+          const schedule = eventSchedule(row.event_date, row.start_time);
+          return <li key={row.id} className="space-y-3 p-4 sm:p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><p className="text-xs text-neutral-400">{row.category}</p><h3 className="mt-1 break-words font-semibold text-white">{row.event_title}</h3></div><span className={`rounded-full border px-3 py-1 text-xs font-medium ${state.color}`}>{state.label}</span></div><p className="flex items-start gap-2 text-xs text-neutral-300"><CalendarDays className="h-4 w-4 shrink-0 text-amber-300" aria-hidden="true" /><span>{schedule.date} · {schedule.time}</span></p><p className="text-sm leading-6 text-neutral-400">{row.status === "ATTENDED" ? `Verified by ${row.signed_by || "school staff"}.` : state.next}</p>
+            <div className="flex flex-wrap items-center justify-between gap-3"><details className="min-w-0 text-xs text-neutral-400"><summary className="cursor-pointer">Record details</summary><p className="mt-2 break-words">{row.detail}</p>{row.scanned_at && <p className="mt-2">Check-in: {schoolTimestamp(row.scanned_at)} PHT</p>}{row.validation_notes && <p className="mt-2 whitespace-pre-wrap break-words">{row.validation_notes}</p>}</details><Link className={`${button} text-xs`} to={`/events?event=${row.id}`}>View event<ArrowRight className="h-4 w-4" /></Link></div>
+          </li>;
+        })}</ul>
+        {!query.data.data.length && <div className="space-y-3 p-6 text-center"><CalendarDays className="mx-auto h-7 w-7 text-amber-300" /><p className="text-sm font-medium text-white">{search || status ? "No records match your filters" : "No attendance recorded yet"}</p><p className="text-xs leading-5 text-neutral-400">{search || status ? "Try another event name or clear the filters." : "Browse an event, reserve a place if required, then check in with staff. Open-attendance events appear here after check-in."}</p><Link className={button} to="/events">Browse events</Link></div>}
+        <StudentPagination page={page} count={query.data.count} previous={query.data.previous} next={query.data.next} onChange={setPage} label="attendance" busy={updating} />
       </>}
-      <section>
-        <h2 className="mb-2 text-lg font-semibold text-white">Points history</h2>
-        <p className="mb-4 text-sm text-neutral-400">The approved transactions behind your merit points.</p>
-        <Records endpoint="/portal/merit/" columns={[
-          { key: "created_at", label: "Date", render: r => new Date(String(r.created_at)).toLocaleDateString() },
-          { key: "event_title", label: "Event" }, { key: "transaction_type", label: "Type" },
-          { key: "reason", label: "Reason" }, { key: "points", label: "Points" },
-        ]} />
-      </section>
-    </StudentFrame>
-  );
+    </section> : <section aria-labelledby="points-title" className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60"><header className="space-y-4 border-b border-white/10 p-4 sm:p-5"><div className="flex items-start justify-between gap-3"><div><h2 id="points-title" className="text-lg font-semibold text-white">Points history</h2><p className="mt-2 text-xs leading-5 text-neutral-400">Approved awards and deductions. Reversed awards are excluded from your total and this list.</p></div><button type="button" className={button} aria-label="Refresh points" onClick={() => void points.refetch()}><RefreshCw className={`h-4 w-4 ${points.isFetching ? "animate-spin" : ""}`} /></button></div><label className="relative block"><Search className="absolute left-3 top-3.5 h-4 w-4 text-neutral-500" aria-hidden="true" /><input aria-label="Search points history" className={`${input} !pl-10`} placeholder="Search an event or reason" value={pointSearch} onChange={event => { setPointSearch(event.target.value); setPointPage(1); }} /></label>{pointSearch && <button type="button" className="text-xs text-amber-300 underline underline-offset-4" onClick={() => { setPointSearch(""); setPointPage(1); }}>Clear points search</button>}</header>
+      {points.isPending || pointUpdating ? <Loading /> : points.isError ? <div className="p-4"><Notice error={points.error} retry={() => void points.refetch()} /></div> : <><ul className="divide-y divide-white/10">{points.data.data.map(row => <li key={row.id} className="p-4 sm:p-5"><div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="text-xs text-neutral-400">{pointTypes[row.transaction_type] || "Points entry"}</p><h3 className="mt-1 break-words font-medium text-white">{row.reason || "Approved points entry"}</h3></div><span className={`shrink-0 font-semibold tabular-nums ${row.points < 0 ? "text-rose-300" : "text-emerald-300"}`}>{row.points > 0 ? "+" : ""}{row.points.toLocaleString()}<span className="ml-1 text-xs font-normal text-neutral-400">pts</span></span></div><p className="mt-3 text-xs text-neutral-400">{schoolTimestamp(row.created_at)} PHT</p>{row.event_title && <p className="mt-2 break-words text-sm text-neutral-300">{row.event_title}</p>}{row.event && <Link className="mt-3 inline-block text-xs text-amber-300 underline underline-offset-4" to={`/events?event=${row.event}`}>View event</Link>}</li>)}</ul>{!points.data.data.length && <div className="space-y-2 p-6 text-center"><p className="text-sm font-medium text-white">{pointSearch ? "No points match this search" : "No points recorded yet"}</p><p className="text-xs text-neutral-400">{pointSearch ? "Try another event or reason." : "Points appear after staff verify attendance or approve an award."}</p></div>}<StudentPagination page={pointPage} count={points.data.count} previous={points.data.previous} next={points.data.next} onChange={setPointPage} label="points" busy={pointUpdating} /></>}
+    </section>}
+  </StudentFrame>;
 }

@@ -1,249 +1,75 @@
 import { imageVariant, imageSrcSet } from "../../services/images";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import * as Dialog from "@radix-ui/react-dialog";
-import {
-  CalendarDays,
-  MapPin,
-  Users,
-  ArrowUpRight,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import { useApi, useWrite } from "../../services/queries";
-import type { PageData, Row } from "../../services/queries";
+import { CalendarDays, MapPin, ArrowRight, Award, QrCode, RefreshCw, Search, Ticket, CheckCircle2 } from "lucide-react";
+import { useApi, useWrite, type PageData, type Row } from "../../services/queries";
+import { useSearchTerm } from "../../services/useSearchTerm";
+import { eventSchedule, eventLabels, registrationLabels, schoolTimestamp } from "../../services/studentExperience";
 import EventDetails from "../../components/dashboard/EventDetails";
+import StudentPagination from "../../components/dashboard/StudentPagination";
 import { StudentFrame } from "../../components/dashboard/LivePortal";
-import {
-  Panel,
-  Notice,
-  Loading,
-  button,
-  Badge,
-  input,
-  Records,
-} from "../../components/admin/ConsoleUI";
+import { Notice, Loading, button, input } from "../../components/admin/ConsoleUI";
+
+type Reservation = { id: number; event: number; event_title: string; status: string; waitlist_position: number | null; registered_at: string; cancellation_reason: string };
 export default function EventsPage() {
-  const [status, setStatus] = useState("");
+  const [params, setParams] = useSearchParams();
+  const view = params.get("view") === "reservations" ? "reservations" : "discover";
+  const selectedId = Number(params.get("event"));
+  const hasEvent = Number.isSafeInteger(selectedId) && selectedId > 0;
+  const [status, setStatus] = useState("upcoming");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<Row | null>(null);
+  const [reservationSearch, setReservationSearch] = useState("");
+  const [reservationPage, setReservationPage] = useState(1);
   const [error, setError] = useState<unknown>(null);
   const [message, setMessage] = useState("");
-  const query = useApi<PageData>(
-    `/events/?page=${page}&status=${status}&search=${encodeURIComponent(search)}`,
-  );
-  const detail = useApi<Row>(`/events/${selected?.id}/`, !!selected);
+  const inFlight = useRef(false);
+  const term = useSearchTerm(search), reservationTerm = useSearchTerm(reservationSearch);
+  const queryParams = new URLSearchParams({ page: String(page), page_size: "9", search: term });
+  if (status === "upcoming") queryParams.set("upcoming", "true"); else if (status) queryParams.set("status", status);
+  const query = useApi<PageData>(`/events/?${queryParams}`, view === "discover", { keepPreviousData: true });
+  const reservations = useApi<PageData<Reservation>>(`/events/my-registrations/?page=${reservationPage}&page_size=10&search=${encodeURIComponent(reservationTerm)}`, view === "reservations", { keepPreviousData: true });
+  const detail = useApi<Row>(`/events/${selectedId}/`, hasEvent);
   const write = useWrite();
-  const event = detail.data || selected;
+  const event = detail.data || query.data?.data.find(row => row.id === selectedId) || null;
+  const updating = query.isPlaceholderData || term !== search.trim();
+  const reservationUpdating = reservations.isPlaceholderData || reservationTerm !== reservationSearch.trim();
+  const closeEvent = () => { const next = new URLSearchParams(params); next.delete("event"); setParams(next, { replace: true }); setError(null); setMessage(""); };
+  const openEvent = (id: number) => { setError(null); setMessage(""); const next = new URLSearchParams(params); next.set("event", String(id)); setParams(next); };
+  const showPass = () => { closeEvent(); requestAnimationFrame(() => window.dispatchEvent(new Event("aclcxp:open-student-qr"))); };
   const act = async (cancel: boolean) => {
-    if (!event) return;
-    setError(null);
+    if (!detail.data || inFlight.current) return;
+    inFlight.current = true; setError(null); setMessage("");
     try {
-      const response = await write.mutateAsync({
-        path: `/events/${event.id}/${cancel ? "cancel-registration" : "register"}/`,
-        body: cancel ? { reason: "Cancelled by student" } : {},
-      });
-      setMessage(
-        cancel
-          ? "Your registration has been cancelled."
-          : response.data.status === "WAITLISTED"
-            ? "You joined the waitlist. Your registration updates when a place becomes available."
-            : "Your attendance reservation is confirmed. This is not a player or contestant sign-up. Bring your student QR pass for check-in.",
-      );
-    } catch (e) {
-      setError(e);
-    }
+      const response = await write.mutateAsync({ path: `/events/${detail.data.id}/${cancel ? "cancel-registration" : "register"}/`, body: cancel ? { reason: "Cancelled by student" } : {} });
+      setMessage(cancel ? "Your attendance reservation was cancelled. No attendance has been recorded." : response.data.status === "WAITLISTED" ? "You joined the waitlist. This is not a confirmed reservation. Check My reservations for updates." : "Your attendance reservation is confirmed. Bring your student QR pass and check in with staff to record attendance and earn points.");
+    } catch (error) { setError(error); }
+    finally { inFlight.current = false; }
   };
-  return (
-    <StudentFrame>
-      <header>
-        <p className="text-sm text-amber-300">Campus activities</p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">
-          Find your next event
-        </h1>
-        <p className="mt-2 text-sm text-neutral-400">
-          Browse events and register to attend when required. Open-attendance events only need your student QR pass at check-in.
-        </p>
-      </header>
-      <div className="flex flex-wrap gap-3">
-        <input
-          className={`${input} sm:max-w-xs`}
-          aria-label="Search events"
-          placeholder="Search events..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
-        <select
-          className={`${input} sm:max-w-xs`}
-          aria-label="Filter event status"
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            setPage(1);
-          }}
-        >
-          <option value="">All events</option>
-          <option value="PUBLISHED">Upcoming</option>
-          <option value="ONGOING">Happening now</option>
-          <option value="COMPLETED">Completed</option>
-          <option value="CANCELLED">Cancelled</option>
-        </select>
-      </div>
-      {query.isPending ? (
-        <Loading />
-      ) : query.isError ? (
-        <Notice error={query.error} retry={() => void query.refetch()} />
-      ) : (
-        <>
-          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {query.data.data.map((row) => (
-              <button
-                className="group overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60 text-left transition hover:-translate-y-0.5 hover:border-amber-400/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-                key={row.id}
-                onClick={() => {
-                  setSelected(row);
-                  setMessage("");
-                  setError(null);
-                }}
-              >
-                {row.poster_image ? (
-                  <img
-                    src={imageVariant(String(row.poster_image), 640)} srcSet={imageSrcSet(String(row.poster_image))} sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" decoding="async"
-                    alt=""
-                    className="h-40 w-full object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="flex h-32 items-center justify-center bg-gradient-to-br from-amber-400/10 via-neutral-900 to-neutral-800">
-                    <CalendarDays className="h-9 w-9 text-amber-400/50" />
-                  </div>
-                )}
-                <div className="p-5">
-                  <div className="flex items-center justify-between">
-                    <Badge value={row.status} />
-                    <ArrowUpRight className="h-4 w-4 text-neutral-500" />
-                  </div>
-                  <h2 className="mt-4 text-lg font-semibold text-white">
-                    {String(row.title)}
-                  </h2>
-                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-neutral-500">
-                    {String(row.description)}
-                  </p>
-                  <div className="mt-5 space-y-2 text-xs text-neutral-400">
-                    <p className="flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 text-amber-400" />
-                      {String(row.event_date)} /{" "}
-                      {String(row.start_time).slice(0, 5)} PHT
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-amber-400" />
-                      {String(row.venue)}
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-amber-400" />
-                      {row.registration_required === false ? "Open attendance · No registration needed" : `${String(row.available_slots)} attendance places available`}
-                    </p>
-                  </div>
-                  {Boolean(row.registration_status) && (
-                    <div className="mt-4">
-                      <Badge value={row.registration_status} />
-                    </div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </section>
-          {!query.data.data.length && (
-            <Panel>
-              <p className="py-8 text-center text-sm text-neutral-500">
-                No events match your search. Published activities will appear
-                here.
-              </p>
-            </Panel>
-          )}
-          <div className="flex items-center justify-between text-xs text-neutral-500">
-            <span>
-              {query.data.count} events / Page {page}
-            </span>
-            <div className="flex gap-2">
-              <button
-                className={button}
-                disabled={!query.data.previous}
-                onClick={() => setPage(page - 1)}
-                aria-label="Previous page"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                className={button}
-                disabled={!query.data.next}
-                onClick={() => setPage(page + 1)}
-                aria-label="Next page"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-white">
-          My attendance reservations
-        </h2>
-        <Records
-          endpoint="/events/my-registrations/"
-          columns={[
-            { key: "event_title", label: "Event" },
-            {
-              key: "status",
-              label: "Status",
-              render: (r) => <Badge value={r.status} />,
-            },
-            { key: "waitlist_position", label: "Queue order" },
-            {
-              key: "registered_at",
-              label: "Registered",
-              render: (r) =>
-                new Date(String(r.registered_at)).toLocaleDateString(),
-            },
-          ]}
-          actions={(r) => (
-            <button
-              className={button}
-              onClick={() => {
-                setSelected({ id: Number(r.event) });
-                setMessage("");
-                setError(null);
-              }}
-            >
-              View event
-            </button>
-          )}
-        />
-      </section>
-      <Dialog.Root
-        open={!!selected}
-        onOpenChange={(open) => {
-          if (!open && !write.isPending) setSelected(null);
-        }}
-      >
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-[80] bg-black/70 backdrop-blur" />
-          <EventDetails
-            event={event}
-            loading={detail.isPending}
-            loadError={detail.isError ? detail.error : null}
-            retry={() => void detail.refetch()}
-            pending={write.isPending}
-            error={error}
-            message={message}
-            onAction={(cancel) => void act(cancel)}
-          />
-        </Dialog.Portal>
-      </Dialog.Root>
-    </StudentFrame>
-  );
+  return <StudentFrame>
+    <header className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-sm text-amber-300">Campus activities</p><h1 className="mt-2 text-3xl font-semibold text-white">Events</h1><p className="mt-2 text-sm leading-6 text-neutral-400">Find an event, check what you need, and reserve an attendance place when required.</p></div><button type="button" className={button} onClick={() => window.dispatchEvent(new Event("aclcxp:open-student-qr"))}><QrCode className="h-4 w-4" />My QR pass</button></header>
+    <nav aria-label="Event views" className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-neutral-900/60 p-2">{[{ id: "discover", label: "Discover events", icon: CalendarDays }, { id: "reservations", label: "My reservations", icon: Ticket }].map(({ id, label, icon: Icon }) => <Link key={id} to={`/events?view=${id}`} aria-current={view === id ? "page" : undefined} className={`flex min-h-12 min-w-0 items-center justify-center gap-2 rounded-xl px-2 text-center text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-amber-300 sm:text-sm ${view === id ? "bg-amber-300/10 text-amber-200 ring-1 ring-amber-300/25" : "text-neutral-400 hover:bg-white/5"}`}><Icon className="h-4 w-4 shrink-0" />{label}</Link>)}</nav>
+    {view === "discover" ? <>
+      <div className="space-y-3"><div className="flex gap-2"><label className="relative min-w-0 flex-1"><Search className="absolute left-3 top-3.5 h-4 w-4 text-neutral-500" aria-hidden="true" /><input className={`${input} !pl-10`} aria-label="Search events" placeholder="Search an event name" value={search} onChange={event => { setSearch(event.target.value); setPage(1); }} /></label><button type="button" className={button} aria-label="Refresh events" onClick={() => void query.refetch()}><RefreshCw className={`h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`} /></button></div><div className="flex flex-wrap items-center justify-between gap-3"><select className={`${input} sm:max-w-xs`} aria-label="Filter event status" value={status} onChange={event => { setStatus(event.target.value); setPage(1); }}><option value="upcoming">Upcoming & happening now</option><option value="PUBLISHED">Upcoming only</option><option value="ONGOING">Happening now</option><option value="COMPLETED">Completed events</option><option value="CANCELLED">Cancelled events</option><option value="">All events</option></select>{(search || status !== "upcoming") && <button type="button" className="text-xs text-amber-300 underline underline-offset-4" onClick={() => { setSearch(""); setStatus("upcoming"); setPage(1); }}>Reset event filters</button>}</div><p className="text-xs leading-5 text-neutral-400">Schedules use Philippine time. Reservations are for attendance; player and contestant sign-ups are handled by the organizer.</p></div>
+      {query.isPending || updating ? <Loading /> : query.isError ? <Notice error={query.error} retry={() => void query.refetch()} /> : <>
+        <section aria-label="Available events" className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3">{query.data.data.map(row => {
+          const schedule = eventSchedule(row.event_date, row.start_time, row.end_time);
+          const photo = String(row.poster_image || row.banner_image || "");
+          const reservation = String(row.registration_status || "");
+          const noCheckIn = row.attendance_mode === "NONE";
+          const attendanceHint = row.status === "COMPLETED" ? "Event ended · Check your merit record" : row.status === "CANCELLED" ? "Event cancelled · No new reservations" : row.registration_required === false ? noCheckIn ? "No reservation or attendance check-in required" : "No reservation needed · Bring your QR pass" : Number(row.available_slots) > 0 ? `${Number(row.available_slots)} attendance places available` : row.allow_waitlist ? "Attendance places full · Waitlist available" : "Attendance places full";
+          return <button type="button" key={row.id} aria-label={`View event: ${row.title}`} onClick={() => openEvent(row.id)} className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60 text-left outline-none transition hover:border-amber-300/40 focus-visible:ring-2 focus-visible:ring-amber-300">
+            {photo ? <img src={imageVariant(photo, 640)} srcSet={imageSrcSet(photo)} sizes="(min-width: 1280px) 400px, (min-width: 640px) 50vw, 100vw" decoding="async" alt="" className="h-36 w-full bg-black/30 object-contain" loading="lazy" /> : <div className="flex h-24 w-full items-center justify-center bg-gradient-to-br from-amber-300/10 to-neutral-900"><CalendarDays className="h-8 w-8 text-amber-300/60" aria-hidden="true" /></div>}
+            <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5"><div className="flex flex-wrap items-center gap-2"><span className={`rounded-full border px-2.5 py-1 text-xs ${row.status === "CANCELLED" ? "border-rose-300/25 text-rose-200" : "border-amber-300/25 text-amber-200"}`}>{eventLabels[String(row.status)] || "Event"}</span>{reservation && <span className="rounded-full border border-white/15 px-2.5 py-1 text-xs text-neutral-200">{registrationLabels[reservation] || reservation}</span>}</div><div><p className="text-xs text-neutral-400">{String(row.category_name || "Campus event")}</p><h2 className="mt-1 break-words text-lg font-semibold text-white">{String(row.title)}</h2></div><div className="space-y-2 text-xs text-neutral-300"><p className="flex items-start gap-2"><CalendarDays className="h-4 w-4 shrink-0 text-amber-300" /><span>{schedule.date}<br />{schedule.time}</span></p><p className="flex items-start gap-2"><MapPin className="h-4 w-4 shrink-0 text-amber-300" /><span className="break-words">{String(row.venue || "Venue to be announced")}</span></p><p className="flex items-start gap-2"><Award className="h-4 w-4 shrink-0 text-amber-300" /><span>{noCheckIn ? "No attendance points or check-in" : `${Number(row.participation_points || 0)} points for verified attendance`}</span></p></div><p className="rounded-xl border border-white/10 bg-white/[.025] p-3 text-xs leading-5 text-neutral-300">{attendanceHint}{!noCheckIn && row.attendance_mode === "DAILY" && ["PUBLISHED", "ONGOING"].includes(String(row.status)) && <span className="mt-1 block text-neutral-400">Staff approve attendance for the day.</span>}</p><span className="mt-auto flex items-center justify-between border-t border-white/10 pt-3 text-sm font-medium text-amber-200">View event details<ArrowRight className="h-4 w-4" /></span></div>
+          </button>;
+        })}</section>
+        {!query.data.data.length && <div className="space-y-3 rounded-2xl border border-dashed border-white/15 p-6 text-center"><CalendarDays className="mx-auto h-7 w-7 text-amber-300" /><p className="font-medium text-white">{search ? "No events match this name" : status === "upcoming" ? "No upcoming events yet" : "No events match this filter"}</p><p className="text-sm leading-6 text-neutral-400">{search ? "Try another name or reset your filters." : "Published activities will appear here. You can also check your existing reservations."}</p><button type="button" className={button} onClick={() => { setSearch(""); setStatus(""); setPage(1); }}>Show all events</button></div>}
+        <StudentPagination page={page} count={query.data.count} previous={query.data.previous} next={query.data.next} onChange={setPage} label="events" busy={updating} />
+      </>}
+    </> : <section className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60" aria-labelledby="reservations-title"><header className="space-y-4 border-b border-white/10 p-4 sm:p-5"><div className="flex items-start justify-between gap-3"><div><h2 id="reservations-title" className="text-lg font-semibold text-white">My attendance reservations</h2><p className="mt-2 text-xs leading-5 text-neutral-400">A reservation is not verified attendance. Check in with staff when you attend.</p></div><button type="button" className={button} aria-label="Refresh reservations" onClick={() => void reservations.refetch()}><RefreshCw className={`h-4 w-4 ${reservations.isFetching ? "animate-spin" : ""}`} /></button></div><label className="relative block"><Search className="absolute left-3 top-3.5 h-4 w-4 text-neutral-500" /><input className={`${input} !pl-10`} aria-label="Search my reservations" placeholder="Search a reserved event" value={reservationSearch} onChange={event => { setReservationSearch(event.target.value); setReservationPage(1); }} /></label></header>
+      {reservations.isPending || reservationUpdating ? <Loading /> : reservations.isError ? <div className="p-4"><Notice error={reservations.error} retry={() => void reservations.refetch()} /></div> : <><ul className="divide-y divide-white/10">{reservations.data.data.map(row => <li key={row.id} className="space-y-3 p-4 sm:p-5"><div className="flex flex-wrap items-start justify-between gap-3"><h3 className="min-w-0 break-words font-semibold text-white">{row.event_title}</h3><span className={`rounded-full border px-3 py-1 text-xs ${row.status === "WAITLISTED" ? "border-sky-300/25 bg-sky-300/10 text-sky-200" : row.status === "REGISTERED" || row.status === "ATTENDED" ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-200" : "border-white/15 text-neutral-300"}`}>{registrationLabels[row.status] || row.status}</span></div><p className="text-sm leading-6 text-neutral-400">{row.status === "WAITLISTED" ? `Your place is not confirmed yet.${row.waitlist_position ? ` Waitlist order: #${row.waitlist_position}.` : ""}` : row.status === "ATTENDED" ? "Staff have verified your attendance. See your merit record for points." : row.status === "REGISTERED" ? "Your attendance place is reserved. Bring your student QR pass for check-in." : row.cancellation_reason || "View the event or your merit record for details."}</p><p className="text-xs text-neutral-400">Requested {schoolTimestamp(row.registered_at, false)}</p><div className="flex flex-wrap gap-2"><button type="button" className={button} onClick={() => openEvent(row.event)}>View event<ArrowRight className="h-4 w-4" /></button>{row.status === "ATTENDED" && <Link className={button} to="/merit"><CheckCircle2 className="h-4 w-4" />View my merit</Link>}</div></li>)}</ul>{!reservations.data.data.length && <div className="space-y-3 p-6 text-center"><Ticket className="mx-auto h-7 w-7 text-amber-300" /><p className="font-medium text-white">{reservationSearch ? "No reservations match this search" : "No attendance reservations yet"}</p><p className="text-sm leading-6 text-neutral-400">Open-attendance events do not need a reservation. Browse an event to see what is required.</p><Link className={button} to="/events">Discover events</Link></div>}<StudentPagination page={reservationPage} count={reservations.data.count} previous={reservations.data.previous} next={reservations.data.next} onChange={setReservationPage} label="reservations" busy={reservationUpdating} /></>}
+    </section>}
+    <Dialog.Root open={hasEvent} onOpenChange={open => { if (!open && !write.isPending) closeEvent(); }}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[80] bg-black/70 backdrop-blur" /><EventDetails event={event} loading={detail.isPending} loadError={detail.isError ? detail.error : null} retry={() => void detail.refetch()} pending={write.isPending} error={error} message={message} onAction={cancel => void act(cancel)} onShowPass={showPass} /></Dialog.Portal></Dialog.Root>
+  </StudentFrame>;
 }

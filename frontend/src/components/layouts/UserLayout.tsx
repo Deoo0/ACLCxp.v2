@@ -1,5 +1,6 @@
 import StudentSeasonGate from "./StudentSeasonGate";
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import UserNavBar from "../navigation/UserNavBar";
 import BottomNavigation from "../navigation/BottomNavigation";
 import PageTransition from "../feedback/PageTransition";
@@ -12,6 +13,7 @@ import {
   HiQrcode,
 } from "react-icons/hi";
 export default function UserLayout() {
+  const location = useLocation();
   const [qrOpen, setQrOpen] = useState(false);
   useEffect(() => {
     const open = () => setQrOpen(true);
@@ -25,7 +27,7 @@ export default function UserLayout() {
       </div>
       <a href="#main-content" className="skip-link">Skip to content</a>
       <main id="main-content" tabIndex={-1} className="student-content">
-        <PageTransition />
+        <PageTransition animateSearch={!["/merit", "/events"].includes(location.pathname)} />
       </main>
       <BottomNavigation
         items={[
