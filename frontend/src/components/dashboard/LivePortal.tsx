@@ -37,16 +37,16 @@ export function HouseStandings({ houses }: { houses: Row[] }) {
             key={house.id}
           >
             <span className="w-6 font-mono text-sm text-neutral-500">
-              {index + 1}
+              {Number(house.rank || index + 1)}
             </span>
-            <HouseLogo name={String(house.name)} src={String(house.logo_url || "")} color={String(house.color_code)} />
+            {!house.identity_hidden && <HouseLogo name={String(house.name)} src={String(house.logo_url || "")} color={String(house.color_code)} />}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-neutral-200">
                 {String(house.name)}
               </p>
-              <p className="mt-1 text-xs text-neutral-500">
+              {!house.identity_hidden && <p className="mt-1 text-xs text-neutral-500">
                 {String(house.member_count)} students
-              </p>
+              </p>}
             </div>
             <span className="font-semibold text-amber-300">
               {Number(house.total_points).toLocaleString()}

@@ -1,4 +1,3 @@
-from django.core import signing
 from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404
@@ -40,7 +39,7 @@ def reverse_points(entry, actor, reason):
 
 
 @transaction.atomic
-def check_in(actor, event_id, student_id=None, token=None, *, daily=False):
+def check_in(actor, event_id, student_id=None, token=None, *, daily=False, identity_proof=None):
     event = get_object_or_404(Event.objects.select_for_update(), pk=event_id)
     if event.archived_at:
         raise Conflict("Archived events cannot accept attendance.")
@@ -54,13 +53,10 @@ def check_in(actor, event_id, student_id=None, token=None, *, daily=False):
         raise Conflict("Use daily approval for this event; one scan covers the day's eligible events.")
     elif event.status != "ONGOING":
         raise Conflict("Start the event before recording attendance.")
-    if token:
-        try:
-            payload = signing.loads(token, salt="student-event-pass", max_age=300)
-            student_id = payload["student_id"]
-        except (signing.BadSignature, KeyError, TypeError):
-            raise ValidationError("Invalid or expired QR code. Ask the student to refresh their pass.")
-    user = get_object_or_404(User.objects.select_related("house"), student_id=student_id, role="STUDENT", is_active=True)
+    from .student_pass import resolve_student, verify_confirmation
+    user = resolve_student(token, student_id)
+    if identity_proof is not None:
+        verify_confirmation(user, identity_proof)
     from apps.seasons.scope import require_membership
     require_membership(user)
     if daily or not event.registration_required:

@@ -11,6 +11,7 @@ from apps.houses.models import House
 from apps.attendance.models import Attendance
 from apps.results.models import PointsTransaction, EventResult
 from .models import AuditLog, SystemSetting
+from .student_pass import confirmation
 
 
 class ConnectedConsoleTests(TestCase):
@@ -43,7 +44,7 @@ class ConnectedConsoleTests(TestCase):
         IntramuralsTicket.objects.create(ticket_number="123456789013", qr_token="other-ticket",
             status="REDEEMED", redeemed_by=other_roster)
         response = self.client.post("/api/admin/attendance/check_in/", {"event": self.event.pk,
-            "student_id": self.other.student_id}, format="json")
+            "student_id": self.other.student_id, "identity_proof": confirmation(self.other)}, format="json")
         self.assertEqual(response.status_code, 201)
         self.event.refresh_from_db()
         self.assertEqual(self.event.total_attended, 2)
@@ -225,7 +226,7 @@ class ConnectedConsoleTests(TestCase):
         self.client.force_authenticate(self.admin)
 
     def check_in(self, token=None):
-        return self.client.post("/api/admin/attendance/check_in/", {"event": self.event.pk, **({"token": token} if token else {"student_id": self.student.student_id})}, format="json")
+        return self.client.post("/api/admin/attendance/check_in/", {"event": self.event.pk, "identity_proof": confirmation(self.student), **({"token": token} if token else {"student_id": self.student.student_id})}, format="json")
 
     def test_admin_routes_reject_students_and_anonymous(self):
         for identity, expected in [(None,401),(self.student,403)]:
@@ -263,7 +264,7 @@ class ConnectedConsoleTests(TestCase):
         self.assertEqual(response["Cache-Control"], "no-store")
 
     def test_checkin_requires_ongoing_and_confirmed_registration(self):
-        response = self.client.post("/api/admin/attendance/check_in/", {"event": self.event.pk,"student_id":self.other.student_id})
+        response = self.client.post("/api/admin/attendance/check_in/", {"event": self.event.pk,"student_id":self.other.student_id, "identity_proof": confirmation(self.other)})
         self.assertEqual(response.status_code, 409)
         self.event.status="PUBLISHED"
         self.event.save()

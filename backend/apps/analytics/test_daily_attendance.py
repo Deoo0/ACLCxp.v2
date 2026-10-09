@@ -12,6 +12,7 @@ from apps.users.models import StudentRoster, IntramuralsTicket
 from apps.results.models import PointsTransaction
 from apps.seasons.models import Season, SeasonMembership
 from .models import AuditLog
+from .student_pass import confirmation
 
 
 class DailyAttendanceTests(TestCase):
@@ -40,7 +41,7 @@ class DailyAttendanceTests(TestCase):
         return Event.objects.create(**fields)
 
     def approve(self, **extra):
-        return self.client.post(self.url, {"date": str(self.day), "token": self.token, **extra}, format="json")
+        return self.client.post(self.url, {"date": str(self.day), "token": self.token, "identity_proof": confirmation(self.student), **extra}, format="json")
 
     def test_one_scan_records_four_events_and_repeat_is_idempotent(self):
         response = self.approve()
