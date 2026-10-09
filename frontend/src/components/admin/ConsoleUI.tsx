@@ -410,6 +410,9 @@ export function Records({
   refreshKey = 0,
   searchValue,
   onSearchChange,
+  searchPlaceholder = "Search records...",
+  emptyMessage = "Try another search or add your first record.",
+  mobileCards = false,
 }: {
   endpoint: string;
   columns: Column[];
@@ -417,6 +420,9 @@ export function Records({
   refreshKey?: number;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  searchPlaceholder?: string;
+  emptyMessage?: string;
+  mobileCards?: boolean;
 }) {
   const [managedId, setManagedId] = useState<number | null>(null);
   // Keep a compact overview; every original column remains in the detail dialog.
@@ -427,6 +433,7 @@ export function Records({
     "/admin/settings/": ["key", "value"],
     "/admin/audit/": ["created_at", "user_email", "description", "status"],
     "/admin/results/": ["event_title", "student_name", "rank", "points_awarded"],
+    "/admin/attendance/": ["student_name", "event_title", "scanned_at", "is_valid"],
     "/seasons/": ["name", "academic_year", "status", "is_current"],
   };
   const keys = summaryKeys[endpoint.split("?")[0]];
@@ -450,7 +457,7 @@ export function Records({
           <input
             className={`${input} !pl-10`}
             aria-label="Search records"
-            placeholder="Search records..."
+            placeholder={searchPlaceholder}
             value={searchValue ?? search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -478,7 +485,8 @@ export function Records({
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto overscroll-x-contain" tabIndex={0} role="region" aria-label="Records table, scroll horizontally for more columns">
+          {mobileCards && <div className="divide-y divide-white/10 sm:hidden">{query.data.data.map(row => <article key={row.id} className="space-y-3 p-4"><h3 className="break-words font-medium text-white">{recordLabel(row)}</h3>{!!row.student_id && <p className="break-words font-mono text-xs text-neutral-400">{String(row.student_id)}</p>}<dl className="space-y-3">{overviewColumns.filter(col => col.key !== "student_name").map(col => <div key={col.key}><dt className="text-xs text-neutral-400">{col.label}</dt><dd className="mt-1 break-words text-sm text-neutral-200">{col.render ? col.render(row) : valueText(row[col.key])}</dd></div>)}</dl><button type="button" className={`${button} w-full`} aria-label={`Manage ${recordLabel(row)}`} onClick={() => setManagedId(row.id)}><ClipboardList className="h-4 w-4" />View record</button></article>)}{!query.data.data.length && <div className="p-6 text-center text-sm text-neutral-400"><p className="font-medium text-white">No records found</p><p className="mt-2">{emptyMessage}</p></div>}</div>}
+          <div className={`${mobileCards ? "hidden sm:block " : ""}overflow-x-auto overscroll-x-contain`} tabIndex={0} role="region" aria-label="Records table, scroll horizontally for more columns">
             <table className="w-full text-left text-sm">
               <thead className="bg-neutral-950/40 text-[11px] uppercase tracking-wider text-neutral-500">
                 <tr>
@@ -528,7 +536,7 @@ export function Records({
               <div className="px-5 py-16 text-center">
                 <p className="font-medium text-neutral-300">No records found</p>
                 <p className="mt-2 text-sm text-neutral-500">
-                  Try another search or add your first record.
+                  {emptyMessage}
                 </p>
               </div>
             )}
