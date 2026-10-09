@@ -1,281 +1,71 @@
-import IdentityConfirmation, { type StudentIdentity } from "../../components/admin/IdentityConfirmation";
-import { useCallback, useRef, useState } from "react";
-import { ScanLine, Download } from "lucide-react";
-import {
-  PageHeading,
-  Panel,
-  Records,
-  Editor,
-  button,
-  primary,
-  input,
-  Notice,
-  Badge,
-} from "../../components/admin/ConsoleUI";
-import VerificationFeedback from "../../components/feedback/VerificationFeedback";
-import type { VerificationState } from "../../components/feedback/VerificationFeedback";
-import { errorMessage } from "../../services/queries";
+import { useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { CalendarDays, ScanLine, ClipboardList, Download, SlidersHorizontal } from "lucide-react";
+import { PageHeading, Panel, Records, Editor, button, Notice, Badge } from "../../components/admin/ConsoleUI";
 import DailyAttendance from "../../components/admin/DailyAttendance";
-import QRScanner from "../../components/admin/QRScanner";
-import { useApi, useWrite } from "../../services/queries";
-import type { Row, PageData } from "../../services/queries";
+import EventAttendance from "../../components/admin/EventAttendance";
+import AttendanceEventPicker from "../../components/admin/AttendanceEventPicker";
+import { AccountFilters, ArchiveFilters, type Filters } from "../../components/admin/Filters";
+import type { Row } from "../../services/queries";
 import api from "../../services/api";
 import { downloadBlob } from "../../services/download";
-import { AccountFilters, ArchiveFilters } from "../../components/admin/Filters";
-import type { Filters } from "../../components/admin/Filters";
-export default function AttendanceReportsPage() {
-  const [feedback, setFeedback] = useState<VerificationState | null>(null);
-  const inFlight = useRef(false);
+
+function AttendanceRecords() {
   const [archive, setArchive] = useState("active");
   const [year, setYear] = useState("");
   const [filters, setFilters] = useState<Filters>({});
-  const [recordSearch, setRecordSearch] = useState("");
-  const [event, setEvent] = useState("");
   const [search, setSearch] = useState("");
-  const [student, setStudent] = useState("");
-  const [scanner, setScanner] = useState(false);
-  const [pendingIdentity, setPendingIdentity] = useState<{ student: StudentIdentity; token?: string; student_id: string } | null>(null);
+  const [event, setEvent] = useState<Row | null>(null);
   const [correction, setCorrection] = useState<Row | null>(null);
   const [error, setError] = useState<unknown>(null);
-  const [message, setMessage] = useState("");
   const [exporting, setExporting] = useState(false);
-  const events = useApi<PageData>(
-    `/events/?page_size=100&search=${encodeURIComponent(search)}&archive=${archive}&year=${year}`,
-  );
-  const reportParams = new URLSearchParams({
-    ...filters,
-    archive,
-    year,
-    event,
-  });
-  const selectedEvent = events.data?.data.find(
-    (row) => String(row.id) === event,
-  );
-  const canCheckIn =
-    selectedEvent?.status === "ONGOING" && !selectedEvent?.archived_at && (!selectedEvent?.attendance_mode || selectedEvent.attendance_mode === "PER_EVENT");
-  const write = useWrite();
-  const mutateAsync = write.mutateAsync;
-  const submit = useCallback(
-    async (token?: string, identity_proof?: string, verifiedStudent?: string) => {
-      if (inFlight.current) return;
-      inFlight.current = true;
-      setScanner(false);
-      setError(null);
-      setMessage("");
-      setFeedback({ kind: "pending", title: "Checking attendance", message: "Please wait while attendance is verified and saved." });
-      try {
-        if (!identity_proof) {
-          const student_id = student.trim();
-          const response = await api.post<StudentIdentity>("/attendance/preview/", token ? { token } : { student_id });
-          setFeedback(null);
-          setPendingIdentity({ student: response.data, token, student_id });
-          return;
-        }
-        setPendingIdentity(null);
-
-        const row = await mutateAsync({
-          path: "/admin/attendance/check_in/",
-          body: {
-            identity_proof,
-            event: Number(event),
-            ...(token ? { token } : { student_id: verifiedStudent || student }),
-          },
-        });
-        setFeedback({ kind: "success", title: "Attendance confirmed", message: `Attendance is recorded for ${row.student_name}. Repeat scans do not duplicate attendance or points.` });
-        setStudent("");
-      } catch (e) {
-        setFeedback({ kind: "error", title: "Attendance not recorded", message: errorMessage(e) });
-      } finally { inFlight.current = false; }
-    },
-    [event, student, mutateAsync],
-  );
-  const scan = useCallback(
-    (token: string) => {
-      void submit(token);
-    },
-    [submit],
-  );
+  const params = new URLSearchParams({ ...filters, archive, year, event: event ? String(event.id) : "" });
+  const filterCount = Object.values(filters).filter(Boolean).length + (archive !== "active" ? 1 : 0) + (year ? 1 : 0) + (event ? 1 : 0);
   const exportRows = async () => {
-    setExporting(true);
-    setError(null);
+    setExporting(true); setError(null);
     try {
-      const response = await api.get(
-        `/admin/attendance/export/?${reportParams}&search=${encodeURIComponent(recordSearch)}`,
-        { responseType: "blob", timeout: 120000 },
-      );
-      downloadBlob(
-        response.data,
-        `attendance-${archive}-${year || "all-years"}.csv`,
-      );
-    } catch (e) {
-      setError(e);
-    } finally {
-      setExporting(false);
-    }
+      const response = await api.get(`/admin/attendance/export/?${params}&search=${encodeURIComponent(search)}`, { responseType: "blob", timeout: 120000 });
+      downloadBlob(response.data, `attendance-${archive}-${year || "all-years"}.csv`);
+    } catch (error) { setError(error); }
+    finally { setExporting(false); }
   };
-  return (
-    <div className="space-y-6">
-      <PageHeading
-        title="Attendance & reports"
-        description="Record confirmed students at ongoing events. Scans award participation points once; corrections update the student merit record."
-      />
-      <DailyAttendance />
-      <Panel>
-        <div className="mb-5 space-y-4">
-          <ArchiveFilters
-            archive={archive}
-            year={year}
-            onChange={(a, y) => {
-              setArchive(a);
-              setYear(y);
-              setPendingIdentity(null); setEvent("");
-              setScanner(false);
-            }}
-          />
-          <AccountFilters values={filters} onChange={setFilters} attendance />
-          <p className="text-xs text-neutral-500">
-            Export includes every matching row, across all pages. Archive events
-            from the Events page to keep past attendance out of the current
-            workspace.
-          </p>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-3">
-            <label className="block space-y-2 text-sm text-neutral-400">
-              <span>Find an event</span>
-              <input
-                className={input}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search event title"
-              />
-            </label>
-            <select
-              aria-label="Attendance event"
-              className={input}
-              value={event}
-              onChange={(e) => {
-                setPendingIdentity(null); setEvent(e.target.value);
-                setScanner(false);
-              }}
-            >
-              <option value="">All events (reports only)</option>
-              {events.data?.data.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {String(r.title)} / {String(r.status)}
-                </option>
-              ))}
-            </select>
-            {events.isError && <Notice error={events.error} />}
-            <button
-              className={button}
-              disabled={exporting}
-              onClick={() => void exportRows()}
-            >
-              <Download className="h-4 w-4" />
-              {exporting
-                ? "Exporting..."
-                : event
-                  ? "Export filtered event attendance"
-                  : "Export filtered attendance"}
-            </button>
-          </div>
-          <form
-            className="space-y-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void submit();
-            }}
-          >
-            <label className="block space-y-2 text-sm text-neutral-400">
-              <span>Manual check-in / student number</span>
-              <input
-                required
-                className={input}
-                value={student}
-                onChange={(e) => setStudent(e.target.value)}
-                placeholder="Enter the school student number"
-              />
-            </label>
-            <div className="flex flex-wrap gap-2">
-              <button
-                className={primary}
-                disabled={!canCheckIn || write.isPending}
-              >
-                Record attendance
-              </button>
-              <button
-                type="button"
-                className={button}
-                disabled={!canCheckIn || write.isPending}
-                onClick={() => { setFeedback(null); setScanner(!scanner); }}
-              >
-                <ScanLine className="h-4 w-4" />
-                {scanner ? "Close camera" : "Scan QR pass"}
-              </button>
-            </div>
-          </form>
-        </div>
-        {feedback && <div className="mt-4"><VerificationFeedback {...feedback} /></div>}
-        {pendingIdentity && <IdentityConfirmation student={pendingIdentity.student} onCancel={() => setPendingIdentity(null)} onConfirm={() => void submit(pendingIdentity.token, pendingIdentity.student.identity_proof, pendingIdentity.student_id)} />}
-        {scanner && (
-          <div className="mx-auto mt-5 max-w-sm">
-            <QRScanner onScan={scan} />
-          </div>
-        )}
-      </Panel>
-      {error != null && <Notice error={error} />}
-      {message && (
-        <p
-          role="status"
-          className="rounded-xl bg-emerald-400/10 p-4 text-sm text-emerald-200"
-        >
-          {message}
-        </p>
-      )}
-      <Records
-        key={reportParams.toString()}
-        endpoint={`/admin/attendance/?${reportParams}`}
-        searchValue={recordSearch}
-        onSearchChange={setRecordSearch}
-        columns={[
-          { key: "event_title", label: "Event" },
-          { key: "student_id", label: "Student number" },
-          { key: "student_name", label: "Student" },
-          {
-            key: "scanned_at",
-            label: "Check-in",
-            render: (r) => new Date(String(r.scanned_at)).toLocaleString(),
-          },
-          {
-            key: "is_valid",
-            label: "Status",
-            render: (r) => <Badge value={r.is_valid ? "VALID" : "VOIDED"} />,
-          },
-        ]}
-        actions={(r) => (
-          <button className={button} onClick={() => setCorrection(r)}>
-            {r.is_valid ? "Void" : "Restore"}
-          </button>
-        )}
-      />
-      {correction && (
-        <Editor
-          title={`${correction.is_valid ? "Void" : "Restore"} attendance`}
-          description="This also reverses or restores the corresponding participation points. The action is recorded in the audit trail."
-          fields={[
-            {
-              name: "reason",
-              label: "Reason for correction",
-              type: "textarea",
-              required: true,
-            },
-          ]}
-          path={`/admin/attendance/${correction.id}/correct/`}
-          transform={(data) => ({ ...data, is_valid: !correction.is_valid })}
-          onClose={() => setCorrection(null)}
-        />
-      )}
-    </div>
-  );
+  return <div className="space-y-4">
+    <Panel>
+      <div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="text-lg font-semibold text-white">Attendance records</h2><p className="mt-2 text-sm leading-6 text-neutral-400">Search by student name, student number, or event. Review a record to void or restore attendance.</p></div><button type="button" className={button} disabled={exporting} onClick={() => void exportRows()}><Download className="h-4 w-4" />{exporting ? "Exporting…" : "Download CSV"}</button></div>
+      <p className="mt-3 text-xs leading-5 text-neutral-400">CSV downloads include all matching records across every page. Check-in times below use Philippine time.</p>
+      <details className="mt-5 rounded-xl border border-white/10 p-4"><summary className="cursor-pointer text-sm font-medium text-neutral-200"><span className="inline-flex items-center gap-2"><SlidersHorizontal className="h-4 w-4 text-amber-300" />Filters {filterCount > 0 && `(${filterCount} applied)`}</span></summary><div className="mt-4 space-y-5">
+        <ArchiveFilters archive={archive} year={year} onChange={(a, y) => { setArchive(a); setYear(y); setEvent(null); }} />
+        <AccountFilters values={filters} onChange={setFilters} attendance />
+        <div><p className="mb-3 text-sm text-neutral-300">Filter by event (optional)</p><AttendanceEventPicker value={event} onChange={setEvent} archive={archive} year={year} /></div>
+      </div></details>
+      {filterCount > 0 && <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm"><p className="min-w-0 break-words text-neutral-400">{event ? String(event.title) : "All events"} · {filterCount} {filterCount === 1 ? "filter applied" : "filters applied"}</p><button type="button" className={button} onClick={() => { setArchive("active"); setYear(""); setFilters({}); setEvent(null); setSearch(""); }}>Reset filters</button></div>}
+    </Panel>
+    {error != null && <Notice error={error} />}
+    <Records key={params.toString()} endpoint={`/admin/attendance/?${params}`} searchValue={search} onSearchChange={setSearch} searchPlaceholder="Student name, number, or event" emptyMessage="No attendance matches this search. Check your filters, or record a student from Daily approval or Event check-in." mobileCards columns={[
+      { key: "student_name", label: "Student", render: row => <div><p className="font-medium text-white">{String(row.student_name || "Name unavailable")}</p><p className="mt-1 font-mono text-xs text-neutral-400">{String(row.student_id)}</p></div> },
+      { key: "student_id", label: "Student number" },
+      { key: "event_title", label: "Event" },
+      { key: "scanned_at", label: "Check-in (PH time)", render: row => new Date(String(row.scanned_at)).toLocaleString("en-PH", { timeZone: "Asia/Manila", dateStyle: "medium", timeStyle: "short" }) },
+      { key: "is_valid", label: "Status", render: row => <Badge value={row.is_valid ? "VALID" : "VOIDED"} /> },
+    ]} actions={row => <button className={button} onClick={() => setCorrection(row)}>{row.is_valid ? "Void attendance" : "Restore attendance"}</button>} />
+    {correction && <Editor title={`${correction.is_valid ? "Void" : "Restore"} attendance`} description={`${correction.student_name} · ${correction.student_id} · ${correction.event_title}. This also reverses or restores participation points and is recorded in the audit trail.`} fields={[{ name: "reason", label: "Reason for correction", type: "textarea", required: true }]} path={`/admin/attendance/${correction.id}/correct/`} transform={data => ({ ...data, is_valid: !correction.is_valid })} onClose={() => setCorrection(null)} />}
+  </div>;
+}
+
+const views = [
+  { id: "daily", label: "Daily approval", description: "One scan for the day's events", icon: CalendarDays },
+  { id: "event", label: "Event check-in", description: "Check in to one ongoing event", icon: ScanLine },
+  { id: "records", label: "Records", description: "Search, correct, and export", icon: ClipboardList },
+];
+
+export default function AttendanceReportsPage() {
+  const [params] = useSearchParams();
+  const view = views.some(item => item.id === params.get("view")) ? params.get("view") : "daily";
+  return <div className="space-y-5">
+    <PageHeading title="Attendance" description="Choose how to check in a student. Attendance is saved only after you verify their identity." />
+    <nav aria-label="Attendance workflows" className="sticky top-[74px] z-20 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-neutral-950/95 p-2 backdrop-blur sm:gap-3">
+      {views.map(({ id, label, description, icon: Icon }) => <Link key={id} to={`/admin/attendance?view=${id}`} onClick={() => window.scrollTo(0, 0)} aria-current={view === id ? "page" : undefined} className={`flex min-h-20 min-w-0 flex-col items-center justify-center gap-2 rounded-xl px-2 py-3 text-center text-xs font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-amber-300 sm:items-start sm:px-4 sm:text-left sm:text-sm ${view === id ? "bg-amber-300/10 text-amber-200 ring-1 ring-amber-300/30" : "text-neutral-400 hover:bg-white/5 hover:text-white"}`}><span className="flex flex-col items-center gap-2 sm:flex-row"><Icon className="h-5 w-5 shrink-0" aria-hidden="true" /><span>{label}</span></span><span className="hidden text-xs font-normal text-neutral-400 sm:block">{description}</span></Link>)}
+    </nav>
+    {view === "daily" ? <DailyAttendance /> : view === "event" ? <EventAttendance /> : <AttendanceRecords />}
+  </div>;
 }

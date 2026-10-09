@@ -53,13 +53,14 @@ const assert = require('node:assert/strict');
  await page.getByRole('heading', { name: 'House leaderboard' }).waitFor();
  await page.getByLabel('Secret House logo unavailable').waitFor();
  role = 'STAFF'; await page.goto('http://127.0.0.1:5174/staff/attendance');
- await page.getByPlaceholder('For manual staff approval').fill('QA001');
- await page.getByRole('button', { name: 'Approve attendance for the day', exact: true }).click();
+ await page.getByLabel('Or enter a student number').fill('QA001');
+ await page.getByRole('button', { name: 'Find student', exact: true }).click();
  await page.getByRole('dialog', { name: 'Verify student identity' }).waitFor();
  assert.equal(records, 0);
  await page.getByRole('button', { name: 'Cancel', exact: true }).click(); assert.equal(records, 0);
- await page.getByRole('button', { name: 'Approve attendance for the day', exact: true }).click();
+ await page.getByRole('button', { name: 'Find student', exact: true }).click();
  await page.getByRole('button', { name: 'Identity verified', exact: false }).click();
+ await page.getByText('Review approval results', { exact: true }).click();
  await page.getByText('Approved: QA event', { exact: true }).waitFor(); assert.equal(records, 1);
  console.log('PASS: mobile PNG download, card dimensions, hidden/revealed house branding, preview/cancel/confirm attendance. Synthetic API fixtures.');
  } finally { await browser.close(); }

@@ -5,10 +5,11 @@ import { useLocation, useOutlet } from "react-router-dom";
 
 interface PageTransitionProps {
   children?: ReactNode;
+  animateSearch?: boolean;
 }
 
 /** Animates route content only; surrounding navigation stays fixed in place. */
-export default function PageTransition({ children }: PageTransitionProps) {
+export default function PageTransition({ children, animateSearch = true }: PageTransitionProps) {
   const location = useLocation();
   const outlet = useOutlet();
   const reduceMotion = useReducedMotion();
@@ -18,7 +19,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
-        key={`${location.pathname}${location.search}`}
+        key={`${location.pathname}${animateSearch ? location.search : ""}`}
         initial={reduceMotion ? false : { opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         exit={reduceMotion ? { opacity: 1 } : { opacity: 0, y: -3 }}
