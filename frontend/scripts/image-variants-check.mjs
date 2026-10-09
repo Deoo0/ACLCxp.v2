@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { imageVariant, imageSrcSet } from '../src/services/images.ts';
+globalThis.window = { location: { origin: 'http://localhost' } };
+const image = '/media/events/' + 'a'.repeat(32) + '.jpg';
+assert.equal(imageVariant(image, 640), image + '?width=640');
+assert.equal(imageVariant('http://localhost' + image, 320), 'http://localhost' + image + '?width=320');
+assert.equal(imageVariant(image + '?width=320', 640), image + '?width=640');
+assert.equal(imageVariant('https://external.example' + image, 640), 'https://external.example' + image);
+assert.equal(imageVariant('data:image/png;base64,123', 640), 'data:image/png;base64,123');
+assert.equal(imageVariant('/house-logos/azul-logo.png', 320), '/house-logos/azul-logo.png');
+assert.equal(imageSrcSet('/house-logos/azul-logo.png'), undefined);
+assert.equal(imageSrcSet(image).split(', ').length, 3);
+console.log('PASS: responsive upload variants preserve external, static, and inline images.');

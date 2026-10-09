@@ -1,3 +1,4 @@
+import { imageVariant, imageSrcSet } from "../../services/images";
 import { useState } from "react";
 import { CalendarDays, MapPin, Trophy, Swords } from "lucide-react";
 import { useApi, type PageData } from "../../services/queries";
@@ -27,7 +28,7 @@ export default function CompetitionResults() {
         {query.isPending ? <Loading /> : query.isError ? <Notice error={query.error} retry={() => void query.refetch()} /> : !query.data.data.length ? <div className="rounded-xl border border-dashed border-white/20 bg-white/[0.02] px-6 py-14 text-center"><Trophy className="mx-auto text-yellow-300" size={32} /><h3 className="mt-4 text-lg font-bold">{tab === 'results' ? 'The next campus champions start here' : tab === 'match-results' ? 'Match winners will appear here' : 'The next face-off is on its way'}</h3><p className="mt-2 text-sm text-neutral-400">{tab === 'results' ? 'Verified event results will appear here once they are published.' : 'Check back for announced teams, match schedules, and venues.'}</p></div> : <div className="grid items-start gap-6 md:grid-cols-2">
           {query.data.data.map(event => <article key={event.id} className="overflow-hidden rounded-xl border border-white/10 bg-[#10191d]">
             <div className="relative flex min-h-44 flex-col justify-end overflow-hidden bg-gradient-to-br from-slate-800 via-neutral-900 to-black p-6">
-              {event.banner_image && <img src={event.banner_image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-35" />}
+              {event.banner_image && <img src={imageVariant(event.banner_image, 640)} srcSet={imageSrcSet(event.banner_image)} sizes="(min-width: 768px) 400px, 100vw" decoding="async" alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-35" />}
               <div className="relative"><span className="inline-flex items-center gap-2 bg-yellow-300 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-black">{tab === 'results' ? <Trophy size={12} /> : <Swords size={12} />}{event.category_name} · {tab === 'results' ? 'Official results' : tab === 'match-results' ? 'Match completed' : 'Bracket match'}</span><h3 className="mt-3 text-2xl font-black uppercase leading-tight">{event.title}</h3></div>
             </div>
             <div className="flex flex-wrap gap-x-5 gap-y-2 border-b border-white/10 px-6 py-4 text-xs text-neutral-300"><span className="flex items-center gap-2"><CalendarDays size={14} className="text-yellow-300" />{dateLabel(event.event_date)}</span><span className="flex items-center gap-2"><MapPin size={14} className="text-yellow-300" />{event.venue}</span></div>

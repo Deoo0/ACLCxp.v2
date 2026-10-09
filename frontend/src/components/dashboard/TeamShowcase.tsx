@@ -1,3 +1,5 @@
+import { imageVariant, imageSrcSet } from "../../services/images";
+import { queryPolicy } from "../../services/queryPolicy";
 import { useEffect, useId, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "framer-motion";
@@ -76,7 +78,7 @@ export function TeamShowcaseCarousel({ events }: { events: Row[] }) {
       </select>
       <div id={id} tabIndex={0} onKeyDown={e => { if (e.target === e.currentTarget && ["ArrowLeft", "ArrowRight"].includes(e.key)) { e.preventDefault(); move(e.key === "ArrowLeft" ? -1 : 1); } }} onTouchStart={() => setPaused(true)} aria-live={playing ? "off" : "polite"} className="mt-5 rounded-xl focus-visible:outline-2 focus-visible:outline-amber-300">
           <motion.article key={current.key} initial={{ opacity: reducedMotion ? 1 : 0 }} animate={{ opacity: 1 }} transition={{ duration: reducedMotion ? 0 : 0.25 }} aria-roledescription="slide" aria-label={`${String(event.title)}, ${team.house_name}, team ${teamIndex + 1} of ${teams.length}`} className="grid min-w-0 overflow-hidden rounded-xl border border-white/10 bg-black/20 lg:grid-cols-2">
-            {team.photo ? <img src={team.photo} alt={`${team.house_name} team for ${String(event.title)}`} className="aspect-[16/9] w-full bg-black/30 object-contain lg:h-full lg:max-h-96" /> : <div className="flex aspect-[16/9] items-center justify-center bg-amber-300/[.04] text-amber-300/40"><Users size={64} aria-hidden="true" /></div>}
+            {team.photo ? <img src={imageVariant(team.photo, 1280)} srcSet={imageSrcSet(team.photo)} sizes="(min-width: 1024px) 600px, 100vw" decoding="async" alt={`${team.house_name} team for ${String(event.title)}`} className="aspect-[16/9] w-full bg-black/30 object-contain lg:h-full lg:max-h-96" /> : <div className="flex aspect-[16/9] items-center justify-center bg-amber-300/[.04] text-amber-300/40"><Users size={64} aria-hidden="true" /></div>}
             <div className="min-w-0 p-5">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">{event.status === "ONGOING" ? "Happening now" : "Upcoming event"}</p>
               <h3 className="mt-2 break-words text-sm font-medium text-neutral-300">{String(event.title)}</h3>
@@ -94,6 +96,7 @@ export function TeamShowcaseCarousel({ events }: { events: Row[] }) {
 export default function TeamShowcase() {
   const query = useQuery({
     queryKey: ["dashboard-team-showcase"],
+    ...queryPolicy("/events/"),
     queryFn: async ({ signal }) => {
       const events: Row[] = [];
       let page = 1;

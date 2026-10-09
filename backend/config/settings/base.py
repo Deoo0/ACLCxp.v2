@@ -168,6 +168,13 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = config("MEDIA_ROOT", default=str(BASE_DIR.parent / "media"))
 DATA_UPLOAD_MAX_MEMORY_SIZE = 16 * 1024 * 1024
 
+# Bound each worker's thumbnail cache; original uploads remain in durable storage.
+CACHES = {
+    "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
+    "media": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+              "LOCATION": "media-thumbnails", "OPTIONS": {"MAX_ENTRIES": 32}},
+}
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

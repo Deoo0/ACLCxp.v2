@@ -29,22 +29,27 @@ from .serializers import (AdminUserSerializer, AdminUserUpdateSerializer, Roster
 from .operations import check_in, correct_attendance, post_points, reverse_points
 
 
-def effective_points():
+_CURRENT_SEASON = object()
+
+
+def effective_points(season=_CURRENT_SEASON):
     from apps.seasons.scope import current_season, championship_seasons
-    season = current_season()
+    if season is _CURRENT_SEASON:
+        season = current_season()
     points = PointsTransaction.all_objects.filter(is_approved=True, is_reversed=False)
     if season:
         points = points.filter(season__in=championship_seasons(season))
     return points
 
 
-def houses_with_totals():
+def houses_with_totals(season=_CURRENT_SEASON):
     from apps.seasons.scope import current_season
-    season = current_season()
+    if season is _CURRENT_SEASON:
+        season = current_season()
     member_filter = Q(members__is_active=True, members__role="STUDENT")
     if season:
         member_filter &= Q(members__season_memberships__season=season)
-    points = effective_points().filter(house=OuterRef("pk")).values("house").annotate(total=Sum("points")).values("total")
+    points = effective_points(season).order_by().filter(house=OuterRef("pk")).values("house").annotate(total=Sum("points")).values("total")
     return House.objects.annotate(actual_members=Count("members", filter=member_filter, distinct=True),
         actual_points=Coalesce(Subquery(points, output_field=IntegerField()), Value(0))).order_by("-actual_points", "name")
 
@@ -483,8 +488,8 @@ def dashboard(request):
         "events": Event.objects.count(), "ongoing": Event.objects.filter(status="ONGOING").count(),
         "registrations": EventRegistration.objects.exclude(status="CANCELLED").count(),
         "attendance": Attendance.objects.filter(is_valid=True).count(),
-        "points": effective_points().aggregate(total=Sum("points"))["total"] or 0,
-        "houses": HouseSerializer(houses_with_totals(), many=True, context={"request": request}).data,
+        "points": effective_points(season).aggregate(total=Sum("points"))["total"] or 0,
+        "houses": HouseSerializer(houses_with_totals(season), many=True, context={"request": request}).data,
         "recent": AuditSerializer(AuditLog.objects.order_by("-created_at")[:8], many=True).data})
 
 

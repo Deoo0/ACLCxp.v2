@@ -10,7 +10,7 @@ from apps.core.pagination import ApiPagination
 from apps.events.models import EventRegistration
 from apps.attendance.models import Attendance
 from apps.users.models import User
-from .console import effective_points, houses_with_totals
+from .console import effective_points, houses_with_totals, _CURRENT_SEASON
 from apps.seasons.scope import championship_seasons
 from .serializers import PointsSerializer, AttendanceSerializer, HouseSerializer, SETTING_DEFAULTS
 from .models import SystemSetting
@@ -25,22 +25,27 @@ def public_settings():
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def summary(request):
-    points = effective_points().filter(user=request.user).aggregate(total=Sum("points"))["total"] or 0
     from apps.seasons.scope import current_season
     season = current_season()
+    point_rows = effective_points(season).order_by()
+    points = point_rows.filter(user=request.user).aggregate(total=Sum("points"))["total"] or 0
     students = User.objects.filter(role="STUDENT", is_active=True)
-    point_filter = Q(points_transactions__is_approved=True, points_transactions__is_reversed=False)
     if season:
         from apps.seasons.models import SeasonMembership
         participating = SeasonMembership.objects.filter(season__in=championship_seasons(season)).values("user_id")
         students = students.filter(pk__in=participating)
-        point_filter &= Q(points_transactions__season__in=championship_seasons(season))
-    students = students.annotate(total=Sum("points_transactions__points", filter=point_filter, default=0))
-    return Response({"points": points, "rank": students.filter(total__gt=points).count() + 1,
+    # Aggregate only effective awards, rather than joining every student's full
+    # transaction history. Students without awards have zero points.
+    scores = point_rows.filter(user__in=students).values("user_id").annotate(total=Sum("points"))
+    higher = scores.filter(total__gt=points).count()
+    if points < 0:
+        higher += students.exclude(pk__in=point_rows.exclude(user_id=None).values("user_id")).count()
+    settings = public_settings()
+    return Response({"points": points, "rank": higher + 1,
         "attendance": Attendance.objects.filter(user=request.user, is_valid=True).count(),
         "registered": EventRegistration.objects.filter(user=request.user).exclude(status="CANCELLED").count(),
-        "houses": leaderboard_rows(request),
-        "settings": public_settings()})
+        "houses": leaderboard_rows(request, season=season, settings=settings),
+        "settings": settings})
 
 
 @api_view(["GET"])
@@ -128,9 +133,9 @@ def event_pass(request):
     return response
 
 
-def leaderboard_rows(request):
-    rows = HouseSerializer(houses_with_totals().filter(is_active=True), many=True, context={"request": request}).data
-    visible = public_settings()["leaderboard_house_visibility"] == "true"
+def leaderboard_rows(request, *, season=_CURRENT_SEASON, settings=None):
+    rows = HouseSerializer(houses_with_totals(season).filter(is_active=True), many=True, context={"request": request}).data
+    visible = (settings if settings is not None else public_settings())["leaderboard_house_visibility"] == "true"
     previous, rank = None, 0
     for index, row in enumerate(rows, 1):
         if row["total_points"] != previous:

@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { FaCamera, FaKeyboard, FaArrowLeft } from "react-icons/fa";
-import { Html5Qrcode } from "html5-qrcode";
+import type { Html5Qrcode } from "html5-qrcode";
 import api from "../../services/api";
 import { errorMessage } from "../../services/queries";
 import VerificationFeedback from "../../components/feedback/VerificationFeedback";
@@ -45,6 +45,8 @@ export default function RegisterPage() {
     const openCamera = async () => {
       if (!navigator.mediaDevices?.getUserMedia) { setCameraError("Camera access is not supported in this browser. Please enter your ticket number manually."); return; }
       try {
+        const { Html5Qrcode } = await import("html5-qrcode");
+        if (cancelled) return;
         // This effect runs only after React has mounted #ticket-qr-reader.
         const scanner = new Html5Qrcode("ticket-qr-reader", { verbose: false });
         scannerRef.current = scanner;

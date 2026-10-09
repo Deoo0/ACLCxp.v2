@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import type { Html5Qrcode } from "html5-qrcode";
 import { Notice } from "./ConsoleUI";
 export default function QRScanner({
   onScan,
@@ -9,11 +9,14 @@ export default function QRScanner({
   const id = `scanner-${useId().replaceAll(":", "")}`;
   const [error, setError] = useState<unknown>(null);
   useEffect(() => {
-    const scanner = new Html5Qrcode(id);
+    let scanner: Html5Qrcode | undefined;
     let disposed = false;
     let scanned = false;
-    const started = scanner
-      .start(
+    const started = (async () => {
+      const { Html5Qrcode } = await import("html5-qrcode");
+      if (disposed) return;
+      scanner = new Html5Qrcode(id);
+      await scanner.start(
         { facingMode: "environment" },
         { fps: 8, qrbox: { width: 240, height: 240 } },
         (value) => {
@@ -23,23 +26,23 @@ export default function QRScanner({
           }
         },
         () => {},
-      )
-      .catch((err: unknown) => {
-        if (!disposed)
-          setError(
-            err instanceof Error
-              ? err
-              : new Error(
-                  "Camera unavailable. Allow camera access on HTTPS, or use manual check-in.",
-                ),
-          );
-      });
+      );
+    })().catch((err: unknown) => {
+      if (!disposed)
+        setError(
+          err instanceof Error
+            ? err
+            : new Error(
+                "Camera unavailable. Allow camera access on HTTPS, or use manual check-in.",
+              ),
+        );
+    });
     return () => {
       disposed = true;
       void started
         .then(async () => {
-          if (scanner.isScanning) await scanner.stop();
-          scanner.clear();
+          if (scanner?.isScanning) await scanner.stop();
+          scanner?.clear();
         })
         .catch(() => {});
     };
