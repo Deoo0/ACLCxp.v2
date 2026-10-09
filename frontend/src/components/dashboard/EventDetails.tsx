@@ -1,3 +1,4 @@
+import { imageVariant, imageSrcSet } from "../../services/images";
 import EventTeams from "./EventTeams";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
@@ -62,7 +63,7 @@ export default function EventDetails({ event, loading, loadError, retry, pending
         <div className="grid gap-7 p-5 sm:p-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
           <div className="min-w-0 space-y-7">
             {poster ? <figure className="overflow-hidden rounded-2xl border border-white/10 bg-black/30">
-              <img src={poster} alt={`${text(event.title)} event poster`} className="max-h-[560px] w-full object-contain" />
+              <img src={imageVariant(poster, 1280)} srcSet={imageSrcSet(poster)} sizes="(min-width: 768px) 768px, 100vw" decoding="async" alt={`${text(event.title)} event poster`} className="max-h-[560px] w-full object-contain" />
               <figcaption className="flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 text-xs text-neutral-400"><span>Event {event.poster_image ? 'poster' : 'background'}</span></figcaption>
             </figure> : <div className="flex aspect-[16/9] flex-col items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-amber-300/10 to-neutral-950"><CalendarDays className="mb-4 h-12 w-12 text-amber-300/60" /><p className="text-xs font-medium uppercase tracking-[.2em] text-neutral-400">Your next campus experience</p></div>}
             <section><h3 className="text-lg font-semibold text-white">About this event</h3><p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-neutral-400">{text(event.description) || 'More details will be shared soon.'}</p></section>

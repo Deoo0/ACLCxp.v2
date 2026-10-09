@@ -38,8 +38,8 @@ const SystemSettings = lazy(() => import("../pages/admin/SettingsPage"));
 const AuditLogs = lazy(() => import("../pages/admin/AuditLogsPage"));
 
 import PublicLayout from "../components/layouts/PublicLayout";
-import UserLayout from "../components/layouts/UserLayout";
-import AdminLayout from "../components/layouts/AdminLayout";
+const UserLayout = lazy(() => import("../components/layouts/UserLayout"));
+const AdminLayout = lazy(() => import("../components/layouts/AdminLayout"));
 import PageTransition from "../components/feedback/PageTransition";
 
 export default function AppRoutes() {

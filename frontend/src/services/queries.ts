@@ -1,14 +1,15 @@
 import { QueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import api from "./api";
+import { queryPolicy, mutationResources, queryAffected } from "./queryPolicy";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 10000,
+      staleTime: 60000,
       retry: 1,
       refetchOnWindowFocus: true,
-      refetchInterval: 30000,
+      refetchInterval: false,
     },
   },
 });
@@ -23,6 +24,7 @@ export function useApi<T>(path: string, enabled = true) {
   return useQuery({
     queryKey: [path],
     enabled,
+    ...queryPolicy(path),
     queryFn: async ({ signal }) => (await api.get<T>(path, { signal })).data,
   });
 }
@@ -61,8 +63,12 @@ export function useWrite() {
       body?: unknown;
       method?: "post" | "patch" | "delete";
     }) => (await api.request({ url: path, method, data: body, ...(body instanceof FormData ? { headers: { "Content-Type": undefined } } : {}) })).data,
-    onSuccess: () => queryClient.invalidateQueries(),
+    onSuccess: (_data, { path }) => invalidateMutation(path),
   });
+}
+export function invalidateMutation(path: string) {
+  const resources = mutationResources(path);
+  return queryClient.invalidateQueries({ predicate: query => queryAffected(query.queryKey, resources) });
 }
 export const valueText = (value: unknown) =>
   value == null || value === ""

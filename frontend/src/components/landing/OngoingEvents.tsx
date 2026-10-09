@@ -1,3 +1,4 @@
+import { imageVariant, imageSrcSet } from "../../services/images";
 import Carousel from "../ui/Carousel";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -33,9 +34,9 @@ function EventCard({ event, destination, action }: { event: Row; destination: st
     </div>
     <div className="relative isolate flex aspect-[4/3] items-center justify-center overflow-hidden bg-neutral-950">
       {hasPhoto ? <>
-        <div aria-hidden="true" className="absolute inset-0 -z-10 scale-110 bg-cover bg-center opacity-25 blur-xl" style={{ backgroundImage: `url(${JSON.stringify(photo)})` }} />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 scale-110 bg-cover bg-center opacity-25 blur-xl" style={{ backgroundImage: `url(${JSON.stringify(imageVariant(photo, 640))})` }} />
         <div className="flex h-full w-full items-center justify-center p-3">
-          <img src={photo} alt={`${String(event.title)} event poster`} loading="lazy" className="h-full w-full object-contain drop-shadow-xl transition duration-300 group-hover:scale-[1.02]" onError={() => setFailedImage(photo)} />
+          <img src={imageVariant(photo, 640)} srcSet={imageSrcSet(photo)} sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" decoding="async" alt={`${String(event.title)} event poster`} loading="lazy" className="h-full w-full object-contain drop-shadow-xl transition duration-300 group-hover:scale-[1.02]" onError={() => setFailedImage(photo)} />
         </div>
       </> : <div className="flex h-full w-full flex-col items-center justify-center bg-[radial-gradient(ellipse_at_top_right,rgba(251,191,36,0.15),transparent_70%)] p-8 text-center"><CalendarDays className="mb-4 h-12 w-12 text-amber-300/70" /><p className="text-[10px] font-bold uppercase tracking-[.2em] text-neutral-500">Meet. Compete. Connect.</p><p className="mt-3 text-xl font-bold text-neutral-200">See you on campus</p></div>}
     </div>

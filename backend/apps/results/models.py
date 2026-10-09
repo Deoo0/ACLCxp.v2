@@ -216,6 +216,8 @@ class PointsTransaction(BaseModel):
         db_table = "points_transactions"
         ordering = ["-created_at"]
         indexes = [
+            models.Index(fields=["season", "user"], condition=models.Q(is_approved=True, is_reversed=False), name="effective_points_season_user"),
+            models.Index(fields=["season", "house"], condition=models.Q(is_approved=True, is_reversed=False), name="effective_points_season_house"),
             models.Index(fields=["user"]),
             models.Index(fields=["house"]),
             models.Index(fields=["event"]),
