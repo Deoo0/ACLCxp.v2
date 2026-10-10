@@ -1,73 +1,37 @@
-# React + TypeScript + Vite
+# ACLCxp frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 and TypeScript application built with Vite 7 and Tailwind CSS 4. It provides public competition results, student workspaces, staff attendance, and an administrator console.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Use Node.js 22.12+ and run `npm ci` from `frontend`. Create or edit `.env.local` with:
 
-## React Compiler
-
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```dotenv
+VITE_API_URL=http://localhost:8000
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Start the Django backend separately using the [project setup guide](../docs/README.md#local-setup), run `npm run dev`, and open `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+`VITE_API_URL` must contain the backend origin without `/api`. The API client adds `/api`. `VITE_API_TIMEOUT_MS` optionally sets the request timeout (20,000 ms by default). Restart Vite after environment changes; deployed builds require rebuilding.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run lint` | Run ESLint |
+| `npm run build` | Check TypeScript and create `dist/` |
+| `npm run preview` | Preview the production build locally |
+
+## Source layout
+
+- `src/pages/`: public, authentication, student, and admin screens.
+- `src/components/`: shared layouts, navigation, attendance tools, and dashboard components.
+- `src/routes/`: route definitions and role guards.
+- `src/context/AuthContext.tsx`: authentication state.
+- `src/services/`: API client, token refresh, queries, and download helpers.
+- `src/ui/`: theme and UI primitives.
+
+Student access also depends on the backend's current season and ticket checks. See [Season administration](../docs/seasons.md) before testing enrollment or student dashboards.
+
+For hosting, see the [Vercel + Render + Neon deployment guide](../docs/free-testing-deployment.md). `vercel.json` provides SPA rewrites for client-side routes.

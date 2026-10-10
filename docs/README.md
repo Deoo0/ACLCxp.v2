@@ -1,184 +1,142 @@
-<div align="center">
+# ACLCxp
 
-```
- █████╗  ██████╗██╗      ██████╗██╗  ██╗██████╗
-██╔══██╗██╔════╝██║     ██╔════╝╚██╗██╔╝██╔══██╗
-███████║██║     ██║     ██║      ╚███╔╝ ██████╔╝
-██╔══██║██║     ██║     ██║      ██╔██╗ ██╔═══╝
-██║  ██║╚██████╗███████╗╚██████╗██╔╝ ██╗██║
-╚═╝  ╚═╝ ╚═════╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝
-```
+ACLCxp (ACLC Experience) is an event and house competition platform for ACLC College of Tacloban. Students access events, QR passes, attendance history, and merit records; staff record attendance; administrators manage seasons and competition results.
 
-### 🏛️ ACLC College of Tacloban · Event Management System
+## Features
 
-[![Django](https://img.shields.io/badge/Django-4.2-092E20?style=for-the-badge&logo=django&logoColor=white)](https://djangoproject.com)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
-[![Deployed on Railway](https://img.shields.io/badge/Backend-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://railway.app)
-[![Deployed on Vercel](https://img.shields.io/badge/Frontend-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
+- Season lifecycle: draft, registration, active, and closed stages, with current-season ticket access and closed-season archive downloads.
+- Enrollment: eligible student rosters, ticket generation and redemption, and existing-account access to new seasons.
+- Events: registration, capacity and visibility controls, teams, artwork uploads, and attendance modes.
+- Attendance: QR student passes, identity confirmation, daily and event attendance, and reports.
+- Competitions: matchups, tournament brackets, results, point corrections, house standings, and student merit sheets.
+- Annual championship: seasons linked to the same academic year contribute to combined house and student standings; tickets and attendance remain season-specific.
+- Administration: users, houses, portal settings, leaderboard visibility, audit logs, and import/export tools.
 
-**No more paper. No more chaos. No more "is my name on the list?"**
+AI recommendations and a Gemini chatbot are not active features. The AI app remains installed for migration compatibility.
 
-[Live Demo](#) · [API Docs](#) · [Report a Bug](#) · [Request a Feature](#)
+## Stack and structure
 
-</div>
+| Layer | Repository dependencies |
+| --- | --- |
+| Backend | Django 6.0.1, Django REST Framework 3.16.1, SimpleJWT |
+| Frontend | React 19, TypeScript 5.9, Vite 7, Tailwind CSS 4 |
+| Routing and data | React Router 7, TanStack Query 5, Axios |
+| Database | PostgreSQL for normal development/deployment; isolated SQLite tests |
+| Media | Local uploads in development; database-backed storage in production |
 
----
+The backend deployment pins Python 3.13. Use Node.js 22.12+ for the frontend.
 
-## ✨ What is ACLCxp?
-
-> Imagine Hogwarts — but make it ACLC Tacloban.
-
-**ACLCxp** (ACLC Experience) is a full-stack digital event management platform built for **3,000+ students** at ACLC College of Tacloban. It replaces the old-school clipboard-and-paper attendance system with QR codes, live leaderboards, AI-powered recommendations, and a full house competition system.
-
-Built as a capstone project — but built like a real product.
-
----
-
-## 🔥 The Problem We're Solving
-
-| Before ACLCxp 😩 | After ACLCxp 🎉 |
-|---|---|
-| 5–10 minutes of attendance per event | ⚡ 30-second QR scan |
-| 500+ paper sheets per semester | 📱 100% digital |
-| 15% manual error rate | <1% error rate |
-| No analytics, just vibes | 📊 Real-time dashboards |
-| House points disputed every week | 🏆 Automated, transparent system |
-| ₱116,000/semester in paper costs | 💰 ₱232,000/year saved |
-
----
-
-## 🏠 The Five Houses
-
-Every student belongs to one. Every event earns points. One house reigns supreme.
-
-| 🔥 CAHEL | 🦅 GIALLIO | 🐉 VIERRDY | ⚡ ROXXO | 🐺 AZUL |
-|:---:|:---:|:---:|:---:|:---:|
-| `#FF6B35` | `#FFD700` | `#DC143C` | `#4169E1` | `#9370DB` |
-| *From ashes we rise* | *Courage above all* | *Strength through fire* | *Wisdom and strength* | *Beyond the horizon* |
-
-Points are earned two ways:
-- **Participation** → 5 pts just for showing up
-- **Performance** → 50 / 40 / 30 pts for 1st / 2nd / 3rd place
-
----
-
-## 🚀 Features
-
-### 🎫 QR-Based Attendance
-HMAC-SHA256 signed QR codes — unique to every student, impossible to fake, expire every 24 hours. Facilitators scan, system validates, attendance recorded. Done.
-
-### 🗓️ Event Management
-Create events with capacity limits, visibility controls (public, house-only, program-specific), waitlists, and categories. Students register, get reminders, show up, earn points.
-
-### 🤖 AI Recommendations (Google Gemini)
-Personalized event suggestions based on a student's interests and attendance history. Plus a chatbot that answers "when is the next CS event?" so admins don't have to.
-
-### 📊 Admin Analytics
-Live dashboards, exportable reports, audit logs, user management — everything an admin needs to run 100+ events a semester without losing their mind.
-
-### 🔔 Notifications
-Email confirmations via Resend, in-app notifications, and event reminders — because students forget, and that's okay.
-
----
-
-## 🛠️ Tech Stack
-
-```
-┌─────────────────────────────────────────────────────┐
-│                     FRONTEND                        │
-│  React 18 + TypeScript · Vite · Tailwind CSS        │
-│  React Router v6 · React Query · Zustand            │
-│  Deployed on → Vercel                               │
-├─────────────────────────────────────────────────────┤
-│                      BACKEND                        │
-│  Django 4.2 + Django REST Framework                 │
-│  JWT Auth (SimpleJWT) · Python 3.11+                │
-│  Deployed on → Railway                              │
-├─────────────────────────────────────────────────────┤
-│                     DATABASE                        │
-│  PostgreSQL 15 (prod) · SQLite (dev)                │
-│  17 core tables · Hosted on Railway                 │
-├─────────────────────────────────────────────────────┤
-│                  THIRD-PARTY SERVICES               │
-│  Google Gemini · Cloudinary · Resend                │
-└─────────────────────────────────────────────────────┘
+```text
+backend/apps/             Django applications and tests
+backend/config/settings/  Development, production, and test settings
+backend/render_build.py   Deployment build script
+frontend/src/             React pages, components, routes, and API services
+frontend/vercel.json      SPA routing configuration
+docs/                     Feature and operational guides
 ```
 
+## Local setup
 
----
+Run these PowerShell commands from the repository root. Install Python 3.13, Node.js, and PostgreSQL first, and create an empty development database.
 
-## 👤 User Roles
+### Backend
 
-| Role | Can Do |
-|---|---|
-| 🎓 **Student** | Register for events, view QR code, check personal merit sheet, view leaderboard |
-| 🧑‍🏫 **Facilitator** | Everything above + scan QR codes at events |
-| 📋 **Organizer** | Everything above + create events, post results |
-| 🏠 **House Leader** | Student access + house analytics dashboard |
-| 🛡️ **Admin** | Full system access — users, settings, audit logs, everything |
-
----
-
----
-
-## 🚢 Deployment
-
-| Service | Platform | Auto-deploy |
-|---|---|---|
-| Backend API | Railway | ✅ On push to `main` |
-| Frontend | Vercel | ✅ On push to `main` |
-| Database | Railway PostgreSQL | — Daily backups |
-| Media files | Cloudinary | — |
-
-```bash
-# Production build check
-cd frontend && npm run build
-cd backend && python manage.py check --deploy
+```powershell
+cd backend
+python -m venv venv
+.\venv\Scripts\python.exe -m pip install -r requirements.txt
+Copy-Item .env.example .env
 ```
 
-## 🤝 Contributing
+Edit `backend/.env` with your own values. Replace the example's secret and credentials:
 
-This is a capstone project — but good PRs are always welcome.
-
-```bash
-# Branch naming convention
-feature/your-feature-name
-fix/what-you-fixed
-chore/what-you-updated
-
-# Example
-git checkout -b feature/qr-scanning
+```dotenv
+DEBUG=True
+SECRET_KEY=<your-generated-private-secret>
+DATABASE_URL=postgresql://<user>:<password>@localhost:5432/<database>
+ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 ```
 
-1. Fork the repo
-2. Create your feature branch
-3. Commit with clear messages (`feat: add QR scan endpoint`)
-4. Push and open a Pull Request
+Generate a secret using `.\venv\Scripts\python.exe -c "import secrets; print(secrets.token_urlsafe(64))"`, then initialize the database:
 
----
+```powershell
+.\venv\Scripts\python.exe manage.py migrate
+.\venv\Scripts\python.exe manage.py seed_houses
+.\venv\Scripts\python.exe manage.py createsuperuser
+.\venv\Scripts\python.exe manage.py runserver
+```
 
-## 👨‍💻 Built By
+The API runs at `http://localhost:8000/api/`; Django administration is at `http://localhost:8000/admin/`. Development settings are selected by default. They override the environment's CORS list with values in `backend/config/settings/development.py`; update that file for another frontend port or LAN address.
 
-Made with too much coffee and not enough sleep by students of **ACLC College of Tacloban** as a capstone project.
+### Frontend
 
-> *"We replaced 500 sheets of paper per semester with a QR code. We're basically saving trees."*
+In a second terminal, from the repository root:
 
----
+```powershell
+cd frontend
+npm ci
+```
 
-## 📄 License
+Create or edit `frontend/.env.local` to include:
 
-MIT License — use it, learn from it, build on it.
+```dotenv
+VITE_API_URL=http://localhost:8000
+```
 
----
+Run `npm run dev` and open `http://localhost:5173`. `VITE_API_URL` is the backend origin without `/api`; the client appends `/api` itself. Restart Vite after changing environment variables.
 
-<div align="center">
+### First administrator workflow
 
-**⚡ Built for 3,000+ students · Saves ₱232,000/year · Powered by Django + React**
+Sign in to the frontend with the superuser account. Use **Admin → Seasons** to create a season, open registration, populate the eligible student roster, and generate/distribute season tickets. Start the season to unlock enrolled students' dashboards.
 
-🔥 CAHEL &nbsp;|&nbsp; 🦅 GIALLIO &nbsp;|&nbsp; 🐉 VIERRDY &nbsp;|&nbsp; ⚡ ROXXO &nbsp;|&nbsp; 🦄 AZUL
+Students require an eligible roster entry and a valid redeemed ticket for the current season. Registration permits restricted enrollment access; draft and closed seasons lock student access. Staff and administrators can still sign in. See [Season administration](seasons.md) for the full workflow.
 
-*May the best house win.*
+## Roles and houses
 
-</div>
+| Role | Frontend access |
+| --- | --- |
+| Student | Season-gated dashboard, events, QR pass, profile, statistics, and merit sheet |
+| Staff | Attendance workspace |
+| Organizer | Attendance workspace |
+| Administrator | Admin console and attendance workspace |
+
+The seed command creates **Giallio** (yellow), **Vierrdy** (green), **Azul** (blue), **Cahel** (orange), and **Roxxo** (red). Manage house details and logos in the admin console.
+
+## Validation
+
+From `backend`, with dependencies and required environment values configured:
+
+```powershell
+.\venv\Scripts\python.exe manage.py check
+.\venv\Scripts\python.exe manage.py test --settings=config.settings.test
+```
+
+Test settings use an in-memory SQLite database. For PostgreSQL-specific behavior, set `TEST_DATABASE_URL` to a dedicated test server and use `--settings=config.settings.test_postgres`. Django creates and destroys a separate test database; the database user needs permission to create it.
+
+From `frontend`:
+
+```powershell
+npm run lint
+npm run build
+```
+
+## Deployment
+
+The repository includes a [Vercel + Render + Neon testing deployment guide](free-testing-deployment.md), a backend build script, and Vercel SPA rewrites. Deployment status, automatic deployment rules, and capacity depend on the configured hosting projects.
+
+Select `config.settings.production` for the backend, configure private database and secret values plus allowed frontend origins, and set the frontend's `VITE_API_URL` before building. Production media uses database-backed storage. Review [Database production readiness](database-production-readiness.md) and [Event photos](event-photos.md) before deployment.
+
+## Feature guides
+
+- [Season lifecycle, access, and annual championship](seasons.md)
+- [Student pass and leaderboard](student-pass-and-leaderboard.md)
+- [Events and registration API](events-registration-api.md)
+- [Admin console](admin-console.md)
+- [Attendance usability](admin-attendance-usability.md)
+- [Ticket QR validation](ticket-qr-validation.md)
+- [Tournament brackets](tournament-brackets.md)
+- [Event photos](event-photos.md)
+- [Performance improvements](performance-improvements.md)
+
+Some older documents describe earlier designs. Check current source and feature-specific guides when details differ.
