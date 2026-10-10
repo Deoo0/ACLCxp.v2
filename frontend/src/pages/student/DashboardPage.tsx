@@ -1,165 +1,40 @@
 import { Link } from "react-router-dom";
+import { ArrowUpRight, CalendarCheck2, CalendarDays, MapPin, QrCode, Sparkles, Trophy } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { useApi, type PageData, type Row } from "../../services/queries";
+import { eventSchedule } from "../../services/studentExperience";
+import type { StudentSummary } from "../../components/dashboard/LivePortal";
+import { Loading, Notice } from "../../components/admin/ConsoleUI";
+import { ExperienceCard, ExperienceFrame, ExperienceHeading, ExperienceStandings, JourneyChecklist, MilestoneProgress } from "../../components/dashboard/StudentExperience";
 import StudentCompetitions from "../../components/dashboard/StudentCompetitions";
 import TeamShowcase from "../../components/dashboard/TeamShowcase";
-import {
-  ArrowRight,
-  QrCode,
-  Sparkles,
-  CalendarCheck2,
-  Trophy,
-  CalendarDays,
-} from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
-import { useApi } from "../../services/queries";
-import type { PageData, Row } from "../../services/queries";
-import {
-  StudentFrame,
-  HouseStandings,
-} from "../../components/dashboard/LivePortal";
-import type { StudentSummary } from "../../components/dashboard/LivePortal";
-import {
-  Panel,
-  Notice,
-  Loading,
-  button,
-  primary,
-} from "../../components/admin/ConsoleUI";
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const query = useApi<StudentSummary>("/portal/summary/");
-  const events = useApi<PageData<Row>>("/events/?status=PUBLISHED&page_size=3");
-  if (query.isPending)
-    return (
-      <StudentFrame>
-        <Loading />
-      </StudentFrame>
-    );
-  if (query.isError)
-    return (
-      <StudentFrame>
-        <Notice error={query.error} retry={() => void query.refetch()} />
-      </StudentFrame>
-    );
-  const data = query.data;
-  const step = Number(data.settings.merit_milestone) || 300;
-  const next = (Math.floor(Math.max(0, data.points) / step) + 1) * step;
-  const progress = Math.max(
-    0,
-    Math.min(100, ((data.points % step) / step) * 100),
-  );
-  return (
-    <StudentFrame>
-      <header>
-        <p className="text-sm text-neutral-400">
-          Welcome back, {user?.first_name}
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold text-white sm:text-3xl">
-          Your student dashboard
-        </h1>
-      </header>
-      {data.settings.announcement && (
-        <Panel>
-          <p className="text-xs font-semibold uppercase tracking-wider text-amber-300">
-            Campus announcement
-          </p>
-          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-neutral-300">
-            {data.settings.announcement}
-          </p>
-        </Panel>
-      )}
-      <section className="relative overflow-hidden rounded-2xl border border-amber-400/15 bg-gradient-to-br from-amber-400/10 via-neutral-900 to-neutral-900 p-6 sm:p-8">
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-300">
-          <Sparkles className="h-4 w-4" />
-          Your next level
-        </p>
-        <h2 className="mt-4 text-2xl font-semibold text-white">
-          {next - data.points} points to your next milestone.
-        </h2>
-        <p className="mt-2 text-sm text-neutral-400">
-          Join campus events, check in and build your merit record.
-        </p>
-        <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/5">
-          <div
-            className="h-full rounded-full bg-amber-400 transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link className={primary} to="/events">
-            Explore events
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <button
-            className={button}
-            onClick={() =>
-              window.dispatchEvent(new Event("aclcxp:open-student-qr"))
-            }
-          >
-            <QrCode className="h-4 w-4" />
-            My event pass
-          </button>
-        </div>
-      </section>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {[
-          ["Merit points", data.points, Sparkles],
-          ["Events attended", data.attendance, CalendarCheck2],
-          ["Registrations", data.registered, CalendarDays],
-          ["Student rank", `#${data.rank}`, Trophy],
-        ].map(([label, value, Icon]) => {
-          const Symbol = Icon as typeof Trophy;
-          return (
-            <Panel key={String(label)}>
-              <Symbol className="h-5 w-5 text-amber-400" />
-              <p className="mt-4 text-2xl font-semibold text-white">
-                {String(value)}
-              </p>
-              <p className="mt-1 text-xs text-neutral-500">{String(label)}</p>
-            </Panel>
-          );
-        })}
-      </div>
+  const events = useApi<PageData<Row>>("/events/?upcoming=true&page_size=3");
+  return <ExperienceFrame>
+    <ExperienceHeading eyebrow="Your student hub" title={`Welcome back${user?.first_name ? `, ${user.first_name}` : ""}.`} description="Your progress, your house, and your next campus adventure. All in one place.">
+      <button className="xp-button" onClick={() => window.dispatchEvent(new Event("aclcxp:open-student-qr"))}><QrCode size={17} /> My event pass</button>
+    </ExperienceHeading>
+    {query.isPending ? <Loading /> : query.isError ? <Notice error={query.error} retry={() => void query.refetch()} /> : <>
+      {query.data.settings.announcement && <ExperienceCard className="!border-amber-200/20"><p className="xp-eyebrow">Campus announcement</p><p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-neutral-300">{query.data.settings.announcement}</p></ExperienceCard>}
+      <MilestoneProgress data={query.data} />
+      <nav aria-label="Your progress shortcuts" className="grid grid-cols-2 gap-3 lg:grid-cols-4">{[
+        { label: "Merit points", value: query.data.points.toLocaleString(), icon: Sparkles, to: "/merit?view=points", hint: "View points history", color: "text-amber-300" },
+        { label: "Events attended", value: query.data.attendance.toLocaleString(), icon: CalendarCheck2, to: "/merit", hint: "Your verified record", color: "text-emerald-300" },
+        { label: "Registrations", value: query.data.registered.toLocaleString(), icon: CalendarDays, to: "/events?view=reservations", hint: "Manage reservations", color: "text-sky-300" },
+        { label: "Student rank", value: query.data.rank > 0 ? `#${query.data.rank}` : "Unranked", icon: Trophy, to: "/stats", hint: "Explore standings", color: "text-violet-300" },
+      ].map(item => <Link key={item.label} to={item.to} className="xp-stat"><div className="flex items-center justify-between"><item.icon size={19} className={item.color} /><ArrowUpRight size={14} className="text-neutral-500" /></div><p className="mt-4 break-words text-2xl font-semibold tabular-nums text-white">{item.value}</p><p className="mt-1 text-xs font-medium text-neutral-300">{item.label}</p><p className="mt-3 text-[11px] leading-4 text-neutral-400">{item.hint}</p></Link>)}</nav>
+      <div className="grid items-start gap-5 lg:grid-cols-2"><JourneyChecklist data={query.data} /><ExperienceCard><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="xp-eyebrow">Your next adventure</p><h2 className="mt-2 text-lg font-semibold text-white">Discover events</h2></div><Link className="xp-text-link" to="/events">View all <ArrowUpRight size={15} /></Link></div><p className="mt-2 text-xs leading-5 text-neutral-400">Find something you enjoy. Check the details before joining.</p>
+        {events.isPending ? <Loading /> : events.isError ? <div className="mt-4"><Notice error={events.error} retry={() => void events.refetch()} /></div> : <div className="mt-5 space-y-3">{events.data.data.map(event => {
+          const schedule = eventSchedule(event.event_date, event.start_time, event.end_time);
+          return <Link key={event.id} className="xp-journey" to={`/events?event=${event.id}`}><CalendarDays size={20} className="mt-1 shrink-0 text-amber-300" /><div className="min-w-0 flex-1"><p className="text-[10px] text-amber-200">{String(event.category_name || "Campus activity")}</p><h3 className="mt-1 break-words text-sm font-medium text-white">{String(event.title)}</h3><p className="mt-2 text-xs leading-5 text-neutral-400">{schedule.date} · {schedule.time}</p><p className="mt-1 flex items-start gap-1 text-xs text-neutral-400"><MapPin size={12} className="mt-0.5 shrink-0" />{String(event.venue || "Venue to be announced")}</p></div><ArrowUpRight size={16} className="shrink-0 text-neutral-500" /></Link>;
+        })}{!events.data.data.length && <div className="rounded-xl border border-dashed border-white/15 p-6 text-center"><CalendarDays className="mx-auto text-amber-300" size={25} /><p className="mt-3 text-sm text-white">Your next adventure is on its way</p><p className="mt-2 text-xs leading-5 text-neutral-400">Upcoming events will appear when your school publishes them.</p><Link to="/events" className="xp-text-link">Browse the event board →</Link></div>}</div>}
+      </ExperienceCard></div>
+      <ExperienceStandings houses={query.data.houses} houseName={user?.house_name} />
       <TeamShowcase />
       <StudentCompetitions compact />
-      <div className="grid gap-5 lg:grid-cols-2">
-        <HouseStandings houses={data.houses} />
-        <Panel>
-          <div className="flex justify-between">
-            <h2 className="font-semibold text-white">Discover events</h2>
-            <Link className="text-xs text-amber-300" to="/events">
-              View all
-            </Link>
-          </div>
-          {events.isPending ? (
-            <Loading />
-          ) : events.isError ? (
-            <Notice error={events.error} />
-          ) : (
-            <div className="mt-4 space-y-3">
-              {events.data.data.map((event) => (
-                <Link
-                  key={event.id}
-                  to="/events"
-                  className="block rounded-xl border border-white/5 p-4 transition hover:border-amber-400/20"
-                >
-                  <p className="text-sm font-medium text-neutral-200">
-                    {String(event.title)}
-                  </p>
-                  <p className="mt-2 text-xs text-neutral-500">
-                    {String(event.event_date)} / {String(event.venue)}
-                  </p>
-                </Link>
-              ))}
-              {!events.data.data.length && (
-                <p className="mt-5 text-sm text-neutral-500">
-                  No published events yet. Check back after your school posts
-                  one.
-                </p>
-              )}
-            </div>
-          )}
-        </Panel>
-      </div>
-    </StudentFrame>
-  );
+    </>}
+  </ExperienceFrame>;
 }
