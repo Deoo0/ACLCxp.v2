@@ -204,6 +204,7 @@ function Lookup({
 }
 export function Editor({
   title,
+  eyebrow = "Campus administration",
   description = "Changes are saved to the shared campus records.",
   fields,
   initial = {},
@@ -214,6 +215,7 @@ export function Editor({
   destructive = method === "delete",
 }: {
   title: string;
+  eyebrow?: string;
   description?: string;
   fields: Field[];
   initial?: Record<string, unknown>;
@@ -363,7 +365,7 @@ export function Editor({
           <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 bg-gradient-to-r from-white/[.04] to-transparent p-5 sm:px-7">
             <div className="flex min-w-0 items-start gap-4">
               <span className={`hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border sm:flex ${destructive ? 'border-rose-400/20 bg-rose-400/10 text-rose-300' : 'border-amber-300/20 bg-amber-300/10 text-amber-300'}`}>{destructive ? <Trash2 className="h-5 w-5" /> : <ClipboardList className="h-5 w-5" />}</span>
-              <div className="min-w-0"><p className="mb-1 text-[9px] font-bold uppercase tracking-[.2em] text-neutral-500">Campus administration</p><Dialog.Title className="text-xl font-semibold tracking-tight text-white">{title}</Dialog.Title><Dialog.Description className="mt-2 max-w-2xl text-xs leading-5 text-neutral-400">{description}</Dialog.Description>{recordName && <p className="mt-2 break-words text-xs font-medium text-amber-200">{recordName}</p>}</div>
+              <div className="min-w-0"><p className="mb-1 text-[9px] font-bold uppercase tracking-[.2em] text-neutral-500">{eyebrow}</p><Dialog.Title className="text-xl font-semibold tracking-tight text-white">{title}</Dialog.Title><Dialog.Description className="mt-2 max-w-2xl text-xs leading-5 text-neutral-400">{description}</Dialog.Description>{recordName && <p className="mt-2 break-words text-xs font-medium text-amber-200">{recordName}</p>}</div>
             </div>
             <Dialog.Close disabled={write.isPending} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 text-neutral-400 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-amber-300 disabled:opacity-40" aria-label="Close dialog"><X className="h-4 w-4" /></Dialog.Close>
           </header>

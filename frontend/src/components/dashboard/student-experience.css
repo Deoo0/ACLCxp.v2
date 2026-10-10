@@ -1,0 +1,25 @@
+.student-experience { color-scheme: dark; }
+.student-experience > *, .student-experience .xp-card > * { min-width: 0; }
+.student-experience .xp-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #fcd37a; }
+.student-experience .xp-card { min-width: 0; padding: 24px; border: 1px solid #ffffff14; border-radius: 20px; background: linear-gradient(145deg, #191b20, #111214); }
+.student-experience .xp-hero { min-width: 0; overflow: hidden; border: 1px solid #fcd37a33; border-radius: 24px; background: radial-gradient(ellipse at 100% 0%, #f4bb3520, transparent 65%), linear-gradient(130deg, #20211e, #141516); }
+.student-experience .xp-button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; border: 1px solid #ffffff24; border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: 600; line-height: 20px; color: #e5e5e5; background: #ffffff05; transition: background .2s, border-color .2s; }
+.student-experience .xp-button:hover { background: #ffffff10; border-color: #ffffff40; }
+.student-experience .xp-primary { color: #17140b; background: #fcd37a; border-color: #fcd37a; }
+.student-experience .xp-primary:hover { background: #ffe2a5; }
+.student-experience :is(a, button, input, summary):focus-visible { outline: 2px solid #fcd37a; outline-offset: 4px; }
+.student-experience .xp-tag { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 7px; background: #fcd37a10; color: #fcd37a; font-size: 10px; font-weight: 600; }
+.student-experience .xp-track { height: 6px; overflow: hidden; border-radius: 100px; background: #ffffff0d; }
+.student-experience .xp-track > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #d4a943, #fce1a0); transition: width .5s; }
+.student-experience .xp-journey { display: flex; align-items: flex-start; gap: 14px; padding: 14px; border: 1px solid #ffffff0c; border-radius: 12px; background: #ffffff02; transition: border-color .2s; }
+.student-experience .xp-journey:hover { border-color: #fcd37a50; }
+.student-experience .xp-step { display: flex; width: 32px; height: 32px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid #ffffff26; font-size: 12px; color: #a3a3a3; }
+.student-experience .xp-step-done { border-color: #6ee7b740; background: #6ee7b710; color: #6ee7b7; }
+.student-experience .xp-text-link { display: inline-flex; min-height: 44px; align-items: center; gap: 6px; color: #fcd37a; font-size: 12px; }
+.student-experience .xp-standing { display: flex; align-items: center; gap: 12px; padding: 16px 12px; border: 1px solid #ffffff0d; border-radius: 12px; background: #ffffff02; }
+.student-experience .xp-standing-mine { border-color: #fcd37a40; background: #fcd37a06; }
+.student-experience .xp-input { width: 100%; min-height: 44px; border: 1px solid #ffffff24; border-radius: 12px; background: #0d0e10; padding-top: 10px; padding-right: 12px; padding-bottom: 10px; font-size: 13px; color: #eee; }
+.student-experience .xp-stat { display: block; padding: 20px; border: 1px solid #ffffff14; border-radius: 16px; background: #17181b; transition: border-color .2s, background .2s; }
+.student-experience .xp-stat:hover { border-color: #fcd37a55; background: #1d1e21; }
+@media (max-width: 480px) { .student-experience .xp-card { padding: 18px; } .student-experience .xp-stat { padding: 16px; } }
+@media (prefers-reduced-motion: reduce) { .student-experience *, .student-experience *::before, .student-experience *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
