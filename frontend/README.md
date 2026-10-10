@@ -10,7 +10,7 @@ Use Node.js 22.12+ and run `npm ci` from `frontend`. Create or edit `.env.local`
 VITE_API_URL=http://localhost:8000
 ```
 
-Start the Django backend separately using the [project setup guide](../docs/README.md#local-setup), run `npm run dev`, and open `http://localhost:5173`.
+Start the Django backend separately using the [project setup guide](../README.md#local-setup), run `npm run dev`, and open `http://localhost:5173`.
 
 `VITE_API_URL` must contain the backend origin without `/api`. The API client adds `/api`. `VITE_API_TIMEOUT_MS` optionally sets the request timeout (20,000 ms by default). Restart Vite after environment changes; deployed builds require rebuilding.
 
