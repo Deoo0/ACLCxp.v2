@@ -32,6 +32,6 @@ Start the Django backend separately using the [project setup guide](../README.md
 - `src/services/`: API client, token refresh, queries, and download helpers.
 - `src/ui/`: theme and UI primitives.
 
-Student access also depends on the backend's current season and ticket checks. See [Season administration](../docs/seasons.md) before testing enrollment or student dashboards.
+Student access also depends on the backend's current season and ticket checks. See [Season administration](../docs/seasons.md) before testing ticket redemption or student dashboards.
 
 For hosting, see the [Vercel + Render + Neon deployment guide](../docs/free-testing-deployment.md). `vercel.json` provides SPA rewrites for client-side routes.

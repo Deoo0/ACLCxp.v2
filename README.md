@@ -1,39 +1,87 @@
 <div align="center">
 
-# ACLCxp
+```text
+ █████╗   ██████╗ ██╗       ██████╗ ██╗  ██╗ ██████╗
+██╔══██╗ ██╔════╝ ██║      ██╔════╝ ╚██╗██╔╝ ██╔══██╗
+███████║ ██║      ██║      ██║       ╚███╔╝  ██████╔╝
+██╔══██║ ██║      ██║      ██║       ██╔██╗  ██╔═══╝
+██║  ██║ ╚██████╗ ███████╗ ╚██████╗ ██╔╝ ██╗ ██║
+╚═╝  ╚═╝  ╚═════╝ ╚══════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═╝
+```
 
-### ACLC College of Tacloban · Campus Event Management
+### ACLC College of Tacloban · Event Management System
 
-**Student enrollment. QR attendance. House competitions. One platform.**
+**Event registration. QR attendance. House competitions. One platform.**
 
 [![Django](https://img.shields.io/badge/Django-6.0.1-092E20?style=for-the-badge&logo=django&logoColor=white)](backend/requirements.txt)
 [![React](https://img.shields.io/badge/React-19-149ECA?style=for-the-badge&logo=react&logoColor=white)](frontend/package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](frontend/package.json)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](backend/config/settings/base.py)
 
-[Getting Started](#local-setup) · [Features](#features) · [Documentation](#documentation) · [Report an Issue](https://github.com/Deoo0/ACLCxp.v2/issues)
+[Getting Started](#local-setup) · [Features](#features) · [API Guide](docs/events-registration-api.md) · [Report a Bug](https://github.com/Deoo0/ACLCxp.v2/issues) · [Request a Feature](https://github.com/Deoo0/ACLCxp.v2/issues/new)
 
 </div>
 
 ---
 
+## What is ACLCxp?
 
+ACLCxp (ACLC Experience) is a campus event management and house competition platform developed for ACLC College of Tacloban. It brings event registration, QR attendance, student access verification, competition results, and championship standings into one system.
 
-## About the project
+---
 
-ACLCxp (ACLC Experience) is a campus event management and house competition platform developed for ACLC College of Tacloban. It brings student enrollment, QR attendance, event registration, competition results, and championship standings into one system.
+## The problem we're solving
 
-## Features
+| Operational challenge | ACLCxp approach |
+| --- | --- |
+| Attendance recorded on separate paper lists | QR passes and centralized attendance records |
+| Event information and participant lists scattered across tools | Event pages, registration, and participant management |
+| House scores calculated and reconciled manually | Recorded results, point transactions, and championship standings |
+| Participation history difficult to retrieve | Student merit sheets and attendance reports |
+| Access needs to be verified for each competition season | Roster eligibility checks and season-specific tickets |
 
-- Season lifecycle: draft, registration, active, and closed stages, with current-season ticket access and closed-season archive downloads.
-- Enrollment: eligible student rosters, ticket generation and redemption, and existing-account access to new seasons.
-- Events: registration, capacity and visibility controls, teams, artwork uploads, and attendance modes.
-- Attendance: QR student passes, identity confirmation, daily and event attendance, and reports.
-- Competitions: matchups, tournament brackets, results, point corrections, house standings, and student merit sheets.
-- Annual championship: seasons linked to the same academic year contribute to combined house and student standings; tickets and attendance remain season-specific.
-- Administration: users, houses, portal settings, leaderboard visibility, audit logs, and import/export tools.
+---
 
-## Technology stack
+## 🏠 The five houses
+
+Five houses compete across campus events. Administrators can manage their details and logos. These colors match the initial seed data.
+
+| CAHEL | GIALLIO | VIERRDY | ROXXO | AZUL |
+| :---: | :---: | :---: | :---: | :---: |
+| Orange | Yellow | Green | Red | Blue |
+| `#DB5609` | `#FEF74E` | `#008330` | `#E20F16` | `#0884FE` |
+
+Approved points from seasons linked to the same academic year contribute to championship standings. See the [season guide](docs/seasons.md) for scoring scope and lifecycle rules.
+
+---
+
+<a id="features"></a>
+
+## 🚀 Features
+
+### QR attendance
+
+Student QR passes support identity confirmation and attendance recording. Staff can record daily and event attendance, while administrators can review attendance reports.
+
+### Event management
+
+Manage events with registration, capacity limits, visibility controls, teams, and uploaded artwork. Students can browse available events and register where required.
+
+### Competitions and standings
+
+Manage matchups, tournament brackets, results, and point corrections. House standings and student merit records reflect approved points, including combined championship totals for seasons linked to the same academic year.
+
+### Seasons and student access
+
+Manage draft, registration, active, and closed seasons. Eligible students redeem season-specific tickets to access the workspace using their existing accounts. Closed seasons can be exported for archival reporting.
+
+### Administrator tools
+
+Manage users, student rosters, houses, tickets, portal settings, and leaderboard visibility. Dashboards, audit logs, and import/export tools support daily operations and reporting.
+
+---
+
+## 🛠️ Tech stack
 
 | Layer | Repository dependencies |
 | --- | --- |
@@ -109,9 +157,9 @@ Run `npm run dev` and open `http://localhost:5173`. `VITE_API_URL` is the backen
 
 ### First administrator workflow
 
-Sign in to the frontend with the superuser account. Use **Admin → Seasons** to create a season, open registration, populate the eligible student roster, and generate/distribute season tickets. Start the season to unlock enrolled students' dashboards.
+Sign in to the frontend with the superuser account. Use **Admin → Seasons** to create a season, open registration, populate the eligible student roster, and generate/distribute season tickets. Start the season to unlock dashboards for students with verified season access.
 
-Students require an eligible roster entry and a valid redeemed ticket for the current season. Registration permits restricted enrollment access; draft and closed seasons lock student access. Staff and administrators can still sign in. See [Season administration](docs/seasons.md) for the full workflow.
+Students require an eligible roster entry and a valid redeemed ticket for the current season. The registration stage permits restricted ticket-redemption access; draft and closed seasons lock student access. Staff and administrators can still sign in. See [Season administration](docs/seasons.md) for the full workflow.
 
 ## User roles
 
@@ -121,20 +169,6 @@ Students require an eligible roster entry and a valid redeemed ticket for the cu
 | Staff | Attendance workspace |
 | Organizer | Attendance workspace |
 | Administrator | Admin console and attendance workspace |
-
-## The five houses
-
-House standings bring campus competitions together. The seed command creates these initial house identities; administrators can manage their details and logos.
-
-| House | Color | Seed color code |
-| --- | --- | --- |
-| Cahel | Orange | `#DB5609` |
-| Giallio | Yellow | `#FEF74E` |
-| Vierrdy | Green | `#008330` |
-| Roxxo | Red | `#E20F16` |
-| Azul | Blue | `#0884FE` |
-
-Approved points from seasons linked to the same academic year contribute to championship standings. See the [season guide](docs/seasons.md) for scoring scope and lifecycle rules.
 
 ## Validation
 
@@ -154,7 +188,7 @@ npm run lint
 npm run build
 ```
 
-## Deployment
+## 🚢 Deployment
 
 The included [testing deployment guide](docs/free-testing-deployment.md) uses the following architecture:
 
@@ -195,8 +229,10 @@ Feature-specific guides describe the operational workflows in more detail. Some 
 
 <div align="center">
 
-**ACLCxp · ACLC College of Tacloban**
+**Built for campus events · Powered by Django and React**
 
-Cahel · Giallio · Vierrdy · Roxxo · Azul
+CAHEL &nbsp;|&nbsp; GIALLIO &nbsp;|&nbsp; VIERRDY &nbsp;|&nbsp; ROXXO &nbsp;|&nbsp; AZUL
+
+*ACLC College of Tacloban*
 
 </div>
