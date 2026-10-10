@@ -4,7 +4,7 @@
 
 ### ACLC College of Tacloban · Campus Event Management
 
-**Student enrollment. QR attendance. House competitions. One platform.**
+**Event registration. QR attendance. House competitions. One platform.**
 
 [![Django](https://img.shields.io/badge/Django-6.0.1-092E20?style=for-the-badge&logo=django&logoColor=white)](backend/requirements.txt)
 [![React](https://img.shields.io/badge/React-19-149ECA?style=for-the-badge&logo=react&logoColor=white)](frontend/package.json)
