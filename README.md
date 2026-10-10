@@ -1,8 +1,29 @@
+<div align="center">
+
 # ACLCxp
+
+### ACLC College of Tacloban · Campus Event Management
+
+**Student enrollment. QR attendance. House competitions. One platform.**
+
+[![Django](https://img.shields.io/badge/Django-6.0.1-092E20?style=for-the-badge&logo=django&logoColor=white)](backend/requirements.txt)
+[![React](https://img.shields.io/badge/React-19-149ECA?style=for-the-badge&logo=react&logoColor=white)](frontend/package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](frontend/package.json)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](backend/config/settings/base.py)
+
+[Getting Started](#local-setup) · [Features](#features) · [Documentation](#documentation) · [Report an Issue](https://github.com/Deoo0/ACLCxp.v2/issues)
+
+</div>
+
+---
+
+
+
+## About the project
 
 ACLCxp (ACLC Experience) is a campus event management and house competition platform developed for ACLC College of Tacloban. It brings student enrollment, QR attendance, event registration, competition results, and championship standings into one system.
 
-## Overview
+## Features
 
 - Season lifecycle: draft, registration, active, and closed stages, with current-season ticket access and closed-season archive downloads.
 - Enrollment: eligible student rosters, ticket generation and redemption, and existing-account access to new seasons.
@@ -23,6 +44,8 @@ ACLCxp (ACLC Experience) is a campus event management and house competition plat
 | Media | Local uploads in development; database-backed storage in production |
 
 The backend deployment pins Python 3.13. Use Node.js 22.12+ for the frontend.
+
+## Repository structure
 
 ```text
 backend/apps/             Django applications and tests
@@ -90,7 +113,7 @@ Sign in to the frontend with the superuser account. Use **Admin → Seasons** to
 
 Students require an eligible roster entry and a valid redeemed ticket for the current season. Registration permits restricted enrollment access; draft and closed seasons lock student access. Staff and administrators can still sign in. See [Season administration](docs/seasons.md) for the full workflow.
 
-## Roles and houses
+## User roles
 
 | Role | Frontend access |
 | --- | --- |
@@ -99,7 +122,19 @@ Students require an eligible roster entry and a valid redeemed ticket for the cu
 | Organizer | Attendance workspace |
 | Administrator | Admin console and attendance workspace |
 
-The seed command creates **Giallio** (yellow), **Vierrdy** (green), **Azul** (blue), **Cahel** (orange), and **Roxxo** (red). Manage house details and logos in the admin console.
+## The five houses
+
+House standings bring campus competitions together. The seed command creates these initial house identities; administrators can manage their details and logos.
+
+| House | Color | Seed color code |
+| --- | --- | --- |
+| Cahel | Orange | `#DB5609` |
+| Giallio | Yellow | `#FEF74E` |
+| Vierrdy | Green | `#008330` |
+| Roxxo | Red | `#E20F16` |
+| Azul | Blue | `#0884FE` |
+
+Approved points from seasons linked to the same academic year contribute to championship standings. See the [season guide](docs/seasons.md) for scoring scope and lifecycle rules.
 
 ## Validation
 
@@ -121,7 +156,16 @@ npm run build
 
 ## Deployment
 
-The repository includes a [Vercel + Render + Neon testing deployment guide](docs/free-testing-deployment.md), a backend build script, and Vercel SPA rewrites. Deployment status, automatic deployment rules, and capacity depend on the configured hosting projects.
+The included [testing deployment guide](docs/free-testing-deployment.md) uses the following architecture:
+
+| Component | Deployment target |
+| --- | --- |
+| React frontend | Vercel |
+| Django API | Render |
+| PostgreSQL database | Neon |
+| Uploaded media | Database-backed storage through Django |
+
+The repository provides `backend/render_build.py` for the backend build and `frontend/vercel.json` for client-side routing. Hosting targets describe the documented setup; automatic deployments and backups depend on the hosting project configuration.
 
 Select `config.settings.production` for the backend, configure private database and secret values plus allowed frontend origins, and set the frontend's `VITE_API_URL` before building. Production media uses database-backed storage. Review [Database production readiness](docs/database-production-readiness.md) and [Event photos](docs/event-photos.md) before deployment.
 
@@ -138,3 +182,21 @@ Select `config.settings.production` for the backend, configure private database 
 - [Performance improvements](docs/performance-improvements.md)
 
 Feature-specific guides describe the operational workflows in more detail. Some older design documents may differ from the current implementation.
+
+## Contributing
+
+1. Open an issue describing the bug or proposed improvement.
+2. Create a branch for your change.
+3. Keep the implementation focused and update any affected documentation.
+4. Run the relevant backend checks or frontend lint/build commands listed above.
+5. Open a pull request explaining the change and how you verified it.
+
+---
+
+<div align="center">
+
+**ACLCxp · ACLC College of Tacloban**
+
+Cahel · Giallio · Vierrdy · Roxxo · Azul
+
+</div>
