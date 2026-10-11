@@ -205,6 +205,7 @@ Select `config.settings.production` for the backend, configure private database 
 
 ## Documentation
 
+- [Understanding the whole system: architecture, workflows, and learning path](docs/SYSTEM_OVERVIEW.md)
 - [Season lifecycle, access, and annual championship](docs/seasons.md)
 - [Student pass and leaderboard](docs/student-pass-and-leaderboard.md)
 - [Events and registration API](docs/events-registration-api.md)

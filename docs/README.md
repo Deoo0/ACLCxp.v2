@@ -2,6 +2,8 @@
 
 The main [repository README](../README.md) contains the project overview, technology stack, local setup, roles, validation commands, and deployment information.
 
+Start with [Understanding the whole system](SYSTEM_OVERVIEW.md) for a beginner-friendly architecture guide, data relationships, workflow explanations, code navigation, troubleshooting, and a learning path.
+
 ## Feature guides
 
 - [Season lifecycle and annual championship](seasons.md)
