@@ -56,8 +56,9 @@ export default function EventsPage() {
     { name: "attendance_mode", label: "Attendance recording", type: "select", required: true,
       options: [{ value: "PER_EVENT", label: "Per-event check-in" }, { value: "DAILY", label: "Daily approval — one scan for the day" }, { value: "NONE", label: "No attendance required" }],
       hint: "Daily approval records this event with the day's other daily-approval events. Turn off attendance registration below if no reservation is needed. No attendance required means no attendance points or absence tracking. Choose before check-ins begin." },
+    { name: "ticket_required", label: "Ticket required", type: "checkbox", hint: "Require a redeemed current-season ticket. Turn off for ticket-free activities; verified school accounts and audience restrictions still apply." },
     { name: "registration_required", label: "Require registration to attend", type: "checkbox",
-      hint: "Turn off for open attendance: no reservation or attendee limit. Scan each student's QR pass to verify their redeemed ticket and record attendance. This is not player or contestant registration. Attendance mode can change before active registrations or check-ins exist." },
+      hint: "Turn off for open attendance: no reservation or attendee limit. Scan each student's QR pass to verify their eligibility and record attendance. This is not player or contestant registration. Attendance mode can change before active registrations or check-ins exist." },
     {
       name: "capacity",
       label: "Attendance reservation limit",
@@ -210,6 +211,7 @@ export default function EventsPage() {
             defaults={{
               attendance_mode: "PER_EVENT",
               registration_required: true,
+              ticket_required: true,
               capacity: 100,
               allow_waitlist: true,
               visibility: "PUBLIC",
@@ -232,6 +234,7 @@ export default function EventsPage() {
                 ),
               },
               { key: "venue", label: "Venue" },
+              { key: "ticket_required", label: "Tickets", render: r => r.ticket_required === false ? "No ticket required" : "Ticket required" },
               {
                 key: "status",
                 label: "Status",

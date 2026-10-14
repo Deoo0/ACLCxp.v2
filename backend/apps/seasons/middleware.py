@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import APIException
 from .models import Season
-from .scope import valid_membership, student_session_error
+from .scope import workspace_access, student_session_error
 
 
 class SeasonMiddleware:
@@ -37,7 +37,7 @@ class SeasonMiddleware:
                     return JsonResponse(error, status=403)
             allowed = request.path in ("/api/auth/login/", "/api/auth/token/refresh/", "/api/auth/me/", "/api/auth/logout/", "/api/seasons/access/", "/api/seasons/redeem/")
             if user and user.is_authenticated and user.role == "STUDENT" and not allowed:
-                if not season or season.status != "ACTIVE" or not valid_membership(user, season):
+                if not workspace_access(user, season):
                     return JsonResponse({"detail": "Season access is locked. Activate a ticket for the current season.", "code": "SEASON_ACCESS_REQUIRED"}, status=403)
             operational = request.path.startswith(("/api/events/", "/api/admin/matchups/", "/api/admin/results/", "/api/admin/attendance/", "/api/attendance/daily/", "/api/admin/points/", "/api/admin/tickets/"))
             if season and operational and request.method not in ("GET", "HEAD", "OPTIONS"):

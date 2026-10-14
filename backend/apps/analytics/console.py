@@ -129,6 +129,25 @@ class RosterViewSet(viewsets.ModelViewSet):
     serializer_class = RosterSerializer
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
+    @action(detail=True, methods=["post"], url_path="activation-code")
+    @transaction.atomic
+    def activation_code(self, request, pk=None):
+        from django.core import signing
+        record = get_object_or_404(StudentRoster.objects.select_for_update(), pk=pk)
+        if request.data.get("identity_verified") is not True:
+            raise ValidationError("Verify the student's school ID before issuing an activation code.")
+        if not record.is_eligible or record.account_id or User.objects.filter(student_id=record.student_number).exists():
+            raise Conflict("Only eligible students without an account can receive an activation code.")
+        record.save(update_fields=["updated_at"])
+        code = signing.dumps({"student_id": record.pk, "version": record.updated_at.isoformat()},
+                             salt="staff-student-activation", compress=True)
+        AuditLog.objects.create(user=request.user, user_email=request.user.email, user_role=request.user.role,
+            action="ISSUE_ACTIVATION_CODE", resource_type="USER", status="SUCCESS",
+            description=f"Verified identity and issued activation code for roster {record.pk}")
+        response = Response({"activation_code": code, "expires_in_hours": 24})
+        response["Cache-Control"] = "no-store"
+        return response
+
     def get_queryset(self):
         qs = StudentRoster.objects.order_by("student_number")
         search = self.request.query_params.get("search", "")

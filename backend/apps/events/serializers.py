@@ -94,7 +94,7 @@ class EventSerializer(LimitedModelSerializer):
         model = Event
         fields = ["id", "teams", "registration_status", "title", "slug", "description", "category", "category_name", "organizer",
                   "event_date", "start_time", "end_time", "venue", "capacity", "current_registered",
-                  "available_slots", "attendance_mode", "registration_required", "allow_waitlist", "registration_opens_at", "registration_closes_at",
+                  "available_slots", "attendance_mode", "ticket_required", "registration_required", "allow_waitlist", "registration_opens_at", "registration_closes_at",
                   "visibility", "allowed_programs", "allowed_houses", "allowed_year_levels",
                   "participation_points", "first_place_points", "second_place_points", "third_place_points",
                   "banner_image", "poster_image", "status", "is_featured", "tags", "requirements",
