@@ -74,6 +74,7 @@ class Event(BaseModel):
     venue = models.CharField(max_length=200)
 
     # Registration
+    ticket_required = models.BooleanField(default=True)
     attendance_mode = models.CharField(max_length=12, default="PER_EVENT", choices=[
         ("PER_EVENT", "Per-event check-in"), ("DAILY", "Daily approval"), ("NONE", "No attendance required")])
     registration_required = models.BooleanField(default=True)

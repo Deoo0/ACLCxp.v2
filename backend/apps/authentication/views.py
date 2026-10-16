@@ -70,22 +70,34 @@ def verify_ticket(request):
 def verify_student(request):
     """Check roster eligibility without exposing the roster's personal data."""
     student_number = str(request.data.get("student_number") or "").strip().upper()
+    activation_code = request.data.get("activation_code")
     ticket_receipt = request.data.get("ticket_verification_token")
-    if not student_number or not ticket_receipt:
-        return _error("INVALID_REQUEST", "Ticket verification and Student Number are required.")
-    try:
-        receipt = signing.loads(ticket_receipt, salt="intramurals-ticket-verification", max_age=600)
-    except signing.BadSignature:
-        return _error("TICKET_VERIFICATION_EXPIRED", "Please verify your ticket again.")
-    ticket = IntramuralsTicket.objects.filter(pk=receipt.get("ticket_id")).first()
-    if not ticket or ticket.status != IntramuralsTicket.AVAILABLE or ticket.redeemed_by_id:
-        return _error("TICKET_USED", "This ticket is no longer available for account activation.", status.HTTP_409_CONFLICT)
+    if not student_number or not (ticket_receipt or activation_code):
+        return _error("INVALID_REQUEST", "Enter your Student Number and a staff-issued activation code or verified ticket.")
+    ticket = None
+    staff_receipt = None
+    if activation_code:
+        try:
+            staff_receipt = signing.loads(activation_code, salt="staff-student-activation", max_age=86400)
+        except signing.BadSignature:
+            return _error("ACTIVATION_INVALID", "Invalid or expired activation code. Ask school staff for a new code.")
+    else:
+        try:
+            receipt = signing.loads(ticket_receipt, salt="intramurals-ticket-verification", max_age=600)
+        except signing.BadSignature:
+            return _error("TICKET_VERIFICATION_EXPIRED", "Please verify your ticket again.")
+        ticket = IntramuralsTicket.objects.filter(pk=receipt.get("ticket_id")).first()
+        if not ticket or ticket.status != IntramuralsTicket.AVAILABLE or ticket.redeemed_by_id:
+            return _error("TICKET_USED", "This ticket is no longer available for account activation.", status.HTTP_409_CONFLICT)
     roster = StudentRoster.objects.filter(student_number=student_number).first()
     if not roster or not roster.is_eligible:
         return _error("STUDENT_NOT_FOUND", "We couldn't verify this Student Number. Please check the number and try again.", status.HTTP_404_NOT_FOUND)
     if roster.account_id or User.objects.filter(student_id=student_number).exists():
         return _error("ACCOUNT_ACTIVATED", "An account has already been activated for this Student Number. Please proceed to login.", status.HTTP_409_CONFLICT)
-    student_receipt = signing.dumps({"ticket_id": ticket.pk, "student_id": roster.pk}, salt="intramurals-student-verification", compress=True)
+    if staff_receipt and (staff_receipt.get("student_id") != roster.pk or staff_receipt.get("version") != roster.updated_at.isoformat()):
+        return _error("ACTIVATION_INVALID", "Invalid or expired activation code. Ask school staff for a new code.")
+    student_receipt = signing.dumps({"ticket_id": ticket.pk if ticket else None, "student_id": roster.pk,
+        "roster_version": roster.updated_at.isoformat()}, salt="intramurals-student-verification", compress=True)
     return Response({"status": "success", "data": {"activation_token": student_receipt}})
 
 
@@ -112,9 +124,11 @@ def activate_account(request):
     try:
         with transaction.atomic():
             # Locks make concurrent redemption attempts serialize on databases that support row locking.
-            ticket = IntramuralsTicket.objects.select_for_update().get(pk=receipt["ticket_id"])
+            ticket = IntramuralsTicket.objects.select_for_update().get(pk=receipt["ticket_id"]) if receipt.get("ticket_id") else None
             roster = StudentRoster.objects.select_for_update().get(pk=receipt["student_id"])
-            if ticket.status != IntramuralsTicket.AVAILABLE or ticket.redeemed_by_id:
+            if not ticket and receipt.get("roster_version") != roster.updated_at.isoformat():
+                return _error("ACTIVATION_INVALID", "Your verification is invalid. Please start again.")
+            if ticket and (ticket.status != IntramuralsTicket.AVAILABLE or ticket.redeemed_by_id):
                 return _error("TICKET_USED", "This ticket has already been used to activate a student account.", status.HTTP_409_CONFLICT)
             if not roster.is_eligible:
                 return _error("STUDENT_NOT_FOUND", "We couldn't verify this Student Number. Please check the number and try again.", status.HTTP_404_NOT_FOUND)
@@ -130,11 +144,12 @@ def activate_account(request):
             )
             roster.account = user
             roster.save(update_fields=["account", "updated_at"])
-            ticket.status = IntramuralsTicket.REDEEMED
-            ticket.redeemed_by = roster
-            ticket.redeemed_at = timezone.now()
-            ticket.save(update_fields=["status", "redeemed_by", "redeemed_at", "updated_at"])
-            if ticket.season_id:
+            if ticket:
+                ticket.status = IntramuralsTicket.REDEEMED
+                ticket.redeemed_by = roster
+                ticket.redeemed_at = timezone.now()
+                ticket.save(update_fields=["status", "redeemed_by", "redeemed_at", "updated_at"])
+            if ticket and ticket.season_id:
                 from apps.seasons.models import SeasonMembership
                 SeasonMembership.objects.create(season_id=ticket.season_id, user=user, ticket=ticket)
     except (IntramuralsTicket.DoesNotExist, StudentRoster.DoesNotExist, KeyError):

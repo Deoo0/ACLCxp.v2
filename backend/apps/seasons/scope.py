@@ -40,6 +40,27 @@ def student_session_error(user, season=None):
     return None
 
 
+def verified_student(user):
+    from apps.users.models import StudentRoster
+    return bool(user and user.is_active and user.role == "STUDENT" and
+                StudentRoster.objects.filter(account=user, student_number=user.student_id, is_eligible=True).exists())
+
+
+def workspace_access(user, season=None):
+    season = season or current_season()
+    if not season or season.status != "ACTIVE":
+        return False
+    if valid_membership(user, season):
+        return True
+    if not verified_student(user):
+        return False
+    from apps.events.models import Event
+    from apps.events.services import eligible
+    return any(eligible(event, user) for event in Event.objects.filter(
+        season=season, ticket_required=False, archived_at__isnull=True,
+        status__in=["PUBLISHED", "ONGOING", "COMPLETED"]))
+
+
 def require_membership(user, season=None):
     from rest_framework.exceptions import PermissionDenied
     season = season or current_season()

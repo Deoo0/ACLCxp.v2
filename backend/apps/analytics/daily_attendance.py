@@ -7,6 +7,7 @@ from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from apps.events.models import Event
 from apps.events.services import Conflict, event_start
 from .operations import check_in
@@ -48,7 +49,7 @@ def daily_attendance(request):
     if request.method == "GET":
         events = day_events(day)
         return Response({"date": day, "timezone": "Asia/Manila", "events": [
-            {"id": event.pk, "title": event.title, "registration_required": event.registration_required,
+            {"id": event.pk, "title": event.title, "registration_required": event.registration_required, "ticket_required": event.ticket_required,
              "points": event.participation_points} for event in events]})
     token = serializers.CharField(required=False, allow_blank=True).run_validation(request.data.get("token", ""))
     student_id = serializers.CharField(required=False, allow_blank=True).run_validation(request.data.get("student_id", ""))
@@ -59,17 +60,24 @@ def daily_attendance(request):
         if not events:
             raise Conflict("No events are available for daily approval on this date.")
         approved, existing, skipped = [], [], []
+        ticket_error = None
         student_name = ""
         approved_student_id = None
         for event in events:
             try:
                 attendance, created = check_in(request.user, event.pk, student_id or None, token or None, daily=True, identity_proof=request.data.get("identity_proof", ""))
+            except PermissionDenied as exc:
+                ticket_error = exc
+                skipped.append({"id": event.pk, "title": event.title, "reason": str(exc.detail)})
+                continue
             except Conflict as exc:
                 skipped.append({"id": event.pk, "title": event.title, "reason": str(exc.detail)})
                 continue
             approved_student_id = attendance.user_id
             student_name = attendance.user.get_full_name() or attendance.user.student_id
             (approved if created else existing).append({"id": event.pk, "title": event.title})
+        if ticket_error and not approved and not existing:
+            raise ticket_error
         AuditLog.objects.create(user=request.user, user_email=request.user.email, user_role=request.user.role,
             action="DAILY_ATTENDANCE", resource_type="ATTENDANCE", status="SUCCESS",
             description=f"Daily attendance approval for {day} (Asia/Manila)",
