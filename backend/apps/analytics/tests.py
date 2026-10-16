@@ -15,6 +15,30 @@ from .student_pass import confirmation
 
 
 class ConnectedConsoleTests(TestCase):
+    def test_attendance_house_setting_preserves_student_merit_and_is_reversible(self):
+        from .console import houses_with_totals, effective_points
+        from .operations import correct_attendance
+
+        self.assertEqual(self.check_in().status_code, 201)
+        PointsTransaction.objects.create(house=self.house, points=50, transaction_type="BONUS",
+            source_key="test:house-award", is_approved=True)
+        setting, _ = SystemSetting.objects.update_or_create(key="attendance_counts_for_houses",
+            defaults={"value": "true", "data_type": "BOOLEAN"})
+        url = f"/api/admin/settings/{setting.pk}/"
+        self.assertEqual(houses_with_totals().get(pk=self.house.pk).actual_points, 55)
+        self.assertEqual(self.client.patch(url, {"value": "invalid"}, format="json").status_code, 400)
+        self.assertEqual(self.client.patch(url, {"value": "false"}, format="json").status_code, 200)
+        self.assertEqual(houses_with_totals().get(pk=self.house.pk).actual_points, 50)
+        self.assertEqual(effective_points().get(user=self.student).points, 5)
+        attendance = Attendance.objects.get(user=self.student, event=self.event)
+        correct_attendance(self.admin, attendance.pk, False, "Voided")
+        correct_attendance(self.admin, attendance.pk, True, "Restored")
+        self.assertEqual(houses_with_totals().get(pk=self.house.pk).actual_points, 50)
+        self.assertEqual(self.client.patch(url, {"value": "true"}, format="json").status_code, 200)
+        self.assertEqual(houses_with_totals().get(pk=self.house.pk).actual_points, 55)
+        self.client.force_authenticate(self.student)
+        self.assertEqual(self.client.patch(url, {"value": "false"}, format="json").status_code, 403)
+
     def test_open_attendance_requires_ticket_and_records_once_without_registration(self):
         EventRegistration.objects.filter(event=self.event).delete()
         self.event.registration_required = False

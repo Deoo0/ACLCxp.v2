@@ -112,6 +112,7 @@ class AuditSerializer(LimitedModelSerializer):
 
 
 SETTING_DEFAULTS = {
+    "attendance_counts_for_houses": ("true", "BOOLEAN", "Include student attendance points in house totals and rankings"),
     "leaderboard_house_visibility": ("true", "BOOLEAN", "Reveal house identities on public leaderboards"),
     "announcement": ("", "STRING", "Announcement shown on the student dashboard"),
     "support_email": ("", "STRING", "Student support email address"),
@@ -132,7 +133,7 @@ class SettingSerializer(LimitedModelSerializer):
             raise serializers.ValidationError("This setting is not editable here.")
         if key == "merit_milestone" and (not value.isdecimal() or not 1 <= int(value) <= 1000000):
             raise serializers.ValidationError("Enter a whole number between 1 and 1,000,000.")
-        if key in ("registration_enabled", "leaderboard_house_visibility") and value not in ("true", "false"):
+        if key in ("registration_enabled", "leaderboard_house_visibility", "attendance_counts_for_houses") and value not in ("true", "false"):
             raise serializers.ValidationError("Use true or false.")
         if key == "support_email" and value:
             serializers.EmailField().run_validation(value)

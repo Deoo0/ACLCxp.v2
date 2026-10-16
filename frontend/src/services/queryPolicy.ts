@@ -32,7 +32,7 @@ export function mutationResources(path: string): string[] {
     "/admin/roster/": ["/admin/roster/", "/admin/users/", "/admin/tickets/", "/seasons/access/"],
     "/admin/tickets/": ["/admin/tickets/", "/admin/roster/", "/admin/users/", "/seasons/access/"],
     "/admin/houses/": ["/admin/houses/", "/houses/", "/admin/users/filter-options/", "/portal/summary/", "/admin/dashboard/", "/events/", "/competitions/", "dashboard-team-showcase"],
-    "/admin/settings/": ["/admin/settings/", "/portal/summary/"],
+    "/admin/settings/": ["/admin/settings/", "/portal/", "/admin/houses/", "/admin/dashboard/", "dashboard-team-showcase"],
     "/seasons/": ["/seasons/"],
   };
   const match = Object.keys(affected).find(prefix => resource.startsWith(prefix));

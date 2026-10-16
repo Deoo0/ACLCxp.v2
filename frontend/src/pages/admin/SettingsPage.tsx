@@ -4,6 +4,7 @@ import type { Row } from "../../services/queries";
 
 function settingField(row: Row): Field {
   const fields: Record<string, Field> = {
+    attendance_counts_for_houses: { name: "value", label: "Include attendance points in house totals", type: "select", required: true, options: [{ label: "Enabled — include attendance points", value: "true" }, { label: "Disabled — exclude attendance points", value: "false" }], hint: "Applies to existing and future attendance points for all houses. House totals and rankings update when saved. Students keep their personal merit points. You can enable this again at any time." },
     leaderboard_house_visibility: { name: "value", label: "Reveal leaderboard houses", type: "select", required: true, options: [{ label: "Hidden — show neutral ranks and points", value: "false" }, { label: "Revealed — show house names and branding", value: "true" }], hint: "Applies to all student leaderboards. Scores and ranks remain visible." },
     announcement: { name: 'value', label: 'Dashboard announcement', type: 'textarea', hint: 'Shown on student dashboards. Leave blank to hide the announcement.' },
     support_email: { name: 'value', label: 'Support email address', type: 'email', placeholder: 'support@example.com', hint: 'The contact address students can use for assistance.' },
@@ -16,7 +17,7 @@ function settingField(row: Row): Field {
 export default function SettingsPage() {
   const [editing, setEditing] = useState<Row | null>(null);
   return <div className="space-y-6">
-    <PageHeading title="Portal settings" description="Manage announcements, support contact details, milestones, registration, and leaderboard visibility. Updates appear when student pages refresh." />
+    <PageHeading title="Portal settings" description="Manage attendance contributions to house points, announcements, support contact details, milestones, registration, and leaderboard visibility. Updates appear when student pages refresh." />
     <Records endpoint="/admin/settings/" columns={[{ key: 'key', label: 'Setting' }, { key: 'description', label: 'Purpose' }, { key: 'value', label: 'Current value' }, { key: 'updated_at', label: 'Updated' }]} actions={row => <button className={secondary} onClick={() => setEditing(row)}>Edit</button>} />
     {editing && <Editor title={`Edit ${settingField(editing).label.toLowerCase()}`} description={String(editing.description || 'Update this setting for the student portal.')} path={`/admin/settings/${editing.id}/`} method="patch" initial={editing} fields={[settingField(editing)]} transform={data => ({ value: String(data.value ?? '') })} onClose={() => setEditing(null)} />}
   </div>;

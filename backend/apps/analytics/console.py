@@ -49,7 +49,11 @@ def houses_with_totals(season=_CURRENT_SEASON):
     member_filter = Q(members__is_active=True, members__role="STUDENT")
     if season:
         member_filter &= Q(members__season_memberships__season=season)
-    points = effective_points(season).order_by().filter(house=OuterRef("pk")).values("house").annotate(total=Sum("points")).values("total")
+    points = effective_points(season)
+    include_attendance = SystemSetting.objects.filter(key="attendance_counts_for_houses").values_list("value", flat=True).first()
+    if include_attendance == "false":
+        points = points.exclude(transaction_type="PARTICIPATION")
+    points = points.order_by().filter(house=OuterRef("pk")).values("house").annotate(total=Sum("points")).values("total")
     return House.objects.annotate(actual_members=Count("members", filter=member_filter, distinct=True),
         actual_points=Coalesce(Subquery(points, output_field=IntegerField()), Value(0))).order_by("-actual_points", "name")
 
