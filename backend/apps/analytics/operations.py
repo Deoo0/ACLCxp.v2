@@ -13,7 +13,11 @@ from apps.results.models import PointsTransaction
 
 def post_points(*, user=None, house=None, points, source_key, actor, reason, kind, event=None, result=None):
     from apps.seasons.scope import require_membership
-    require_membership(user)
+    if event and not event.ticket_required:
+        if user and not eligible(event, user):
+            raise Conflict("This student does not meet the event eligibility rules.")
+    else:
+        require_membership(user)
     house = house or (user.house if user else None)
     entry, created = PointsTransaction.objects.get_or_create(source_key=source_key, defaults=dict(
         user=user, house=house, points=points, reason=reason, transaction_type=kind,
@@ -58,14 +62,17 @@ def check_in(actor, event_id, student_id=None, token=None, *, daily=False, ident
     if identity_proof is not None:
         verify_confirmation(user, identity_proof)
     from apps.seasons.scope import require_membership
-    require_membership(user)
-    if daily or not event.registration_required:
+    if event.ticket_required:
+        require_membership(user)
+    if event.ticket_required and (daily or not event.registration_required):
         from apps.users.models import IntramuralsTicket
         tickets = IntramuralsTicket.objects.filter(status="REDEEMED", redeemed_by__account=user)
         if event.season_id:
             tickets = tickets.filter(season_id=event.season_id)
         if not tickets.exists():
             raise Conflict("A redeemed ticket for this season is required before check-in.")
+    if not eligible(event, user):
+        raise Conflict("This student no longer meets the event eligibility rules.")
     existing = Attendance.objects.filter(event=event, user=user).first()
     if existing:
         if not existing.is_valid:

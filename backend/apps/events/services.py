@@ -16,9 +16,11 @@ class Conflict(APIException):
 
 def eligible(event, user):
     if user and user.is_authenticated and user.role == "STUDENT":
-        from apps.seasons.scope import current_season, valid_membership
+        from apps.seasons.scope import current_season, valid_membership, verified_student
         season = current_season()
-        if not season or season.pk != event.season_id or season.status != "ACTIVE" or not valid_membership(user, season):
+        if not season or season.pk != event.season_id or season.status != "ACTIVE":
+            return False
+        if not (valid_membership(user, season) if event.ticket_required else verified_student(user)):
             return False
     if event.visibility == "PRIVATE":
         return False  # Invitation management is not yet supported.
@@ -43,6 +45,16 @@ def visible_events(queryset, user):
               ("allowed_houses", user.house_id if authenticated else None),
               ("allowed_year_levels", user.year_level if authenticated else None))
     if connection.features.supports_json_field_contains:
+        if authenticated and user.role == "STUDENT":
+            from apps.seasons.scope import current_season, valid_membership, verified_student
+            season = current_season()
+            if not season or season.status != "ACTIVE":
+                return queryset.none()
+            queryset = queryset.filter(season=season)
+            if not valid_membership(user, season):
+                if not verified_student(user):
+                    return queryset.none()
+                audience &= Q(ticket_required=False)
         for field, value in fields:
             match = Q(**{f"{field}__isnull": True}) | Q(**{field: []})
             if value is not None:
@@ -157,6 +169,9 @@ def update_locked(event, serializer):
         raise Conflict("This event status transition is not allowed.")
     if old_status in ("COMPLETED", "CANCELLED"):
         raise Conflict("Finalized events cannot be edited.")
+    if serializer.validated_data.get("ticket_required", event.ticket_required) != event.ticket_required:
+        if event.registrations.exclude(status="CANCELLED").exists() or event.attendance_records.exists():
+            raise Conflict("Ticket requirements cannot change after registrations or check-ins exist.")
     if serializer.validated_data.get("registration_required", event.registration_required) != event.registration_required:
         if event.registrations.exclude(status="CANCELLED").exists() or event.attendance_records.exists():
             raise Conflict("Attendance mode cannot change after active registrations or check-ins exist.")

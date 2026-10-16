@@ -14,7 +14,7 @@ import {
   Badge,
 } from "../../components/admin/ConsoleUI";
 import type { Field } from "../../components/admin/ConsoleUI";
-import { useApi, useWrite } from "../../services/queries";
+import { useApi, useWrite, errorMessage } from "../../services/queries";
 import { AccountFilters } from "../../components/admin/Filters";
 import type { Filters, AccountOptions } from "../../components/admin/Filters";
 import type { Row } from "../../services/queries";
@@ -74,6 +74,10 @@ const userFields: Field[] = [
   },
 ];
 export default function UsersPage() {
+  const [activationStudent, setActivationStudent] = useState<Row | null>(null);
+  const [activationCode, setActivationCode] = useState("");
+  const [activationError, setActivationError] = useState("");
+  const [issuingCode, setIssuingCode] = useState(false);
   const [filters, setFilters] = useState<Filters>({});
   const options = useApi<AccountOptions>("/admin/users/filter-options/");
   const [tab, setTab] = useState("users");
@@ -164,6 +168,17 @@ export default function UsersPage() {
   };
   return (
     <div className="space-y-6">
+      {activationStudent && <Panel><h2 className="font-semibold text-white">Activate {String(activationStudent.student_number)} without a ticket</h2>
+        <p className="mt-2 text-sm text-neutral-300">Check this student's school ID against {String(activationStudent.first_name)} {String(activationStudent.last_name)} before issuing the code. Give it only to this student. The code expires after 24 hours; issuing another invalidates the previous code.</p>
+        {!activationCode && <button disabled={issuingCode} className={`${primary} mt-4`} onClick={async () => {
+          setIssuingCode(true); setActivationError("");
+          try { const response = await api.post(`/admin/roster/${activationStudent.id}/activation-code/`, { identity_verified: true }); setActivationCode(response.data.activation_code); }
+          catch (err) { setActivationError(errorMessage(err)); } finally { setIssuingCode(false); }
+        }}>{issuingCode ? "Issuing…" : "I verified the school ID — issue code"}</button>}
+        {activationCode && <label className="mt-4 block text-sm text-neutral-200">Activation code<textarea readOnly className={`${input} mt-2 w-full`} value={activationCode} onFocus={event => event.target.select()} /><span className="mt-2 block text-xs">Student: open Activate account → Activate without a ticket, then enter your student number and this code.</span></label>}
+        {activationError && <p role="alert" className="mt-3 text-sm text-rose-300">{activationError}</p>}
+        <button className={`${button} mt-4`} onClick={() => { setActivationStudent(null); setActivationCode(""); }}>Close</button>
+      </Panel>}
       <div className="flex flex-wrap gap-2">
         {[
           ["users", "Accounts"],
@@ -252,6 +267,7 @@ export default function UsersPage() {
           title="Student roster"
           description="School-controlled identities used during student activation. Activated records are protected from changes."
           endpoint="/admin/roster/"
+          extraActions={row => !row.account && row.is_eligible ? <button className={button} onClick={() => { setActivationStudent(row); setActivationCode(""); setActivationError(""); }}>Issue activation code</button> : null}
           fields={rosterFields}
           defaults={{ is_eligible: true, year_level: 1 }}
           canCreate

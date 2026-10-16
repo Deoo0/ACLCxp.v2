@@ -154,10 +154,11 @@ class SeasonViewSet(viewsets.GenericViewSet):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def access(request):
+    from .scope import workspace_access
     season = current_season()
     enrolled = valid_membership(request.user, season)
     return Response({"season": SeasonSerializer(season).data if season else None, "enrolled": enrolled,
-                     "can_access": bool(season and season.status == "ACTIVE" and enrolled), "can_redeem": bool(request.user.role == "STUDENT" and season and season.status in ("REGISTRATION", "ACTIVE") and not enrolled)})
+                     "can_access": workspace_access(request.user, season), "can_redeem": bool(request.user.role == "STUDENT" and season and season.status in ("REGISTRATION", "ACTIVE") and not enrolled)})
 
 
 @api_view(["POST"])

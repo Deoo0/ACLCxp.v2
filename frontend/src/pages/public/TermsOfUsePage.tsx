@@ -119,7 +119,7 @@ export default function TermsOfUsePage() {
                             )}
                             {s.contact && (
                                 <div className="mt-2 text-sm text-gray-600 space-y-1">
-                                    <p>📧 <span className="text-gray-400">[Insert Email Address]</span></p>
+                                    <p>📧 <span className="text-gray-400">aclcxp@gmail.com</span></p>
                                     <p>📍 352 Real St. Tacloban City, Philippines, 6500</p>
                                 </div>
                             )}
