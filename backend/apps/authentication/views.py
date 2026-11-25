@@ -51,7 +51,7 @@ def verify_ticket(request):
         return _error("INVALID_TICKET", "This ticket could not be verified. Please check your ticket and try again.")
     if manual_number:
         manual_number = str(manual_number).strip()
-        if not manual_number.isdigit() or len(manual_number) not in (6, 12):
+        if not manual_number.isdigit() or len(manual_number) not in (6, 11):
             return _error("INVALID_TICKET", "This ticket could not be verified. Please check your ticket and try again.")
         ticket = IntramuralsTicket.objects.filter(ticket_number=manual_number).first()
     else:

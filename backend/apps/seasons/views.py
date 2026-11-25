@@ -171,7 +171,7 @@ def redeem(request):
         raise Conflict("Season registration is not open.")
     if valid_membership(request.user, season):
         return Response({"detail": "You are already enrolled in this season."})
-    number = serializers.CharField(max_length=12).run_validation(request.data.get("ticket_number"))
+    number = serializers.CharField(max_length=11).run_validation(request.data.get("ticket_number"))
     ticket = IntramuralsTicket.objects.select_for_update().filter(ticket_number=number, season=season, status="AVAILABLE").first()
     roster = StudentRoster.objects.filter(account=request.user, is_eligible=True).first()
     if not ticket or ticket.redeemed_by_id or not roster:
