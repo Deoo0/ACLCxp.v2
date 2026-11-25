@@ -60,7 +60,7 @@ def read_ticket_numbers(upload):
                 continue
             value = str(cell.value).strip()
             if cell.data_type == "f" or extra.value is not None or not re.fullmatch(r"(?:[0-9]{6}|[0-9]{12})", value):
-                raise ValidationError(f"Row {index}: enter a 6- or 12-digit ticket number as Text; formulas are not accepted.")
+                raise ValidationError(f"Row {index}: enter a 6- or 11-digit ticket number as Text; formulas are not accepted.")
             numbers.append(value)
         if not numbers:
             raise ValidationError("Add at least one ticket number to the Tickets worksheet.")
