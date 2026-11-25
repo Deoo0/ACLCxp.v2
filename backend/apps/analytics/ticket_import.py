@@ -19,7 +19,7 @@ def template_bytes():
     for row in range(2, MAX_ROWS + 2):
         sheet.cell(row, 1).number_format = "@"
     instructions = workbook.create_sheet("Instructions")
-    instructions.append(["Enter one unique 6- or 12-digit ticket number per row in Tickets."])
+    instructions.append(["Enter one unique 6- or 11-digit ticket number per row in Tickets."])
     instructions.append(["Keep cells as Text to preserve leading zeros. Do not change the header."])
     instructions.append(["Up to 5,000 tickets. QR tokens are generated automatically on import."])
     instructions.append(["Existing or duplicate ticket numbers reject the entire import."])
@@ -59,7 +59,7 @@ def read_ticket_numbers(upload):
             if cell.value is None and extra.value is None:
                 continue
             value = str(cell.value).strip()
-            if cell.data_type == "f" or extra.value is not None or not re.fullmatch(r"(?:[0-9]{6}|[0-9]{12})", value):
+            if cell.data_type == "f" or extra.value is not None or not re.fullmatch(r"(?:[0-9]{6}|[0-9]{11})", value):
                 raise ValidationError(f"Row {index}: enter a 6- or 11-digit ticket number as Text; formulas are not accepted.")
             numbers.append(value)
         if not numbers:
